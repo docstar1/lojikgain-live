@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LojikGain Live — Buffettology Analysis</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="./style.css?v=20261026_v5">
 </head>
 <body>
 <header class="topbar">
@@ -16,7 +16,10 @@
     </div>
   </div>
   <div class="search-zone">
-    <input id="tickerInput" type="text" placeholder="Search ticker or company (ITC, AAPL, NIFTY 50)…" autocomplete="off">
+    <div class="search-wrap">
+      <input id="searchInput" type="text" placeholder="Search ticker or company (ITC, AAPL, NIFTY 50)…" autocomplete="off">
+      <div id="searchDropdown" class="search-dropdown hidden"></div>
+    </div>
     <div class="seg">
       <button class="seg-btn is-on" data-market="AUTO">Auto</button>
       <button class="seg-btn" data-market="INDIA">India</button>
@@ -25,6 +28,7 @@
     <button class="btn" id="analyseBtn">Analyse</button>
   </div>
   <div class="toolbar">
+    <span class="trial-pill" id="trialPill">7 Days Free Trial</span>
     <button class="tool-btn" id="authBtn">Sign In</button>
     <button class="tool-btn" id="themeToggle">Theme</button>
   </div>
@@ -32,10 +36,10 @@
 
 <div class="container">
   <div id="trialBar" class="trial-bar hidden"></div>
-  <div id="statusLine" class="status-line">Loading stocks_data.json…</div>
+  <div id="statusLine" class="status-line">Loading stocks…</div>
 
   <div class="section-title">Quick picks</div>
-  <div id="quickPicks" class="row"></div>
+  <div id="quickPicks" class="row quick-chips"></div>
 
   <div id="emptyState" class="empty">Select a stock to view its Buffettology scorecard.</div>
 
@@ -97,7 +101,7 @@
         <div class="stat"><b>Access</b><span id="accessStatus">—</span></div>
       </div>
       <div class="row" style="margin-top:8px">
-        <button class="btn warn" id="testExpiryBtn">Test Expiry</button>
+        <button class="btn warn" id="expBtn">Simulate Trial Expiry</button>
         <button class="btn secondary" id="resetTrialBtn">Reset Trial</button>
         <button class="btn secondary" id="logoutBtn">Logout</button>
       </div>
@@ -116,6 +120,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="app.js"></script>
+<script src="./app.js?v=20261026_v5"></script>
 </body>
 </html>
