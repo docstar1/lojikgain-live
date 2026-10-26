@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LojikLab — Buffettology investment analysis engine">
+  <meta name="color-scheme" content="light dark">
+  <title>LojikLab — Buffettology Investment Analysis Engine</title>
+  <link rel="stylesheet" href="./founder_style.css?v=9">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ======================= APPLE GLASS TOP BAR ======================= -->
+<header class="topbar" role="banner">
+  <div class="topbar-main">
+
+    <!-- Brand -->
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 17l4-8 5 6 4-9 5 11" opacity="0"/>
+          <path d="M4 18c0-7 4-11 8-11s8 4 8 11" fill="currentColor" fill-opacity=".15" stroke="none"/>
+          <path d="M8 18V9m4 9V5m4 13v-7" stroke="currentColor"/>
+          <path d="M4 18h16" stroke="currentColor"/>
+        </svg>
+      </span>
+      <div class="brand-text">
+        <h1 class="brand-title">LojikLab</h1>
+        <p class="brand-tag">Buffettology Engine</p>
+      </div>
+    </div>
+
+    <!-- Spotlight command bar -->
+    <div class="search-zone">
+      <form id="searchForm" class="search-shell" role="search" autocomplete="off" onsubmit="return false;">
+        <svg class="search-glyph" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/></svg>
+        <input id="tickerInput" type="text" placeholder="Search any NSE, BSE, or US stock (e.g. Tata Motors, ITC, Reliance, AAPL, WMT)…" autocomplete="off" spellcheck="false" aria-label="Company or ticker">
+        <div class="seg" id="marketSeg" role="group" aria-label="Market">
+          <button id="segAuto" type="button" class="seg-btn is-on" data-market="AUTO">Auto</button>
+          <button id="segIndia" type="button" class="seg-btn" data-market="INDIA">India</button>
+          <button id="segUs" type="button" class="seg-btn" data-market="USA">US</button>
+        </div>
+        <button id="analyseBtn" type="button" class="btn btn-primary" aria-label="Run Buffettology analysis">Analyse</button>
+        <div class="search-dropdown" id="searchDropdown" role="listbox" aria-label="Ticker suggestions" hidden></div>
+      </form>
+      <!-- hidden-but-bound market select: kept so app.js bindings stay intact -->
+      <select id="marketSelect" class="sr-only" aria-hidden="true" tabindex="-1">
+        <option value="AUTO" selected>AUTO</option>
+        <option value="INDIA">INDIA</option>
+        <option value="USA">USA</option>
+      </select>
+    </div>
+
+    <!-- Compact toolbar -->
+    <nav class="toolbar" aria-label="Utility controls">
+
+      <!-- T-Bond pill -->
+      <div class="tool tool-bond" title="Risk-free T-Bond rate (%) — leave blank for the engine's auto rate">
+        <span class="tool-ico" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19h16M4 19c4-1 6-4 7-8 1 4 3 7 7 8" /><path d="M8 8l4-4 4 4" opacity="0"/></svg></span>
+        <input id="tbondRate" type="number" step="0.01" min="0" max="100" placeholder="auto" inputmode="decimal" aria-label="Risk-free T-Bond rate percent">
+        <button id="tbondReset" type="button" class="mini-btn" title="Clear override — use engine auto rate" aria-label="Reset risk-free rate to auto">⟳</button>
+        <p class="hint tbond-hint" id="tbondHint">auto — resolved by the engine</p>
+      </div>
+
+      <!-- Workbook / samples popover -->
+      <details class="tool tool-pop" id="workbookPop">
+        <summary class="tool-btn" title="Choose a sample workbook or upload your own .xlsx">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+          <span>Workbooks</span>
+        </summary>
+        <div class="tool-panel">
+          <div class="field">
+            <label for="sampleSelect">Sample workbook</label>
+            <select id="sampleSelect">
+              <option value="">— none —</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fileInput">Upload .xlsx</label>
+            <label class="file-btn" for="fileInput">
+              <span>Choose file</span>
+              <span class="file-name" id="fileName">—</span>
+            </label>
+            <input id="fileInput" class="sr-only" type="file" accept=".xlsx">
+          </div>
+          <p class="hint">Offline workbooks bypass the live data sources — great for private filings.</p>
+        </div>
+      </details>
+
+      <!-- AI popover -->
+      <details class="tool tool-pop" id="aiPanel">
+        <summary class="tool-btn" title="Optional AI narrative — the engine runs fully without it">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7Z"/></svg>
+          <span>AI</span>
+        </summary>
+        <div class="tool-panel">
+          <div class="field">
+            <label for="aiKey">API key</label>
+            <input id="aiKey" type="password" placeholder="AIza… / gsk_… / sk-…" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="aiProvider">Provider</label>
+            <select id="aiProvider">
+              <option value="auto" selected>auto (free fallback)</option>
+              <option value="openrouter">openrouter (free)</option>
+              <option value="pollinations">pollinations (free, no key)</option>
+              <option value="gemini">gemini</option>
+              <option value="groq">groq</option>
+              <option value="openai">openai</option>
+              <option value="together">together</option>
+            </select>
+          </div>
+          <p class="hint ai-note">Optional — a free AI narrative is added automatically (OpenRouter / Pollinations, keyless) unless you supply your own key.</p>
+        </div>
+      </details>
+
+      <button id="exportBtn" type="button" class="tool-btn" disabled title="Download the populated Excel workbook">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg>
+        <span>Export</span>
+      </button>
+      <button id="printBtn" type="button" class="tool-btn" title="Print / Save as PDF">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6m0 4v8H6v-8"/><rect x="3" y="9" width="18" height="7" rx="1.6"/></svg>
+      </button>
+      <button id="resetBtn" type="button" class="tool-btn" title="Reset everything">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      </button>
+      <button id="themeToggle" type="button" class="tool-btn" aria-pressed="false" title="Switch to dark theme" aria-label="Toggle light or dark theme">
+        <svg class="ico-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2m0 14.6v2.2M2.5 12h2.2m14.6 0h2.2M5 5l1.6 1.6M17.4 17.4L19 19M19 5l-1.6 1.6M6.6 17.4L5 19"/></svg>
+      </button>
+
+      <!-- Stop server -->
+      <button id="stopServerBtn" type="button" class="tool-btn stop-btn" title="Shut down the LojikLab web server">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v8"/><path d="M6.6 6.6a8 8 0 1 0 10.8 0"/></svg>
+        <span class="stop-label">Stop Server</span>
+        <span class="stop-confirm" hidden>Confirm stop?</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="statusbar" id="statusStrip" role="status" aria-live="polite" data-state="idle">
+    <span class="spinner" id="statusSpinner" aria-hidden="true"></span>
+    <span class="status-text" id="statusText">Idle — search a stock or pick a sample workbook.</span>
+    <span class="status-meta" id="statusMeta"></span>
+  </div>
+</header>
+
+<main id="main">
+  <div id="errorBanner" class="error-banner" role="alert" hidden></div>
+
+  <!-- ======================= EMPTY / WELCOME STATE ======================= -->
+  <section id="emptyState" class="panel empty-state" aria-label="Welcome">
+    <div class="qg-hero">
+      <h2 class="qg-title">Analyse any listed company.</h2>
+      <p class="qg-sub">Type a symbol in the search bar — or start from a pick. 5,000+ Indian stocks via Screener.in, 10,000+ US filers via SEC EDGAR.</p>
+    </div>
+
+    <section class="quick-gallery" aria-label="Quick launch">
+      <div class="qg-row">
+        <div class="qg-group">
+          <h3 class="qg-label">India · NSE / BSE <span class="qg-note">5,000+ stocks</span></h3>
+          <div class="qg-chips">
+            <button type="button" class="quick-chip" data-ticker="TATAMOTORS" data-market="INDIA"><span class="chip-sym">TATAMOTORS</span><span class="chip-name">Tata Motors</span></button>
+            <button type="button" class="quick-chip" data-ticker="ITC" data-market="INDIA"><span class="chip-sym">ITC</span><span class="chip-name">ITC Ltd</span></button>
+            <button type="button" class="quick-chip" data-ticker="HDFCBANK" data-market="INDIA"><span class="chip-sym">HDFCBANK</span><span class="chip-name">HDFC Bank</span></button>
+            <button type="button" class="quick-chip" data-ticker="RELIANCE" data-market="INDIA"><span class="chip-sym">RELIANCE</span><span class="chip-name">Reliance Industries</span></button>
+            <button type="button" class="quick-chip" data-ticker="TCS" data-market="INDIA"><span class="chip-sym">TCS</span><span class="chip-name">Tata Consultancy</span></button>
+            <button type="button" class="quick-chip" data-ticker="INFY" data-market="INDIA"><span class="chip-sym">INFY</span><span class="chip-name">Infosys</span></button>
+            <button type="button" class="quick-chip" data-ticker="BAJFINANCE" data-market="INDIA"><span class="chip-sym">BAJFINANCE</span><span class="chip-name">Bajaj Finance</span></button>
+            <button type="button" class="quick-chip" data-ticker="MARUTI" data-market="INDIA"><span class="chip-sym">MARUTI</span><span class="chip-name">Maruti Suzuki</span></button>
+            <button type="button" class="quick-chip" data-ticker="SUNPHARMA" data-market="INDIA"><span class="chip-sym">SUNPHARMA</span><span class="chip-name">Sun Pharma</span></button>
+            <button type="button" class="quick-chip" data-ticker="LT" data-market="INDIA"><span class="chip-sym">LT</span><span class="chip-name">Larsen &amp; Toubro</span></button>
+            <button type="button" class="quick-chip" data-ticker="TITAN" data-market="INDIA"><span class="chip-sym">TITAN</span><span class="chip-name">Titan Company</span></button>
+            <button type="button" class="quick-chip" data-ticker="HAL" data-market="INDIA"><span class="chip-sym">HAL</span><span class="chip-name">Hindustan Aeronautics</span></button>
+          </div>
+        </div>
+        <div class="qg-group">
+          <h3 class="qg-label">United States · SEC EDGAR <span class="qg-note">10,000+ filers</span></h3>
+          <div class="qg-chips">
+            <button type="button" class="quick-chip" data-ticker="AAPL" data-market="USA"><span class="chip-sym">AAPL</span><span class="chip-name">Apple</span></button>
+            <button type="button" class="quick-chip" data-ticker="MSFT" data-market="USA"><span class="chip-sym">MSFT</span><span class="chip-name">Microsoft</span></button>
+            <button type="button" class="quick-chip" data-ticker="WMT" data-market="USA"><span class="chip-sym">WMT</span><span class="chip-name">Walmart</span></button>
+            <button type="button" class="quick-chip" data-ticker="BRK-B" data-market="USA"><span class="chip-sym">BRK-B</span><span class="chip-name">Berkshire</span></button>
+            <button type="button" class="quick-chip" data-ticker="GOOGL" data-market="USA"><span class="chip-sym">GOOGL</span><span class="chip-name">Alphabet</span></button>
+            <button type="button" class="quick-chip" data-ticker="KO" data-market="USA"><span class="chip-sym">KO</span><span class="chip-name">Coca-Cola</span></button>
+            <button type="button" class="quick-chip" data-ticker="JNJ" data-market="USA"><span class="chip-sym">JNJ</span><span class="chip-name">Johnson &amp; Johnson</span></button>
+            <button type="button" class="quick-chip" data-ticker="PG" data-market="USA"><span class="chip-sym">PG</span><span class="chip-name">Procter &amp; Gamble</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="qg-group qg-samples">
+        <h3 class="qg-label">Offline sample workbooks</h3>
+        <div class="qg-chips">
+          <button type="button" class="quick-chip chip-sample" data-sample="ITC.xlsx"><span class="chip-sym">ITC.xlsx</span><span class="chip-name">Workbook</span></button>
+          <button type="button" class="quick-chip chip-sample" data-sample="HDFCBANK.xlsx"><span class="chip-sym">HDFCBANK.xlsx</span><span class="chip-name">Workbook</span></button>
+          <button type="button" class="quick-chip chip-sample" data-sample="INFY.xlsx"><span class="chip-sym">INFY.xlsx</span><span class="chip-name">Workbook</span></button>
+          <button type="button" class="quick-chip chip-sample" data-sample="BHEL.xlsx"><span class="chip-sym">BHEL.xlsx</span><span class="chip-name">Workbook</span></button>
+          <button type="button" class="quick-chip chip-sample" data-sample="IREDA.xlsx"><span class="chip-sym">IREDA.xlsx</span><span class="chip-name">Workbook</span></button>
+          <button type="button" class="quick-chip chip-sample" data-sample="Investment Analysis Engine Template- COPY THIS.xlsx"><span class="chip-sym">Walmart Template</span><span class="chip-name">Empty workbook</span></button>
+        </div>
+      </div>
+    </section>
+
+    <div class="empty-grid">
+      <article class="card">
+        <h3 class="card-title">16-point Buffettology checklist</h3>
+        <p class="card-sub">Every listed company is put through the full Buffettology gauntlet — durable competitive advantage, consistent earnings power, ability to generate new capital, management quality, R&amp;D as a percentage of operating income, profitability without leverage, and more. Each point carries the original principle text, the live calculation, and a pass/fail verdict.</p>
+        <p class="card-sub dim">Sub-points are folded in (1.1, 1.2, 4.1, 4.2, 5.1–5.5, 9.1, 13.1), giving <strong>23 scored points</strong> out of the 16 major questions.</p>
+      </article>
+      <article class="card">
+        <h3 class="card-title">Scored out of /23</h3>
+        <p class="card-sub">The score is the number of points that pass. A company scoring <strong>15 or more</strong> is in the "Realm of Confidence" — the engine flags that explicitly in the scorecard. You can override any point's YES/NO verdict locally and the total recomputes instantly.</p>
+        <p class="card-sub dim">Company classification runs alongside: <strong>Company I–IV</strong> (Durable Competitive Advantage → Commodity) and the <strong>ROE vs ROCE 4-group matrix</strong>.</p>
+      </article>
+      <article class="card">
+        <h3 class="card-title">Three valuation models</h3>
+        <ul class="mini-list">
+          <li><strong>Model 1</strong> — Book-value compounding (Point 14): project EPS and book value forward, average P/E, then compound the return to an intrinsic value.</li>
+          <li><strong>Model 2</strong> — Historical EPS growth (Point 15A): EPS CAGR forward, average P/E, compounding return to intrinsic value.</li>
+          <li><strong>Model 3</strong> — Bond-coupon + par book value (Point 15B): value the business as a bond paying a coupon at the treasury rate, plus its residual book value.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3 class="card-title">Technicals &amp; money packets</h3>
+        <p class="card-sub">OBV, Fear/Greed volume-by-price, RSI, liquidity, inventory pile-up, "Mum's rule" (current ratio vs earning power) and the 1-2-3 money packet tracker. Then the <strong>When To Sell</strong> tab compares ten years of holding against ten years of treasury bonds and lists the three classic selling conditions.</p>
+        <p class="card-sub dim">Data source: screener.in for India, SEC EDGAR for the US, local <code>.xlsx</code> samples, or your own workbook.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ======================= EXECUTIVE SCORECARD ======================= -->
+  <section id="scorecard" class="scorecard" aria-label="Executive scorecard" hidden>
+    <article class="tile tile-score">
+      <p class="tile-label">Score</p>
+      <p class="tile-big" id="scScore">— / 23</p>
+      <p class="tile-line" id="scVerdict">—</p>
+      <span class="badge" id="scRealm">Realm of Confidence</span>
+      <p class="tile-sub" id="scBreakdown"></p>
+    </article>
+
+    <article class="tile">
+      <p class="tile-label">Company</p>
+      <p class="tile-big tile-mid" id="scCompany">—</p>
+      <p class="tile-line">
+        <span class="badge" id="scTicker">—</span>
+        <span class="badge" id="scMarket">—</span>
+      </p>
+      <p class="tile-sub" id="scSector">—</p>
+    </article>
+
+    <article class="tile">
+      <p class="tile-label">Company Type</p>
+      <p class="tile-big tile-mid" id="scCompanyType">—</p>
+      <p class="tile-sub" id="scCompanyTypeDetail">—</p>
+    </article>
+
+    <article class="tile">
+      <p class="tile-label">ROE vs ROCE Group</p>
+      <p class="tile-big tile-mid" id="scRoeGroup">—</p>
+      <p class="tile-sub" id="scRoeGroupDetail">—</p>
+    </article>
+
+    <article class="tile">
+      <p class="tile-label">Valuation</p>
+      <p class="tile-line price-line"><span class="k">Current price</span><span class="v" id="scPrice">—</span></p>
+      <p class="tile-line price-line"><span class="k">Model 1 · Book Value IV</span><span class="v" id="scIvModel1">—</span></p>
+      <p class="tile-line price-line"><span class="k">Model 2 · EPS Growth IV</span><span class="v" id="scIvModel2">—</span></p>
+      <p class="tile-line price-line"><span class="k">Model 3 · Bond / Par BV IV</span><span class="v" id="scIvModel3">—</span></p>
+      <p class="tile-line price-line"><span class="k">Composite / Avg IV</span><span class="v" id="scIntrinsic">—</span></p>
+      <p class="tile-line price-line"><span class="k">Upside / downside</span><span class="v" id="scUpside">—</span></p>
+    </article>
+
+    <article class="tile tile-warn" id="scFinTile" hidden>
+      <p class="tile-label">⚠ Financial Institution</p>
+      <p class="tile-sub">Bank / NBFC detected — Points 7 &amp; 8 use the Bank rules (asset quality, provisioning, non-performing assets) instead of the standard business tests.</p>
+    </article>
+  </section>
+
+  <!-- ======================= TABS ======================= -->
+  <div class="tabstrip" role="tablist" aria-label="Analysis sections">
+    <button id="tab-summary" class="tab is-active" type="button" role="tab" aria-selected="true" aria-controls="panel-summary" data-panel="panel-summary">Analyze &amp; Summary</button>
+    <button id="tab-statement" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-statement" data-panel="panel-statement" tabindex="-1">Financial Statement</button>
+    <button id="tab-computation" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-computation" data-panel="panel-computation" tabindex="-1">Computation &amp; Valuation</button>
+    <button id="tab-technicals" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-technicals" data-panel="panel-technicals" tabindex="-1">Technicals &amp; Money Packets</button>
+    <button id="tab-sell" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-sell" data-panel="panel-sell" tabindex="-1">When To Sell</button>
+  </div>
+
+  <!-- ======================= TAB 1 ======================= -->
+  <section id="panel-summary" class="tabpanel" role="tabpanel" aria-labelledby="tab-summary" tabindex="0">
+    <div class="placeholder" data-placeholder>Run an analysis first — the 23-point Buffettology checklist appears here.</div>
+
+    <article class="card" id="aiNarrative" hidden></article>
+
+    <div class="summary-layout" id="summaryLayout" hidden>
+      <nav class="point-index" id="pointIndex" aria-label="Point index"></nav>
+      <div class="point-cards" id="pointCards"></div>
+    </div>
+
+    <div id="exhibitAWrap" hidden>
+      <h2 class="section-title">Exhibit A — Company I–IV classification</h2>
+      <p class="caption" id="exhibitACaption">Company I — DCA: consistently strong &amp; rising. Company II — Commodity: erratic. Company III — DCA in trouble: sharp decline. Company IV — DCA in trouble: actual loss.</p>
+      <div class="tbl-wrap" id="exhibitATable"></div>
+      <h3 class="sub-title">This company — EPS / DPS / book value per share</h3>
+      <div class="tbl-wrap" id="exhibitACompany"></div>
+    </div>
+
+    <div id="groupMatrixWrap" hidden>
+      <h2 class="section-title">ROE vs ROCE — four-group matrix</h2>
+      <div class="tbl-wrap" id="groupMatrixTable"></div>
+      <div class="chart-box chart-tall">
+        <canvas id="groupMatrixChart" aria-label="ROE and ROCE by group over time"></canvas>
+      </div>
+      <p class="caption" id="groupMatrixComment"></p>
+    </div>
+  </section>
+
+  <!-- ======================= TAB 2 ======================= -->
+  <section id="panel-statement" class="tabpanel" role="tabpanel" aria-labelledby="tab-statement" tabindex="0" hidden>
+    <div class="placeholder" data-placeholder>Run an analysis first — the financial statement appears here.</div>
+
+    <div id="stmtWrap" hidden>
+      <div class="chart-grid">
+        <div class="chart-box">
+          <h3 class="chart-title">EPS · DPS · Book value per share</h3>
+          <canvas id="chartEps" aria-label="EPS, DPS and book value per share over time"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3 class="chart-title">Revenue vs net profit vs net margin</h3>
+          <canvas id="chartRevenue" aria-label="Revenue and net profit bars with net margin line"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3 class="chart-title">ROE · ROCE · ROA</h3>
+          <canvas id="chartReturns" aria-label="Return on equity, return on capital employed and return on assets"></canvas>
+        </div>
+      </div>
+      <div class="stmt-sections" id="stmtTables"></div>
+    </div>
+  </section>
+
+  <!-- ======================= TAB 3 ======================= -->
+  <section id="panel-computation" class="tabpanel" role="tabpanel" aria-labelledby="tab-computation" tabindex="0" hidden>
+    <div class="placeholder" data-placeholder>Run an analysis first — the computation &amp; valuation models appear here.</div>
+
+    <div id="compWrap" hidden>
+      <div class="comp-grid">
+        <article class="card span-2" id="compRetained"></article>
+        <article class="card span-2" id="compInitial"></article>
+        <article class="card span-2" id="compBookValue"></article>
+        <article class="card span-2" id="compEpsGrowth"></article>
+        <article class="card span-2" id="compBond"></article>
+
+        <!-- TI BA-35 Solar Financial Calculator -->
+        <article class="card ti-card span-2" id="tiCalc">
+          <h3 class="card-title">TI BA-35 Solar Financial Calculator</h3>
+          <p class="card-sub">Point 10 helper — compound growth and relative value against the treasury rate.</p>
+          <div class="ti-display" id="tiDisplay" aria-live="polite">0.00</div>
+          <div class="ti-grid">
+            <div class="field"><label for="tiPV">PV</label><input id="tiPV" type="number" step="any" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="tiFV">FV</label><input id="tiFV" type="number" step="any" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="tiPMT">PMT</label><input id="tiPMT" type="number" step="any" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="tiN">N</label><input id="tiN" type="number" step="any" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="tiI">I%</label><input id="tiI" type="number" step="any" inputmode="decimal" placeholder="0"></div>
+            <div class="field">
+              <label for="tiCPT">CPT</label>
+              <select id="tiCPT">
+                <option value="i" selected>i</option>
+                <option value="FV">FV</option>
+                <option value="PV">PV</option>
+                <option value="NPV">NPV</option>
+              </select>
+            </div>
+          </div>
+          <div class="ti-keys">
+            <button id="tiCPTBtn" type="button" class="ti-key ti-key-cpt">CPT</button>
+            <button id="tiRight" type="button" class="ti-key">→</button>
+            <button id="tiCEC" type="button" class="ti-key">CE/C</button>
+            <button id="tiOnOff" type="button" class="ti-key">ON/OFF</button>
+            <button id="tiClear" type="button" class="ti-key">CLEAR</button>
+          </div>
+          <div class="ti-actions">
+            <button id="tiLoad" type="button" class="btn btn-small">Load from analysis</button>
+            <p class="hint">PV = price 20 years ago (oldest available price) · FV = current price · N = 20 · I% = treasury rate.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= TAB 4 ======================= -->
+  <section id="panel-technicals" class="tabpanel" role="tabpanel" aria-labelledby="tab-technicals" tabindex="0" hidden>
+    <div class="placeholder" data-placeholder>Run an analysis first — technicals &amp; money packets appear here.</div>
+
+    <div id="techWrap" hidden>
+      <div class="stat-row" id="techHeader"></div>
+      <div class="tech-grid">
+        <article class="card span-2">
+          <h3 class="card-title">On-Balance Volume</h3>
+          <div class="chart-box"><canvas id="chartObv" aria-label="On-balance volume over time"></canvas></div>
+          <div class="stat-row" id="obvStats"></div>
+          <p class="note" id="obvNote"></p>
+        </article>
+
+        <article class="card span-2">
+          <h3 class="card-title">Fear / Greed — volume by price</h3>
+          <div class="chart-box chart-tall"><canvas id="chartFearGreed" aria-label="Volume by price histogram"></canvas></div>
+          <div class="stat-row" id="fearGreedStats"></div>
+          <p class="note note-strong">Buying should occur only after a fear bar, selling only after a greed bar.</p>
+        </article>
+
+        <article class="card span-2">
+          <h3 class="card-title">RSI — relative strength index</h3>
+          <div class="chart-box"><canvas id="chartRsi" aria-label="RSI over time with 30 and 70 guide lines"></canvas></div>
+          <div class="stat-row" id="rsiStats"></div>
+          <p class="note note-strong" id="rsiRule">RSI SHOULD HAVE THE FINAL SAY — SELL IF IT SAYS SO NO MATTER WHAT.</p>
+        </article>
+
+        <article class="card">
+          <h3 class="card-title">Volume &amp; liquidity</h3>
+          <div class="stat-list" id="volumeStats"></div>
+        </article>
+
+        <article class="card">
+          <h3 class="card-title">Inventory pile-up</h3>
+          <div class="chart-box chart-short"><canvas id="chartInventory" aria-label="Inventory as a percentage of sales by year"></canvas></div>
+          <div class="stat-list" id="inventoryStats"></div>
+        </article>
+
+        <article class="card">
+          <h3 class="card-title">Earning power vs current ratio — "Mum's rule"</h3>
+          <div class="stat-list" id="mumsStats"></div>
+        </article>
+
+        <article class="card">
+          <h3 class="card-title">1-2-3 money packet tracker</h3>
+          <div class="packet-visual" id="packetVisual" aria-hidden="true"></div>
+          <div class="stat-list" id="packetStats"></div>
+          <p class="note" id="packetDetail"></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= TAB 5 ======================= -->
+  <section id="panel-sell" class="tabpanel" role="tabpanel" aria-labelledby="tab-sell" tabindex="0" hidden>
+    <div class="placeholder" data-placeholder>Run an analysis first — the when-to-sell analysis appears here.</div>
+
+    <div id="sellWrap" hidden>
+      <article class="card">
+        <h3 class="card-title">Stock vs bonds — ten year outcome</h3>
+        <div class="tbl-wrap" id="sellTable"></div>
+        <div class="stat-row" id="sellVerdict"></div>
+        <div class="chart-box"><canvas id="chartSell" aria-label="Ten year value of holding the stock versus holding bonds"></canvas></div>
+      </article>
+
+      <article class="card">
+        <h3 class="card-title">The three selling conditions</h3>
+        <ol class="checklist" id="sellConditions"></ol>
+        <p class="hint">Tick boxes are remembered locally on this device.</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>LojikLab — Buffettology Investment Analysis Engine</span>
+  <span class="footer-meta" id="footerMeta"></span>
+</footer>
+
+<!-- ======================= SERVER STOPPED OVERLAY ======================= -->
+<div id="shutdownOverlay" class="shutdown-overlay" hidden role="alertdialog" aria-modal="true" aria-labelledby="shutdownTitle" aria-describedby="shutdownDesc">
+  <div class="shutdown-card">
+    <div class="shutdown-glyph" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.6 6.6a8 8 0 1 0 10.8 0"/></svg>
+    </div>
+    <h2 id="shutdownTitle">LojikLab Server Stopped</h2>
+    <p class="shutdown-sub" id="shutdownDesc">Nothing is running in the background. You can safely close this browser window.</p>
+    <button type="button" class="btn btn-small" id="shutdownRetryBtn">Recheck connection</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="./founder_app.js?v=9"></script>
+<div id="adminGateOverlay" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:99999;"><form style="background:#111624;padding:24px;border-radius:12px;min-width:320px;color:#fff;"><h2>Admin Login</h2><input name="email" type="email" placeholder="email" style="width:100%;margin:8px 0;padding:8px;" /><input name="password" type="password" placeholder="password" style="width:100%;margin:8px 0;padding:8px;" /><button type="submit" style="width:100%;padding:8px;">Login</button></form></div>
+</body>
+</html>
