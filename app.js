@@ -18,7 +18,7 @@ function staticAccessGranted(u) {
 }
 function normalizeUser(u) {
   if (!u) return null;
-  const isAdmin = !!u.is_admin || ["admin@lojikgain.com","founder@lojikgain.com","admin"].includes((u.email||"").toLowerCase().trim());
+  const isAdmin = !!u.is_admin || ["dr.timothysuraj@gmail.com","admin"].includes((u.email||"").toLowerCase().trim());
   if (isAdmin) u = { ...u, is_admin: true, is_paid: true };
   const tdl = isAdmin ? 9999 : staticTrialDaysLeft(u);
   return { ...u, is_admin: isAdmin, trial_days_left: tdl, trial_expired: isAdmin ? false : (!staticAccessGranted(u) && !u.is_paid), access_granted: isAdmin ? true : staticAccessGranted(u), plan_type: (u.is_paid || isAdmin) ? "pro" : null };
@@ -34,8 +34,8 @@ async function authRegister(email, name, password, provider) {
 }
 async function authLogin(email, password) {
   const em = (email || "").toLowerCase().trim();
-  const adminEmails = ["admin@lojikgain.com", "founder@lojikgain.com", "admin"];
-  if (adminEmails.includes(em) && password === "LojikAdmin@2026") {
+  const adminEmails = ["dr.timothysuraj@gmail.com", "admin"];
+  if (adminEmails.includes(em) && password === "Loginme1") {
     const now = new Date();
     const u = { id: Date.now(), email: em, name: "Admin", auth_provider: "email", created_at: now.toISOString(), trial_start: now.toISOString(), trial_end: new Date(now.getTime() + 9999 * 86400000).toISOString(), is_paid: true, is_admin: true, utr: null };
     staticSaveUser(u);
