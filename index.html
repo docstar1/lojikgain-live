@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LojikGain Live — Buffettology Analysis</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">LG</span>
+    <div>
+      <h1 class="brand-title">LojikGain Live</h1>
+      <p class="brand-tag">Buffettology Engine — 31 stocks & indices</p>
+    </div>
+  </div>
+  <div class="search-zone">
+    <input id="tickerInput" type="text" placeholder="Search ticker or company (ITC, AAPL, NIFTY 50)…" autocomplete="off">
+    <div class="seg">
+      <button class="seg-btn is-on" data-market="AUTO">Auto</button>
+      <button class="seg-btn" data-market="INDIA">India</button>
+      <button class="seg-btn" data-market="USA">US</button>
+    </div>
+    <button class="btn" id="analyseBtn">Analyse</button>
+  </div>
+  <div class="toolbar">
+    <button class="tool-btn" id="authBtn">Sign In</button>
+    <button class="tool-btn" id="themeToggle">Theme</button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="trialBar" class="trial-bar hidden"></div>
+  <div id="statusLine" class="status-line">Loading stocks_data.json…</div>
+
+  <div class="section-title">Quick picks</div>
+  <div id="quickPicks" class="row"></div>
+
+  <div id="emptyState" class="empty">Select a stock to view its Buffettology scorecard.</div>
+
+  <div id="detail" class="detail hidden">
+    <div class="card">
+      <h2 id="dCompany">—</h2>
+      <div class="row" style="margin-bottom:8px">
+        <span class="badge" id="dTicker">—</span>
+        <span class="badge" id="dMarket">—</span>
+        <span class="badge" id="dSector">—</span>
+      </div>
+      <p class="muted" id="dIndustry">—</p>
+      <div class="stat-row">
+        <div class="stat"><b>Current price</b><span id="dPrice">—</span></div>
+        <div class="stat"><b>52W high</b><span id="dHigh">—</span></div>
+        <div class="stat"><b>52W low</b><span id="dLow">—</span></div>
+        <div class="stat"><b>Currency</b><span id="dCurrency">—</span></div>
+      </div>
+      <div class="stat-row" style="margin-top:10px">
+        <div class="stat"><b>Quality score</b><span id="dScore">— / 23</span></div>
+        <div class="stat"><b>Tier</b><span id="dTier">—</span></div>
+        <div class="stat"><b>Fear/Greed</b><span id="dFG">—</span></div>
+      </div>
+      <div class="chart-box"><canvas id="priceChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Fear &amp; Greed meter</h2>
+      <div class="stat-row">
+        <div class="stat"><b>Score</b><span id="fgScore">—</span></div>
+        <div class="stat"><b>Zone</b><span id="fgZone">—</span></div>
+        <div class="stat"><b>Tier</b><span id="fgTier">—</span></div>
+      </div>
+      <div class="chart-box"><canvas id="fgChart"></canvas></div>
+      <p class="muted" style="margin-top:10px">Pre-computed sanitized output only. Full 23-point analysis available on the private Render deployment.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Auth modal -->
+<div id="authModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h2 id="authTitle">Sign in</h2>
+    <div id="authForms">
+      <div class="field"><label>Email</label><input id="authEmail" type="email" placeholder="you@example.com"></div>
+      <div class="field"><label>Name</label><input id="authName" type="text" placeholder="Your name"></div>
+      <div class="field"><label>Password</label><input id="authPassword" type="password" placeholder="••••••"></div>
+      <div class="row">
+        <button class="btn" id="loginBtn">Email Sign In</button>
+        <button class="btn secondary" id="registerBtn">Register</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn secondary" id="googleBtn">Continue with Google</button>
+      </div>
+    </div>
+    <div id="authStatus" class="muted" style="margin-top:10px"></div>
+    <div id="trialSection" class="hidden" style="margin-top:12px">
+      <div class="stat-row">
+        <div class="stat"><b>Trial days left</b><span id="trialDays">—</span></div>
+        <div class="stat"><b>Access</b><span id="accessStatus">—</span></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn warn" id="testExpiryBtn">Test Expiry</button>
+        <button class="btn secondary" id="resetTrialBtn">Reset Trial</button>
+        <button class="btn secondary" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+    <div id="upiSection" class="hidden" style="margin-top:12px">
+      <h3>Unlock full access — ₹10</h3>
+      <p class="muted">Scan the UPI QR and enter the 12-digit UTR to auto-unlock.</p>
+      <div class="qr"><img id="upiQr" alt="UPI QR" width="180" height="180"></div>
+      <p class="muted">UPI ID: <b id="upiId">—</b></p>
+      <div class="field"><label>12-digit UTR</label><input id="utrInput" type="text" maxlength="12" placeholder="123456789012"></div>
+      <button class="btn" id="verifyUtrBtn">Verify &amp; Unlock</button>
+      <div id="upiMsg" class="muted" style="margin-top:6px"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn secondary" id="closeAuthBtn">Close</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
