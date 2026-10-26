@@ -1,125 +1,202 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LojikGain Live — Buffettology Analysis</title>
-<link rel="stylesheet" href="./style.css?v=20261026_v5">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LojikGain — Statistical Consistency & Market Mood</title>
+  <link rel="stylesheet" href="./style.css?v=20261026_v7" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
-    <span class="brand-mark">LG</span>
-    <div>
-      <h1 class="brand-title">LojikGain Live</h1>
-      <p class="brand-tag">Buffettology Engine — 31 stocks & indices</p>
+  <div class="aurora" aria-hidden="true"></div>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo">LojikGain</div>
+      <div class="nav-center">
+        <button class="market-pill" id="marketPill">🇮🇳 India NSE</button>
+      </div>
+      <div class="nav-right">
+        <div class="trial-badge" id="trialBadge">7 Days Free Trial</div>
+        <button class="icon-btn" id="testExpiryBtn" title="Test Expiry">⏳</button>
+        <button class="icon-btn" id="themeToggle" title="Theme">☀️</button>
+        <button class="signin-btn" id="signinBtn">Sign In</button>
+        <div class="profile-pill" id="profilePill" style="display:none"></div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <section class="hero">
+      <h1 class="hero-title">Most people buy great companies at the worst possible time. Or terrible companies just because the crowd is excited.</h1>
+      <p class="hero-sub">LojikGain gives you two honest numbers for any stock in India or the US: how strong the business actually proved to be over 10+ years (out of 23), and whether the crowd is currently in Fear or Greed (0 to 100).</p>
+      <div class="search-studio">
+        <input id="searchInput" type="text" placeholder="Search TCS, AAPL, NIFTY 50…" autocomplete="off" />
+        <div class="autocomplete" id="autocomplete"></div>
+        <div class="search-dropdown" id="searchDropdown" style="display:none"></div>
+      </div>
+      <div class="quick-chips" id="quickPicks" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px"></div>
+    </section>
+
+    <section class="bento-dual">
+      <!-- Left: 23-segment jewel ring -->
+      <div class="card glass score-card">
+        <div class="card-title">Historical Consistency Score</div>
+        <div class="ring-wrap">
+          <svg id="scoreRingSvg" class="jewel-ring" viewBox="0 0 280 280" aria-label="23-segment consistency ring"></svg>
+          <div class="ring-center">
+            <div class="ring-score" id="scoreValue">— / 23</div>
+            <div class="ring-badge" id="scoreBand">—</div>
+          </div>
+        </div>
+        <div class="pill-strip" id="scorePills">
+          <span class="tier-pill tier-coral" data-range="0-11">0–11 Fragile</span>
+          <span class="tier-pill tier-amber" data-range="12-16">12–16 Mixed / Cyclical</span>
+          <span class="tier-pill tier-emerald" data-range="17-23">17–23 High Consistency</span>
+        </div>
+        <div class="explain-box" id="scoreExplain">Analyze a stock to see how strong the business proved to be.</div>
+      </div>
+
+      <!-- Right: 5-zone speedometer -->
+      <div class="card glass mood-card">
+        <div class="card-title">Market Mood & Sentiment</div>
+        <div class="speedo-wrap">
+          <svg id="speedoSvg" class="speedo" viewBox="0 0 360 215" aria-label="5-zone mood dial"></svg>
+        </div>
+        <div class="speedo-readout">
+          <span class="speedo-score" id="moodValue">—</span>
+          <span class="speedo-denom">/ 100</span>
+        </div>
+        <div class="speedo-zone" id="moodZone">—</div>
+        <div class="zone-pills" id="zonePills">
+          <span class="zone-pill z-extreme-fear" data-zone="Extreme Fear">Extreme Fear</span>
+          <span class="zone-pill z-fear" data-zone="Fear">Fear</span>
+          <span class="zone-pill z-neutral" data-zone="Neutral">Neutral</span>
+          <span class="zone-pill z-greed" data-zone="Greed">Greed</span>
+          <span class="zone-pill z-extreme-greed" data-zone="Extreme Greed">Extreme Greed</span>
+        </div>
+        <div class="explain-box" id="moodExplain">Analyze a stock to see where the crowd stands.</div>
+      </div>
+    </section>
+
+    <!-- Area chart + 52-week range -->
+    <section class="card glass strip-card">
+      <div class="strip-top">
+        <div>
+          <div class="strip-title" id="stripTitle">Price Trend</div>
+          <div class="strip-price" id="stripPrice">—</div>
+        </div>
+        <div class="range-bar-wrap">
+          <div class="range-labels"><span id="low52">—</span><span id="high52">—</span></div>
+          <div class="range-bar"><div class="range-fill" id="rangeFill"></div><div class="range-dot" id="rangeDot"></div></div>
+          <div class="range-caption">52-Week Range</div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <svg id="areaChart" class="area-chart" viewBox="0 0 720 220" preserveAspectRatio="none"></svg>
+        <div class="chart-tooltip" id="chartTooltip"></div>
+      </div>
+    </section>
+
+    <!-- Candid research bento -->
+    <section class="research">
+      <h2 class="section-title">We Tested This So You Don't Have to Guess</h2>
+      <div class="research-grid">
+        <div class="card glass bento-2x1">
+          <div class="bento-head">₹1,00,000 → ₹5,25,886: What Happened From 2020 to 2026</div>
+          <div class="bento-sub">Historical cohort study (2020–2026)</div>
+          <div class="bar-row"><span>Top-5 Scorers</span><div class="bar"><div style="width:100%"></div></div><span>₹5.26L · 30.1% CAGR</span></div>
+          <div class="bar-row"><span>All 17+/23 Scorers</span><div class="bar"><div style="width:88%"></div></div><span>₹4.61L · 27.4% CAGR</span></div>
+          <div class="bar-row"><span>Nifty 50 Index</span><div class="bar"><div style="width:44%"></div></div><span>₹2.19L · 13.3% CAGR</span></div>
+        </div>
+
+        <div class="card glass bento-1x1">
+          <div class="bento-head">6 out of 6 Survived &amp; Compounded</div>
+          <div class="bento-sub">Capital survival</div>
+          <div class="shield-wrap">
+            <svg viewBox="0 0 120 120" class="shield-ring">
+              <circle cx="60" cy="60" r="46" class="ring-bg" fill="none" />
+              <circle cx="60" cy="60" r="46" class="ring-fg shield-fg" fill="none" />
+              <text x="60" y="66" text-anchor="middle" class="shield-text">6/6</text>
+            </svg>
+          </div>
+          <p class="bento-text">0 wipeouts among the 17+/23 cohort (2020–2026) vs. YESBANK 7/23 → -38%, IDEA 10/23.</p>
+        </div>
+
+        <div class="card glass bento-1x1">
+          <div class="bento-head">Why Sitting Still Beat Trading Every Year</div>
+          <div class="bento-sub">Hold vs. churn</div>
+          <div class="compare">
+            <div class="compare-row"><span>Buy 2020 &amp; Hold</span><strong>₹4.61L · 27.4%</strong></div>
+            <div class="compare-row"><span>Annual Rebalancing</span><strong>₹3.05L · 19.3%</strong></div>
+          </div>
+          <p class="bento-text">Holding high-scoring companies outperformed annual churning by +₹1.56L per ₹1L.</p>
+        </div>
+
+        <div class="card glass bento-2x1">
+          <div class="bento-head">The BHEL Story (2010–2026): Spotting the Crack Two Years Early</div>
+          <div class="bento-sub">BHEL score trajectory, 2010 → 2026</div>
+          <div class="bhel-timeline" id="bhelTimeline"></div>
+          <p class="bento-text">ROE fell below threshold two years before net losses began in 2016.</p>
+        </div>
+
+        <div class="card glass bento-2x1">
+          <div class="bento-head">Why Generic Market Mood Dials Mislead Stock Pickers</div>
+          <div class="bento-sub">Index-only vs. stock-specific</div>
+          <div class="compare-grid">
+            <div class="compare-col">
+              <div class="compare-label">Generic Index Dial</div>
+              <div class="compare-val bad">Futures-based · index mood only</div>
+              <p class="bento-text">Tracks Nifty/S&P futures sentiment. Says nothing about the single stock you actually own.</p>
+            </div>
+            <div class="compare-col">
+              <div class="compare-label">LojikGain Dial</div>
+              <div class="compare-val good">Cash volume · 10-yr valuation stretch</div>
+              <p class="bento-text">Stock-specific cash-volume and 10-year valuation stretch. Measures the crowd around your stock.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Disclaimer: LojikGain provides statistical, historical research for educational purposes only. Not investment advice. Markets carry risk. SEBI (India) / SEC (US) compliance: no recommendations are made.</p>
+  </footer>
+
+  <!-- Auth Modal -->
+  <div class="modal" id="authModal">
+    <div class="modal-card glass">
+      <button class="modal-close" data-close="authModal">✕</button>
+      <h2>Welcome to LojikGain</h2>
+      <button class="google-btn" id="googleBtn">Continue with Google</button>
+      <div class="divider">or</div>
+      <input id="authEmail" type="email" placeholder="Email" />
+      <input id="authName" type="text" placeholder="Name (for sign up)" />
+      <input id="authPassword" type="password" placeholder="Password" />
+      <div class="auth-actions">
+        <button id="loginBtn">Log In</button>
+        <button id="registerBtn">Sign Up</button>
+      </div>
+      <div id="authMsg" class="msg"></div>
     </div>
   </div>
-  <div class="search-zone">
-    <div class="search-wrap">
-      <input id="searchInput" type="text" placeholder="Search ticker or company (ITC, AAPL, NIFTY 50)…" autocomplete="off">
-      <div id="searchDropdown" class="search-dropdown hidden"></div>
-    </div>
-    <div class="seg">
-      <button class="seg-btn is-on" data-market="AUTO">Auto</button>
-      <button class="seg-btn" data-market="INDIA">India</button>
-      <button class="seg-btn" data-market="USA">US</button>
-    </div>
-    <button class="btn" id="analyseBtn">Analyse</button>
-  </div>
-  <div class="toolbar">
-    <span class="trial-pill" id="trialPill">7 Days Free Trial</span>
-    <button class="tool-btn" id="authBtn">Sign In</button>
-    <button class="tool-btn" id="themeToggle">Theme</button>
-  </div>
-</header>
 
-<div class="container">
-  <div id="trialBar" class="trial-bar hidden"></div>
-  <div id="statusLine" class="status-line">Loading stocks…</div>
-
-  <div class="section-title">Quick picks</div>
-  <div id="quickPicks" class="row quick-chips"></div>
-
-  <div id="emptyState" class="empty">Select a stock to view its Buffettology scorecard.</div>
-
-  <div id="detail" class="detail hidden">
-    <div class="card">
-      <h2 id="dCompany">—</h2>
-      <div class="row" style="margin-bottom:8px">
-        <span class="badge" id="dTicker">—</span>
-        <span class="badge" id="dMarket">—</span>
-        <span class="badge" id="dSector">—</span>
-      </div>
-      <p class="muted" id="dIndustry">—</p>
-      <div class="stat-row">
-        <div class="stat"><b>Current price</b><span id="dPrice">—</span></div>
-        <div class="stat"><b>52W high</b><span id="dHigh">—</span></div>
-        <div class="stat"><b>52W low</b><span id="dLow">—</span></div>
-        <div class="stat"><b>Currency</b><span id="dCurrency">—</span></div>
-      </div>
-      <div class="stat-row" style="margin-top:10px">
-        <div class="stat"><b>Quality score</b><span id="dScore">— / 23</span></div>
-        <div class="stat"><b>Tier</b><span id="dTier">—</span></div>
-        <div class="stat"><b>Fear/Greed</b><span id="dFG">—</span></div>
-      </div>
-      <div class="chart-box"><canvas id="priceChart"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Fear &amp; Greed meter</h2>
-      <div class="stat-row">
-        <div class="stat"><b>Score</b><span id="fgScore">—</span></div>
-        <div class="stat"><b>Zone</b><span id="fgZone">—</span></div>
-        <div class="stat"><b>Tier</b><span id="fgTier">—</span></div>
-      </div>
-      <div class="chart-box"><canvas id="fgChart"></canvas></div>
-      <p class="muted" style="margin-top:10px">Pre-computed sanitized output only. Full 23-point analysis available on the private Render deployment.</p>
+  <!-- UPI Modal -->
+  <div class="modal" id="upiModal">
+    <div class="modal-card glass">
+      <button class="modal-close" data-close="upiModal">✕</button>
+      <h2>Unlock Full Access — ₹10</h2>
+      <div id="qrCode" class="qr"></div>
+      <p class="upi-id">UPI ID: <strong id="upiIdText"></strong></p>
+      <a id="upiPayBtn" class="upi-pay-btn" href="#">Pay ₹10 via UPI App</a>
+      <input id="utrInput" type="text" placeholder="Enter 12-digit UTR / Ref No." maxlength="12" />
+      <button id="verifyUtrBtn">Verify &amp; Unlock</button>
+      <button id="demoUtrBtn" class="demo-btn">Fill Demo UTR</button>
+      <div id="upiMsg" class="msg"></div>
     </div>
   </div>
-</div>
 
-<!-- Auth modal -->
-<div id="authModal" class="modal-backdrop hidden">
-  <div class="modal">
-    <h2 id="authTitle">Sign in</h2>
-    <div id="authForms">
-      <div class="field"><label>Email</label><input id="authEmail" type="email" placeholder="you@example.com"></div>
-      <div class="field"><label>Name</label><input id="authName" type="text" placeholder="Your name"></div>
-      <div class="field"><label>Password</label><input id="authPassword" type="password" placeholder="••••••"></div>
-      <div class="row">
-        <button class="btn" id="loginBtn">Email Sign In</button>
-        <button class="btn secondary" id="registerBtn">Register</button>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <button class="btn secondary" id="googleBtn">Continue with Google</button>
-      </div>
-    </div>
-    <div id="authStatus" class="muted" style="margin-top:10px"></div>
-    <div id="trialSection" class="hidden" style="margin-top:12px">
-      <div class="stat-row">
-        <div class="stat"><b>Trial days left</b><span id="trialDays">—</span></div>
-        <div class="stat"><b>Access</b><span id="accessStatus">—</span></div>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <button class="btn warn" id="expBtn">Simulate Trial Expiry</button>
-        <button class="btn secondary" id="resetTrialBtn">Reset Trial</button>
-        <button class="btn secondary" id="logoutBtn">Logout</button>
-      </div>
-    </div>
-    <div id="upiSection" class="hidden" style="margin-top:12px">
-      <h3>Unlock full access — ₹10</h3>
-      <p class="muted">Scan the UPI QR and enter the 12-digit UTR to auto-unlock.</p>
-      <div class="qr"><img id="upiQr" alt="UPI QR" width="180" height="180"></div>
-      <p class="muted">UPI ID: <b id="upiId">—</b></p>
-      <div class="field"><label>12-digit UTR</label><input id="utrInput" type="text" maxlength="12" placeholder="123456789012"></div>
-      <button class="btn" id="verifyUtrBtn">Verify &amp; Unlock</button>
-      <div id="upiMsg" class="muted" style="margin-top:6px"></div>
-    </div>
-    <div class="row" style="margin-top:12px"><button class="btn secondary" id="closeAuthBtn">Close</button></div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="./app.js?v=20261026_v5"></script>
+  <script src="./app.js?v=20261026_v7"></script>
 </body>
 </html>
