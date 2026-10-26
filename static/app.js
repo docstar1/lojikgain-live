@@ -10,8 +10,8 @@ let priceChart = null, fgChart = null;
 
 const $ = (id) => document.getElementById(id);
 
-function staticLoadUser() { try { return JSON.parse(localStorage.getItem("lojik_user") || "null"); } catch { return null; } }
-function staticSaveUser(u) { localStorage.setItem("lojik_user", JSON.stringify(u)); }
+function staticLoadUser() { try { return JSON.parse(localStorage.getItem("lojik_user") || localStorage.getItem("lojikgain_user") || "null"); } catch { return null; } }
+function staticSaveUser(u) { localStorage.setItem("lojik_user", JSON.stringify(u)); localStorage.setItem("lojikgain_user", JSON.stringify(u)); }
 function staticTrialDaysLeft(u) {
   if (!u) return 0;
   if (u.is_paid) return 999;
@@ -57,6 +57,7 @@ async function authMe() {
 }
 async function authLogout() {
   localStorage.removeItem("lojik_user");
+  localStorage.removeItem("lojikgain_user");
   currentUser = null;
 }
 async function simulateExpiry(expired) {
