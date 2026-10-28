@@ -1,176 +1,59 @@
-// "passed ${e} out of our 23 strict 10-year financial durability tests"
-const EMBEDDED_STOCKS = {"BEL":{"company":"Bharat Electronics Ltd","ticker":"BEL","market":"INDIA","currency":"INR","sector":"Capital Goods","industry":"Aerospace & Defense","current_price":363.0,"high_52w":473.0,"low_52w":355.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":55,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[145.9,184.2,185.9,205.1,201.5,233.75,295.95,305.9,316.05,299.3,285.1,284.9,308.0,293.15,292.65,246.25,301.32,314.1,384.6,421.5,383.1,369.4,403.95,426.1,411.75,399.6,449.0,444.7,400.65,431.3,410.75,411.8,387.85,414.45,388.3,363.0]},"HAL":{"company":"Hindustan Aeronautics Ltd","ticker":"HAL","market":"INDIA","currency":"INR","sector":"Capital Goods","industry":"Aerospace & Defense","current_price":4775.0,"high_52w":5150.0,"low_52w":3479.0,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":63,"zone_label":"Greed Zone","tier":"greed"},"price_series":[2379.8,2804.0,2999.3999,3084.05,3327.0,3939.3501,4973.8501,5264.25,4922.8501,4679.9502,4420.6499,4246.7002,4476.8501,4178.3501,3936.8,3088.2,4177.4502,4487.8999,4974.1001,4869.7998,4533.8999,4332.6001,4746.5,4679.7998,4542.3999,4388.7002,4619.3999,3913.2,3487.2,4338.7998,4303.7998,4381.2002,4646.5,4801.6001,4668.0,4775.0]},"BDL":{"company":"Bharat Dynamics Ltd","ticker":"BDL","market":"INDIA","currency":"INR","sector":"Capital Goods","industry":"Aerospace & Defense","current_price":1029.0,"high_52w":1633.0,"low_52w":999.0,"quality_score":{"earned":11,"total":23,"pct":47.8,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":49,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[581.375,856.175,853.525,904.55,875.95,988.775,1557.35,1596.6,1460.1,1302.9,1160.0,1085.3,1150.0,1122.85,1305.0,975.4,1281.4,1529.6,2015.5,1943.2,1619.0,1435.7,1493.2,1529.9,1513.6,1466.5,1538.2,1265.2,1096.6,1364.1,1204.6,1368.4,1253.1,1275.0,1110.1,1029.0]},"BPCL":{"company":"Bharat Petroleum Corporation Ltd","ticker":"BPCL","market":"INDIA","currency":"INR","sector":"Oil, Gas & Consumable Fuels","industry":"Refineries & Marketing","current_price":290.0,"high_52w":392.0,"low_52w":267.0,"quality_score":{"earned":20,"total":23,"pct":87.0,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":51,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[217.85,225.325,251.175,301.925,301.2,303.675,313.9,303.95,350.05,357.65,369.95,310.75,292.1,292.45,261.1,237.3,278.47,310.05,318.4,331.95,329.3,308.2,339.65,356.8,359.1,384.0,364.5,385.4,281.0,300.45,298.1,303.55,319.75,324.05,303.2,290.4]},"RELIANCE":{"company":"Reliance Industries Ltd","ticker":"RELIANCE","market":"INDIA","currency":"INR","sector":"Oil, Gas & Consumable Fuels","industry":"Refineries & Marketing","current_price":1202.0,"high_52w":1612.0,"low_52w":1152.0,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":26,"zone_label":"Fear Zone","tier":"fear"},"price_series":[1188.725,1292.475,1426.625,1460.8,1485.85,1467.0,1430.4,1565.4,1505.425,1509.625,1476.575,1332.05,1292.2,1215.45,1265.1,1200.1,1275.1,1405.0,1420.9,1500.6,1390.2,1357.2,1364.0,1486.4,1567.5,1570.4,1395.4,1393.9,1343.9,1430.8,1321.2,1293.9,1307.8,1277.0,1187.0,1201.8]},"SBIN":{"company":"State Bank of India","ticker":"SBIN","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Public Sector Bank","current_price":961.0,"high_52w":1235.0,"low_52w":906.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":54,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[564.75,642.05,640.5,748.1,752.35,826.25,830.35,848.95,872.4,815.6,787.9,820.2,838.95,794.95,772.9,688.8,771.5,788.65,812.3,820.35,796.55,802.5,872.45,937.0,979.0,982.2,1077.15,1201.7,979.4,1068.45,964.4,1026.9,1027.4,1060.0,959.5,960.8]},"ICICIBANK":{"company":"ICICI Bank Ltd","ticker":"ICICIBANK","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Private Sector Bank","current_price":1403.0,"high_52w":1480.0,"low_52w":1188.0,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":60,"zone_label":"Greed Zone","tier":"greed"},"price_series":[934.95,996.6,1028.15,1052.2,1093.3,1150.4,1121.05,1199.6,1214.9,1229.2,1273.0,1292.25,1300.1,1281.65,1252.8,1204.1,1348.35,1427.0,1445.8,1445.8,1481.4,1397.8,1348.0,1345.3,1388.8,1342.9,1355.0,1378.9,1205.9,1263.4,1256.4,1375.2,1435.4,1454.0,1321.7,1403.0]},"KOTAKBANK":{"company":"Kotak Mahindra Bank Ltd","ticker":"KOTAKBANK","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Private Sector Bank","current_price":441.0,"high_52w":453.0,"low_52w":345.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":68,"zone_label":"Greed Zone","tier":"greed"},"price_series":[351.09,381.62,365.05,337.89,357.1,324.79,336.08,360.5,361.58,356.16,370.79,346.22,353.05,357.21,380.26,380.59,434.24,441.62,414.94,432.7,395.72,392.06,398.54,420.44,424.88,440.22,408.0,415.2,353.4,383.3,384.2,392.25,390.3,419.4,417.0,440.75]},"AXISBANK":{"company":"Axis Bank Ltd","ticker":"AXISBANK","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Private Sector Bank","current_price":1220.0,"high_52w":1418.0,"low_52w":1150.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":46,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[1074.25,1102.3,1067.75,1075.1,1047.2,1165.9,1162.15,1265.25,1166.1,1175.25,1232.2,1159.55,1136.3,1064.7,986.1,1015.55,1102.0,1185.0,1192.2,1199.2,1068.4,1045.2,1131.6,1232.8,1279.7,1269.4,1370.4,1383.9,1161.3,1268.3,1286.6,1345.7,1229.5,1300.0,1226.0,1220.0]},"BAJFINANCE":{"company":"Bajaj Finance Ltd","ticker":"BAJFINANCE","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Non Banking Financial Company (NBFC)","current_price":919.0,"high_52w":1178.0,"low_52w":788.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":53,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[712.19,732.775,686.29,649.535,724.525,692.355,669.77,711.555,680.695,720.015,770.3,688.975,657.59,682.3,788.51,853.03,894.56,863.45,918.05,936.5,881.2,877.85,998.9,1042.8,1037.5,986.8,929.85,995.9,801.55,937.0,908.25,1004.75,1141.2,1057.0,959.4,918.7]},"BHARTIARTL":{"company":"Bharti Airtel Ltd","ticker":"BHARTIARTL","market":"INDIA","currency":"INR","sector":"Telecommunication","industry":"Telecom - Cellular & Fixed line services","current_price":1918.0,"high_52w":2175.0,"low_52w":1726.0,"quality_score":{"earned":14,"total":23,"pct":60.9,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":51,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[1014.7,1032.2,1170.7,1123.35,1228.6,1322.3,1372.75,1444.05,1491.55,1589.05,1709.55,1612.6,1627.15,1587.75,1626.3,1570.2,1733.4,1864.5,1856.2,2009.6,1914.3,1888.8,1878.4,2054.5,2101.6001,2105.6001,1968.7,1879.3,1782.4,1886.8,1829.0,1852.0,1972.0,1811.9,1757.0,1917.5]},"LT":{"company":"Larsen & Toubro Ltd","ticker":"LT","market":"INDIA","currency":"INR","sector":"Construction","industry":"Civil Construction","current_price":3680.0,"high_52w":4440.0,"low_52w":3288.0,"quality_score":{"earned":14,"total":23,"pct":60.9,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":45,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[3109.2,3526.0,3479.75,3477.55,3763.8999,3594.3,3669.3,3548.45,3815.0,3704.6499,3675.55,3622.3,3724.8,3607.6499,3567.3999,3163.8501,3492.3,3341.0,3675.1001,3669.8,3636.5,3601.0,3659.0,4030.8999,4069.6001,4083.5,3932.3,4278.2998,3504.1001,4014.0,4076.5,4143.3999,3938.8999,4044.8999,3760.0,3680.0]},"SUNPHARMA":{"company":"Sun Pharmaceutical Industries Ltd","ticker":"SUNPHARMA","market":"INDIA","currency":"INR","sector":"Healthcare","industry":"Pharmaceuticals","current_price":1740.0,"high_52w":2048.0,"low_52w":1584.0,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":52,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[1225.85,1259.45,1418.45,1577.95,1620.55,1502.1,1459.8,1520.85,1719.35,1821.65,1926.7,1848.9,1780.9,1886.35,1743.95,1593.25,1734.7,1832.3,1677.6,1675.7,1706.7,1594.5,1594.3,1690.7,1831.6,1719.7,1595.3,1737.0,1757.2,1808.3,1799.2,1862.5,1990.5,1984.8,1816.6,1740.0]},"HCLTECH":{"company":"HCL Technologies Ltd","ticker":"HCLTECH","market":"INDIA","currency":"INR","sector":"Information Technology","industry":"Computers - Software & Consulting","current_price":1417.0,"high_52w":1780.0,"low_52w":1030.0,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":52,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[1340.9,1466.1,1576.0,1663.85,1543.55,1366.6,1324.1,1459.6,1642.6,1753.25,1796.1,1766.05,1848.05,1917.4,1725.45,1575.05,1592.5,1567.5,1636.6,1728.6,1467.9,1454.8,1385.1,1541.5,1624.2,1623.3,1695.6,1389.1,1341.6,1199.1,1183.8,1071.8,1346.9,1312.2,1230.0,1417.0]},"WIPRO":{"company":"Wipro Ltd","ticker":"WIPRO","market":"INDIA","currency":"INR","sector":"Information Technology","industry":"Computers - Software & Consulting","current_price":189.0,"high_52w":273.0,"low_52w":157.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":49,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[206.525,235.65,239.075,259.3,240.05,231.2,219.1,257.425,261.0,269.2,270.725,275.9,288.925,301.85,311.9,277.65,262.25,241.5,249.67,265.98,248.3,249.41,239.37,240.67,249.53,263.28,236.9,200.96,187.64,200.65,204.25,170.39,183.65,184.5,158.5,189.2]},"ULTRACEMCO":{"company":"UltraTech Cement Ltd","ticker":"ULTRACEMCO","market":"INDIA","currency":"INR","sector":"Construction Materials","industry":"Cement & Cement Products","current_price":11180.0,"high_52w":13110.0,"low_52w":10325.0,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":52,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[9003.6504,10503.0498,10167.3496,9892.4004,9749.1504,9971.8496,9915.5,11667.9004,11887.2002,11301.9004,11802.0,11065.6504,11202.1504,11426.3496,11487.4502,10128.4502,11509.5498,11641.0,11210.0,12093.0,12249.0,12640.0,12222.0,11947.0,11600.0,11784.0,12694.0,12677.0,10745.0,11586.0,11482.0,11253.0,11903.0,11450.0,10956.0,11180.0]},"M&M":{"company":"Mahindra & Mahindra Ltd","ticker":"M&M","market":"INDIA","currency":"INR","sector":"Automobile and Auto Components","industry":"Passenger Cars & Utility Vehicles","current_price":2853.0,"high_52w":3840.0,"low_52w":2743.0,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":43,"zone_label":"Fear Zone","tier":"fear"},"price_series":[1647.75,1729.4,1651.55,1932.4,1921.35,2156.3501,2506.25,2866.6499,2907.8,2805.3999,3094.8999,2728.55,2966.1001,3007.1001,2989.8501,2585.1001,2665.8,2928.8,2976.8,3183.2,3203.1001,3199.5,3427.0,3487.2,3757.3,3709.2,3431.8,3397.3999,2954.7,3097.5,3045.6001,3068.8,3398.5,3282.0,2950.0,2853.1001]},"TATAPOWER":{"company":"Tata Power Company Ltd","ticker":"TATAPOWER","market":"INDIA","currency":"INR","sector":"Power","industry":"Integrated Power Utilities","current_price":338.0,"high_52w":465.0,"low_52w":333.0,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":50,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[267.9,332.15,389.75,371.75,394.2,449.25,436.75,440.6,453.6,434.65,482.6,440.05,414.15,392.4,364.5,339.2,375.4,384.4,392.8,405.45,397.75,374.15,388.65,404.9,390.1,379.6,366.3,377.55,378.75,444.55,420.75,385.5,380.7,347.0,359.0,338.5]},"ZOMATO":{"company":"Eternal Ltd","ticker":"ETERNAL","market":"INDIA","currency":"INR","sector":"Consumer Services","industry":"E-Retail/ E-Commerce","current_price":326.0,"high_52w":345.0,"low_52w":213.0,"quality_score":{"earned":7,"total":23,"pct":30.4,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":62,"zone_label":"Greed Zone","tier":"greed"},"price_series":[118.55,123.7,139.55,165.45,182.1,193.15,179.15,200.56,229.45,250.53,273.3,241.75,279.76,278.05,220.35,222.1,201.7,232.52,238.31,264.15,307.8,313.95,325.5,317.75,300.1,278.05,273.6,246.3,228.98,247.03,250.58,264.6,302.45,328.1,320.0,325.55]},"TRENT":{"company":"Trent Ltd","ticker":"TRENT","market":"INDIA","currency":"INR","sector":"Consumer Services","industry":"Speciality Retail","current_price":2754.0,"high_52w":3400.0,"low_52w":2184.0,"quality_score":{"earned":14,"total":23,"pct":60.9,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":35,"zone_label":"Fear Zone","tier":"fear"},"price_series":[2787.0,3054.95,3086.95,3881.8,3948.0,4409.8999,4559.1499,5479.8501,5839.0,7158.75,7574.6499,7128.3501,6795.3999,7123.3501,5753.2002,4851.5498,5325.1499,5172.5,5643.5,6217.5,5018.0,5298.0,4677.5,4694.2998,4250.3999,4279.0,2523.6667,2599.6667,2197.2,2763.0667,2816.0,3282.6001,3005.8999,2879.8999,2621.6001,2754.0]},"COALINDIA":{"company":"Coal India Ltd","ticker":"COALINDIA","market":"INDIA","currency":"INR","sector":"Oil, Gas & Consumable Fuels","industry":"Coal","current_price":405.0,"high_52w":491.0,"low_52w":370.0,"quality_score":{"earned":21,"total":23,"pct":91.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":53,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[342.15,376.0,406.15,436.7,434.1,454.3,491.2,473.15,522.2,524.95,510.15,452.05,416.4,384.15,395.9,369.35,398.2,385.3,397.3,391.95,376.35,374.8,389.95,388.65,376.15,399.0,440.75,430.65,450.45,481.45,457.9,439.05,414.15,401.75,425.0,405.0]},"HINDALCO":{"company":"Hindalco Industries Ltd","ticker":"HINDALCO","market":"INDIA","currency":"INR","sector":"Metals & Mining","industry":"Aluminium","current_price":886.0,"high_52w":1179.0,"low_52w":770.0,"quality_score":{"earned":11,"total":23,"pct":47.8,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":57,"zone_label":"Greed Zone","tier":"greed"},"price_series":[515.65,614.85,579.35,503.85,560.25,644.4,689.35,693.55,669.6,701.35,756.2,686.05,656.2,602.45,594.3,634.35,682.45,624.65,633.5,692.85,683.05,703.95,761.95,847.85,808.4,886.7,962.6,924.7,884.45,1038.0,1126.7,956.6,974.45,1015.45,941.8,885.65]},"DRREDDY":{"company":"Dr Reddys Laboratories Ltd","ticker":"DRREDDY","market":"INDIA","currency":"INR","sector":"Healthcare","industry":"Pharmaceuticals","current_price":1311.0,"high_52w":1415.0,"low_52w":1080.0,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":52,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[1157.63,1159.58,1224.23,1284.85,1231.58,1240.86,1158.37,1280.47,1350.1,1406.27,1350.3199,1274.2,1202.3,1388.5,1217.35,1116.5,1144.2,1183.9,1251.2,1283.3,1270.3,1260.1,1223.7,1197.6,1258.8,1271.4,1218.1,1286.3,1254.9,1322.9,1303.5,1357.1,1148.1,1154.4,1233.0,1310.9]},"CIPLA":{"company":"Cipla Ltd","ticker":"CIPLA","market":"INDIA","currency":"INR","sector":"Healthcare","industry":"Pharmaceuticals","current_price":1355.0,"high_52w":1599.0,"low_52w":1166.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":39,"zone_label":"Fear Zone","tier":"fear"},"price_series":[1212.3,1246.3,1351.0,1480.35,1496.95,1400.0,1447.2,1480.8,1544.3,1654.9,1654.1,1551.75,1533.9,1529.0,1479.4,1407.5,1442.2,1550.1,1465.7,1505.9,1554.6,1589.4,1503.3,1501.3,1531.3,1511.3,1324.0,1348.2,1224.2,1309.6,1401.0,1465.4,1473.2,1409.2,1346.0,1355.0]},"NESTLEIND":{"company":"Nestle India Ltd","ticker":"NESTLEIND","market":"INDIA","currency":"INR","sector":"Fast Moving Consumer Goods","industry":"Packaged Foods","current_price":1174.0,"high_52w":1553.0,"low_52w":1156.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":37,"zone_label":"Fear Zone","tier":"fear"},"price_series":[1211.8075,1329.015,1253.0,1298.1,1311.175,1253.7,1177.45,1275.825,1228.175,1250.375,1344.975,1131.475,1117.325,1085.025,1156.6,1094.825,1125.375,1194.1,1198.1,1232.65,1123.85,1156.2,1152.9,1271.6,1261.1,1288.0,1332.4,1291.7,1174.8,1458.6,1421.5,1405.2,1509.6,1496.5,1310.0,1173.5]},"BRITANNIA":{"company":"Britannia Industries Ltd","ticker":"BRITANNIA","market":"INDIA","currency":"INR","sector":"Fast Moving Consumer Goods","industry":"Packaged Foods","current_price":4580.0,"high_52w":6271.0,"low_52w":4508.0,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":21,"zone_label":"Extreme Fear Zone","tier":"extreme-fear"},"price_series":[4852.6499,5338.4502,5198.3999,4965.2002,4911.25,4775.9502,5179.7998,5475.5498,5784.4502,5855.25,6338.1499,5726.8999,4941.1499,4762.75,5129.6499,4595.4502,4936.8999,5438.8999,5510.5,5851.0,5771.0,5824.0,5991.0,5836.5,5846.0,6031.0,5860.5,6002.5,5423.0,5726.0,5204.5,5146.5,5416.5,5250.0,4830.0,4580.0]},"DIVISLAB":{"company":"Divis Laboratories Ltd","ticker":"DIVISLAB","market":"INDIA","currency":"INR","sector":"Healthcare","industry":"Pharmaceuticals","current_price":9050.0,"high_52w":10000.0,"low_52w":5648.0,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":67,"zone_label":"Greed Zone","tier":"greed"},"price_series":[3788.7,3903.8999,3670.6001,3488.8,3445.3,4002.3999,4307.2002,4596.4502,4923.2002,5093.8999,5443.3501,5889.6499,6172.7002,6098.7998,5577.7002,5480.25,5775.4502,6087.0,6612.0,6809.5,6595.5,6131.5,5689.5,6738.0,6477.0,6392.5,6051.0,6408.5,5947.0,6502.5,6667.0,6579.0,8056.0,9467.0,9291.5,9050.0]},"DLF":{"company":"DLF Ltd","ticker":"DLF","market":"INDIA","currency":"INR","sector":"Realty","industry":"Residential, Commercial Projects","current_price":662.0,"high_52w":786.0,"low_52w":489.0,"quality_score":{"earned":14,"total":23,"pct":60.9,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":51,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[625.85,726.4,802.6,901.2,897.0,891.85,815.65,824.75,889.15,845.1,895.15,819.85,822.95,824.9,745.05,635.55,680.5,674.3,797.85,837.8,784.25,739.05,713.0,756.25,723.6,687.4,635.75,603.85,504.1,587.0,590.6,620.05,659.3,691.05,674.0,662.3]},"SIEMENS":{"company":"Siemens Ltd","ticker":"SIEMENS","market":"INDIA","currency":"INR","sector":"Capital Goods","industry":"Heavy Electrical Equipment","current_price":3279.0,"high_52w":4149.0,"low_52w":2826.0,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":51,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[2147.0093,2362.4968,2430.4126,2746.7173,3154.5647,3429.075,4090.1831,4522.5376,4187.0088,4046.2461,4255.7461,4095.0845,4438.2148,3836.658,3565.0532,2713.9922,3096.6277,2901.5,3265.6001,3251.5,3033.3999,3063.7,3129.2,3096.3,3297.0,3063.3,3101.3,3418.6001,2935.0,3808.2,3844.0,3599.8999,3760.0,4030.0,3725.6001,3278.8]},"IREDA":{"company":"Indian Renewable Energy Development Agency Ltd","ticker":"IREDA","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Financial Institution","current_price":102.0,"high_52w":157.0,"low_52w":98.8,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":44,"zone_label":"Fear Zone","tier":"fear"},"price_series":[65.3,102.8,181.8,150.05,135.9,178.25,184.8,190.44,262.63,241.5,234.88,210.04,205.16,215.25,202.11,156.02,160.59,167.06,174.73,170.13,147.38,140.5,148.7,151.93,142.9,139.9,132.08,122.25,108.98,135.1,133.25,128.69,119.59,116.5,111.68,101.87]},"IRCTC":{"company":"Indian Railway Catering & Tourism Corporation Ltd","ticker":"IRCTC","market":"INDIA","currency":"INR","sector":"Consumer Services","industry":"Tour, Travel Related Services","current_price":439.0,"high_52w":736.0,"low_52w":437.0,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":39,"zone_label":"Fear Zone","tier":"fear"},"price_series":[705.75,887.5,977.2,927.4,929.7,1038.75,1020.35,989.25,987.65,932.8,928.55,821.3,815.95,786.9,822.3,670.95,727.5,751.5,756.0,781.5,726.05,691.95,700.4,718.7,686.7,684.6,623.05,569.55,494.5,539.55,509.85,502.9,489.8,481.25,455.4,438.65]},"TSLA":{"company":"Tesla, Inc.","ticker":"TSLA","market":"USA","currency":"USD","sector":"Consumer Cyclical","industry":"Auto Manufacturers","current_price":394.5087,"high_52w":498.83,"low_52w":297.38,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":62,"zone_label":"Greed Zone","tier":"greed"},"price_series":[240.08,248.48,187.29,201.88,175.79,183.28,178.08,197.88,232.07,214.11,261.63,249.85,345.16,403.84,404.6,292.98,259.16,282.16,346.46,317.66,308.27,333.87,444.72,456.56,430.17,449.72,430.41,402.51,371.75,381.63,435.79,420.6,311.21,367.95,354.81,372.22]},"AMD":{"company":"Advanced Micro Devices, Inc.","ticker":"AMD","market":"USA","currency":"USD","sector":"Technology","industry":"Semiconductors","current_price":532.37,"high_52w":658.52,"low_52w":188.22,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":61,"zone_label":"Greed Zone","tier":"greed"},"price_series":[121.16,147.41,167.69,192.53,180.49,158.38,166.9,162.21,144.48,148.56,164.08,144.07,137.18,120.79,115.95,99.86,102.74,97.35,110.73,141.9,176.31,162.63,161.79,256.12,217.53,214.16,236.73,200.21,203.43,354.49,516.1,580.91,476.15,470.72,611.76,516.79]},"NFLX":{"company":"Netflix, Inc.","ticker":"NFLX","market":"USA","currency":"USD","sector":"Communication Services","industry":"Entertainment","current_price":63.065,"high_52w":116.733,"low_52w":62.865,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":28,"zone_label":"Fear Zone","tier":"fear"},"price_series":[47.397,48.688,56.411,60.292,60.733,55.064,64.162,67.488,62.835,70.135,70.927,75.603,88.681,89.132,97.676,98.056,93.253,113.172,120.723,133.913,115.94,120.825,119.892,111.886,107.58,93.76,83.49,96.24,96.15,93.61,86.02,71.4,71.71,81.05,69.58,63.065]},"JPM":{"company":"JPMorgan Chase & Co.","ticker":"JPM","market":"USA","currency":"USD","sector":"Financial Services","industry":"Banks - Diversified","current_price":335.275,"high_52w":366.5,"low_52w":279.1,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":65,"zone_label":"Greed Zone","tier":"greed"},"price_series":[156.08,170.1,174.36,186.06,200.3,191.74,202.63,202.26,212.8,224.8,210.86,221.92,249.72,239.71,267.3,264.65,245.3,244.62,264.0,289.91,296.24,301.42,315.43,311.12,313.08,322.22,305.89,300.3,294.16,313.23,299.31,327.33,351.79,356.02,330.83,335.275]},"V":{"company":"Visa Inc.","ticker":"V","market":"USA","currency":"USD","sector":"Financial Services","industry":"Credit Services","current_price":404.0,"high_52w":414.6,"low_52w":293.89,"quality_score":{"earned":14,"total":23,"pct":60.9,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":76,"zone_label":"Extreme Greed Zone","tier":"extreme-greed"},"price_series":[256.68,260.35,273.26,282.64,279.08,268.61,272.46,262.47,265.67,276.37,274.95,289.85,315.08,316.04,341.8,362.71,350.46,345.5,365.19,355.05,345.47,351.78,341.38,340.74,334.44,350.71,321.83,320.14,302.24,329.84,326.36,343.09,366.13,379.37,359.33,407.92]},"WMT":{"company":"Walmart Inc.","ticker":"WMT","market":"USA","currency":"USD","sector":"Consumer Defensive","industry":"Discount Stores","current_price":119.71,"high_52w":135.16,"low_52w":98.88,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":70,"zone_label":"Greed Zone","tier":"greed"},"price_series":[51.8967,52.55,55.0833,58.61,60.17,59.35,65.76,67.71,68.64,77.23,80.75,81.95,92.5,90.35,98.16,98.61,87.79,97.25,98.72,97.78,97.98,96.98,103.06,101.18,110.51,111.41,119.14,127.95,124.28,131.93,115.75,113.26,111.2,104.87,103.92,119.71]},"COST":{"company":"Costco Wholesale Corporation","ticker":"COST","market":"USA","currency":"USD","sector":"Consumer Defensive","industry":"Discount Stores","current_price":1000.86,"high_52w":1096.5,"low_52w":844.06,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":59,"zone_label":"Greed Zone","tier":"greed"},"price_series":[592.74,660.08,694.88,743.89,732.63,722.9,809.89,849.99,822.0,892.38,886.52,874.18,971.88,916.27,979.88,1048.61,945.78,994.5,1040.1801,989.94,939.64,943.32,925.63,911.45,913.59,862.34,940.25,1010.79,996.43,1014.53,956.32,935.47,951.89,943.89,910.34,1000.86]},"ITC":{"company":"ITC Ltd","ticker":"ITC","market":"INDIA","currency":"INR","sector":"Fast Moving Consumer Goods","industry":"Diversified FMCG","current_price":258.0,"high_52w":426.0,"low_52w":253.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":50,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[419.6385,444.9631,425.1752,391.2325,412.4648,419.494,410.6352,409.1427,476.9801,483.2872,498.9345,470.673,459.0699,465.714,447.5,395.0,409.75,425.8,418.05,416.45,411.95,409.75,401.55,420.35,404.25,403.0,322.15,313.6,287.7,314.9,286.9,286.95,281.0,255.5,262.75,257.9]},"INFY":{"company":"Infosys Ltd","ticker":"INFY","market":"INDIA","currency":"INR","sector":"Information Technology","industry":"Computers - Software & Consulting","current_price":1154.0,"high_52w":1728.0,"low_52w":980.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":55,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[1455.15,1542.9,1660.9,1673.9,1498.05,1420.55,1406.9,1566.75,1868.25,1943.7,1875.6,1757.25,1857.85,1880.0,1879.8,1687.7,1570.65,1500.1,1562.7,1601.8,1509.0,1469.6,1441.8,1482.3,1560.1,1615.4,1641.0,1300.1,1250.6,1181.8,1160.9,1000.4,1130.1,1133.8,994.1,1153.8]},"HDFCBANK":{"company":"HDFC Bank Ltd","ticker":"HDFCBANK","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Private Sector Bank","current_price":693.0,"high_52w":1018.0,"low_52w":682.0,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":47,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[779.4,854.625,731.275,701.7,723.95,760.05,765.775,841.9,807.875,818.45,866.025,867.85,898.025,886.425,849.375,866.2,914.1,962.5,972.45,1000.75,1009.1,951.6,951.0,987.3,1007.6,991.2,929.25,887.75,731.55,771.7,744.55,797.95,748.15,709.0,708.7,692.8]},"BHEL":{"company":"Bharat Heavy Electricals Ltd","ticker":"BHEL","market":"INDIA","currency":"INR","sector":"Capital Goods","industry":"Heavy Electrical Equipment","current_price":388.0,"high_52w":464.0,"low_52w":231.0,"quality_score":{"earned":11,"total":23,"pct":47.8,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":59,"zone_label":"Greed Zone","tier":"greed"},"price_series":[170.45,193.55,228.25,227.55,247.3,281.7,298.9,300.85,315.25,290.55,279.7,239.0,251.09,229.4,208.09,179.17,216.43,226.84,259.83,266.3,238.45,208.01,238.45,265.49,290.85,287.45,262.7,264.95,245.5,352.41,416.75,414.1,407.0,442.65,415.5,387.5]},"EIHOTEL":{"company":"EIH Ltd","ticker":"EIHOTEL","market":"INDIA","currency":"INR","sector":"Consumer Services","industry":"Hotels & Resorts","current_price":288.0,"high_52w":405.0,"low_52w":271.0,"quality_score":{"earned":14,"total":23,"pct":60.9,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":53,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[237.9,249.5,327.85,403.95,449.5,478.35,431.6,429.3,440.7,382.6,378.4,364.45,379.4,419.85,370.5,319.25,353.5,370.45,369.6,369.35,375.5,399.0,359.9,389.8,373.95,368.25,314.55,313.55,273.55,318.95,296.2,320.3,327.0,282.3,301.1,288.1]},"TCS":{"company":"Tata Consultancy Services Ltd","ticker":"TCS","market":"INDIA","currency":"INR","sector":"Information Technology","industry":"Computers - Software & Consulting","current_price":2530.0,"high_52w":3350.0,"low_52w":1976.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":55,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[3487.6001,3793.3999,3815.95,4095.1001,3876.3,3820.6499,3670.95,3904.1499,4385.3501,4553.75,4268.5,3968.45,4270.8501,4094.8,4112.3999,3483.25,3606.1499,3453.7,3463.3999,3462.0,3036.8,3084.7,2888.3999,3058.0,3137.5,3206.2,3123.8999,2637.3999,2358.8999,2473.8999,2258.8999,2031.5,2365.6001,2399.3,2050.6001,2530.0]},"PERSISTENT":{"company":"Persistent Systems Ltd","ticker":"PERSISTENT","market":"INDIA","currency":"INR","sector":"Information Technology","industry":"Computers - Software & Consulting","current_price":5728.0,"high_52w":6599.0,"low_52w":4243.0,"quality_score":{"earned":20,"total":23,"pct":87.0,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":65,"zone_label":"Greed Zone","tier":"greed"},"price_series":[3199.9751,3694.7,4176.5752,4315.1748,3984.55,3368.6001,3410.5,4241.4502,4832.2998,5170.8501,5450.3999,5372.5,5905.6499,6457.7002,6032.6001,5303.8999,5513.75,5321.5,5638.0,6041.5,5160.5,5305.5,4822.5,5916.6001,6353.0,6272.0,6035.0,4733.0,4877.2002,4800.0,5194.2998,4326.5,5549.0,5594.5,5279.0,5727.5]},"TITAN":{"company":"Titan Company Ltd","ticker":"TITAN","market":"INDIA","currency":"INR","sector":"Consumer Durables","industry":"Gems, Jewellery And Watches","current_price":4300.0,"high_52w":5187.0,"low_52w":3667.0,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":58,"zone_label":"Greed Zone","tier":"greed"},"price_series":[3490.6001,3675.45,3697.55,3624.3999,3801.8,3589.25,3241.8999,3404.2,3458.95,3565.1499,3823.95,3267.05,3249.0,3253.1499,3490.25,3077.25,3063.3501,3379.7,3555.0,3690.2,3347.3,3628.8,3367.0,3746.7,3907.7,4051.5,3977.3999,4327.5,3951.3999,4385.2002,4074.8999,4404.0,4875.2002,5102.3999,4587.0,4299.7002]},"MARICO":{"company":"Marico Ltd","ticker":"MARICO","market":"INDIA","currency":"INR","sector":"Fast Moving Consumer Goods","industry":"Edible Oil","current_price":775.0,"high_52w":890.0,"low_52w":706.0,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":52,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[538.65,548.5,527.85,522.6,497.2,518.0,595.55,613.0,674.1,647.15,695.4,640.0,644.95,639.5,670.65,600.6,651.65,710.45,716.45,722.35,709.8,725.85,697.4,719.95,717.4,750.6,729.8,788.65,735.95,775.0,821.7,836.25,870.65,820.0,786.0,775.15]},"DABUR":{"company":"Dabur India Ltd","ticker":"DABUR","market":"INDIA","currency":"INR","sector":"Fast Moving Consumer Goods","industry":"Personal Care","current_price":359.0,"high_52w":534.0,"low_52w":356.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":23,"zone_label":"Extreme Fear Zone","tier":"extreme-fear"},"price_series":[538.05,557.2,539.6,538.15,523.15,507.75,545.1,600.7,635.7,637.15,625.2,540.0,527.15,507.0,529.85,493.3,506.5,487.75,482.95,485.25,529.0,521.1,491.3,487.55,517.4,503.6,506.6,518.5,410.45,441.5,443.4,422.2,421.45,381.0,380.1,359.3]},"GODREJCP":{"company":"Godrej Consumer Products Ltd","ticker":"GODREJCP","market":"INDIA","currency":"INR","sector":"Fast Moving Consumer Goods","industry":"Personal Care","current_price":833.0,"high_52w":1275.0,"low_52w":827.0,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":24,"zone_label":"Extreme Fear Zone","tier":"extreme-fear"},"price_series":[1008.2,1131.2,1164.2,1257.7,1251.8,1219.5,1270.35,1375.85,1440.75,1481.2,1393.4,1283.15,1244.65,1082.05,1121.25,1005.15,1159.25,1260.5,1231.4,1178.4,1259.0,1242.6,1166.9,1118.6,1145.6,1222.2,1154.1,1217.5,984.8,1067.1,1029.3,1010.0,1070.4,901.3,850.0,833.15]},"COLPAL":{"company":"Colgate-Palmolive (India) Ltd","ticker":"COLPAL","market":"INDIA","currency":"INR","sector":"Fast Moving Consumer Goods","industry":"Personal Care","current_price":1616.0,"high_52w":2302.0,"low_52w":1580.0,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":34,"zone_label":"Fear Zone","tier":"fear"},"price_series":[2196.2,2529.7,2569.1001,2526.75,2710.3501,2824.8501,2657.3501,2843.1499,3412.1001,3640.3501,3804.5,3062.5,2889.75,2680.6499,2821.55,2464.6001,2389.8,2587.3999,2455.8999,2407.1001,2245.3,2331.8,2222.3999,2243.0,2168.6001,2075.7,2114.2,2254.5,1788.7,2096.2,2059.8999,1997.9,2076.1001,1897.6,1763.3,1615.5]},"HAVELLS":{"company":"Havells India Ltd","ticker":"HAVELLS","market":"INDIA","currency":"INR","sector":"Consumer Durables","industry":"Consumer Electronics","current_price":1010.0,"high_52w":1517.0,"low_52w":1003.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":29,"zone_label":"Fear Zone","tier":"fear"},"price_series":[1302.65,1367.95,1294.4,1531.35,1515.0,1664.0,1907.3,1822.4,1849.85,1899.35,2012.9,1638.4,1718.0,1675.1,1566.2,1421.8,1528.9,1601.0,1527.0,1551.1,1500.6,1525.6,1502.0,1493.9,1441.9,1424.9,1285.0,1397.1,1190.6,1240.6,1176.8,1159.3,1260.7,1244.1,1016.0,1009.9]},"PIDILITIND":{"company":"Pidilite Industries Ltd","ticker":"PIDILITIND","market":"INDIA","currency":"INR","sector":"Chemicals","industry":"Specialty Chemicals","current_price":1488.0,"high_52w":1708.0,"low_52w":1259.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":62,"zone_label":"Greed Zone","tier":"greed"},"price_series":[1276.175,1357.55,1266.525,1368.0,1507.35,1524.5,1484.75,1579.475,1593.2,1561.65,1679.7,1572.925,1533.1,1452.125,1435.85,1328.95,1424.65,1516.95,1553.6,1527.2,1434.9,1525.15,1468.0,1444.6,1469.8,1482.4,1431.1,1492.0,1285.0,1375.7,1482.8,1592.7,1611.4,1687.7,1465.1,1487.7]},"ABB":{"company":"ABB India Ltd","ticker":"ABB","market":"INDIA","currency":"INR","sector":"Capital Goods","industry":"Heavy Electrical Equipment","current_price":6358.0,"high_52w":7924.0,"low_52w":4638.0,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":53,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[4419.75,4674.8501,4671.6001,5444.9502,6360.8501,6540.75,8317.9502,8490.9004,7896.8501,7936.0498,8055.0,7429.4502,7421.25,6912.25,5874.6499,4935.3999,5546.25,5522.5,5971.0,6080.5,5510.0,4999.0,5183.2998,5220.0,5175.0,5170.0,5578.5,6073.0,5941.5,7230.0,7253.0,7031.0,7284.5,7638.5,6776.0,6357.5]},"ADANIPORTS":{"company":"Adani Ports & Special Economic Zone Ltd","ticker":"ADANIPORTS","market":"INDIA","currency":"INR","sector":"Services","industry":"Port & Port services","current_price":1752.0,"high_52w":1892.0,"low_52w":1292.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":64,"zone_label":"Greed Zone","tier":"greed"},"price_series":[825.5,1024.35,1207.65,1320.5,1341.85,1324.9,1437.4,1478.1,1569.9,1481.9,1448.2,1375.95,1190.05,1231.1,1099.35,1069.4,1182.95,1216.5,1432.8,1450.2,1373.1,1312.8,1403.5,1451.5,1516.9,1469.8,1419.8,1521.0,1312.6,1657.3,1804.6,1810.2,1696.5,1593.1,1798.3,1752.5]},"ADANIENT":{"company":"Adani Enterprises Ltd","ticker":"ADANIENT","market":"INDIA","currency":"INR","sector":"Metals & Mining","industry":"Trading - Minerals","current_price":2508.0,"high_52w":3245.0,"low_52w":1753.0,"quality_score":{"earned":12,"total":23,"pct":52.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":50,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[2358.55,2848.95,3142.0,3285.3999,3197.1001,3054.7,3411.3501,3177.1499,3169.3999,3019.3501,3135.8501,2947.25,2463.1499,2528.6499,2287.8,2096.0,2315.8,2301.3,2519.8999,2619.3999,2430.7,2244.7,2505.8999,2481.0,2280.2,2239.7,2020.4,2161.8,1758.8,2408.3999,2937.3999,3036.0,3009.5,2859.1001,2903.3999,2508.0]},"POWERGRID":{"company":"Power Grid Corporation of India Ltd","ticker":"POWERGRID","market":"INDIA","currency":"INR","sector":"Power","industry":"Power - Transmission","current_price":247.0,"high_52w":325.0,"low_52w":242.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":36,"zone_label":"Fear Zone","tier":"fear"},"price_series":[208.95,237.2,259.3,282.85,276.9,301.85,310.0,330.95,348.2,337.4,352.85,320.8,329.4,308.7,301.65,250.85,290.35,307.45,289.75,299.9,291.0,275.25,280.25,288.15,269.95,264.6,256.5,298.65,296.1,318.35,290.55,286.3,284.25,263.55,260.5,247.0]},"GAIL":{"company":"GAIL (India) Ltd","ticker":"GAIL","market":"INDIA","currency":"INR","sector":"Oil, Gas & Consumable Fuels","industry":"Gas Transmission/Marketing","current_price":168.0,"high_52w":187.0,"low_52w":134.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":48,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[131.9,162.1,172.6,182.25,181.05,209.1,204.3,219.55,240.97,237.69,240.29,199.99,199.46,190.98,177.12,156.04,183.04,189.09,189.8,190.84,177.68,173.07,176.29,182.76,176.09,172.16,167.29,169.53,137.71,163.23,164.51,173.46,181.44,177.5,170.55,168.28]},"IOC":{"company":"Indian Oil Corporation Ltd","ticker":"IOC","market":"INDIA","currency":"INR","sector":"Oil, Gas & Consumable Fuels","industry":"Refineries & Marketing","current_price":131.0,"high_52w":189.0,"low_52w":125.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":55,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[111.75,129.85,146.95,165.55,167.75,168.85,162.4,165.63,181.67,176.97,180.15,142.62,138.63,136.41,128.49,113.49,127.7,137.86,141.97,146.96,145.62,136.62,149.79,165.9,161.75,166.46,163.24,187.47,135.4,142.25,140.24,139.38,140.17,139.13,134.93,130.85]},"VEDL":{"company":"Vedanta Ltd","ticker":"VEDL","market":"INDIA","currency":"INR","sector":"Metals & Mining","industry":"Diversified Metals","current_price":228.0,"high_52w":361.0,"low_52w":178.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":37,"zone_label":"Fear Zone","tier":"fear"},"price_series":[233.35,258.55,273.85,268.05,271.65,397.85,450.0,454.0,450.75,468.45,512.65,464.05,453.5,444.45,441.4,394.75,463.4,419.2,435.55,460.85,425.65,420.65,465.8,493.55,526.0,604.4,681.55,718.4,654.8,271.55,352.6,280.75,264.25,278.2,259.0,227.5]},"JSWSTEEL":{"company":"JSW Steel Ltd","ticker":"JSWSTEEL","market":"INDIA","currency":"INR","sector":"Metals & Mining","industry":"Iron & Steel","current_price":1260.0,"high_52w":1351.0,"low_52w":1073.0,"quality_score":{"earned":10,"total":23,"pct":43.5,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":66,"zone_label":"Greed Zone","tier":"greed"},"price_series":[801.1,880.25,818.65,800.1,830.2,882.2,880.55,931.5,928.25,941.1,1030.05,963.65,966.0,901.5,945.0,950.7,1063.2,1029.8,993.5,1020.5,1048.3,1026.6,1142.7,1206.0,1160.3,1164.8,1214.4,1264.7,1122.5,1264.5,1278.0,1226.4,1270.0,1307.7,1253.4,1260.0]},"GRASIM":{"company":"Grasim Industries Ltd","ticker":"GRASIM","market":"INDIA","currency":"INR","sector":"Construction Materials","industry":"Cement & Cement Products","current_price":2950.0,"high_52w":3412.0,"low_52w":2502.0,"quality_score":{"earned":8,"total":23,"pct":34.8,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":58,"zone_label":"Greed Zone","tier":"greed"},"price_series":[1997.5074,2126.3452,2175.0,2191.3999,2287.3,2411.6499,2316.25,2670.45,2776.75,2698.8501,2795.55,2695.8501,2606.25,2442.7,2508.8501,2306.6499,2611.1499,2737.5,2545.8,2844.5,2746.3999,2775.6001,2756.8999,2891.7,2739.3999,2829.0,2819.0,2799.8,2557.7,2794.5,3122.3999,3100.0,3100.8,3371.0,3061.8999,2950.0]},"TECHM":{"company":"Tech Mahindra Ltd","ticker":"TECHM","market":"INDIA","currency":"INR","sector":"Information Technology","industry":"Computers - Software & Consulting","current_price":1795.0,"high_52w":1854.0,"low_52w":1304.0,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":76,"zone_label":"Extreme Greed Zone","tier":"extreme-greed"},"price_series":[1220.95,1272.65,1333.65,1273.85,1248.1,1263.5,1228.45,1430.35,1554.4,1636.5,1577.2,1608.65,1712.3,1706.2,1674.45,1487.85,1418.25,1503.0,1573.9,1687.0,1463.7,1481.4,1400.3,1424.4,1517.3,1590.9,1743.1,1357.8,1384.0,1473.5,1483.9,1404.7,1651.3,1628.0,1524.0,1795.0]},"INDUSINDBK":{"company":"IndusInd Bank Ltd","ticker":"INDUSINDBK","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Private Sector Bank","current_price":844.0,"high_52w":1078.0,"low_52w":750.0,"quality_score":{"earned":9,"total":23,"pct":39.1,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":47,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[1466.1,1598.95,1534.05,1474.9,1553.0,1515.7,1461.85,1464.5,1427.8,1425.25,1447.6,1055.6,995.85,960.15,991.2,990.1,649.85,838.4,816.95,872.1,798.9,739.5,735.55,794.8,858.55,864.2,896.1,956.75,752.45,916.05,914.35,924.2,1012.45,1016.6,901.4,844.5]},"BAJAJFINSV":{"company":"Bajaj Finserv Ltd","ticker":"BAJAJFINSV","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Holding Company","current_price":1671.0,"high_52w":2189.0,"low_52w":1597.0,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":48,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[1673.5,1685.8,1627.3,1593.8,1643.85,1615.0,1528.6,1588.15,1651.65,1783.05,1973.4,1750.75,1579.95,1568.1,1736.1,1872.3,2007.35,1951.6,2017.4,2056.0,1948.0,1913.5,2006.4,2088.3,2094.0,2039.9,1952.6,1993.4,1631.8,1747.2,1783.6,1780.2,2029.1,2021.0,1731.0,1670.9]},"APOLLOHOSP":{"company":"Apollo Hospitals Enterprise Ltd","ticker":"APOLLOHOSP","market":"INDIA","currency":"INR","sector":"Healthcare","industry":"Hospital","current_price":7844.0,"high_52w":9327.0,"low_52w":6680.0,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":47,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[5528.9502,5704.1001,6352.9502,6101.6001,6356.7998,5947.1001,5839.2002,6185.7002,6615.2998,6927.5,7199.1499,7022.7002,6828.8999,7296.3501,6810.5,6052.6001,6616.2002,6977.0,6880.5,7242.0,7498.0,7610.0,7409.0,7681.0,7335.5,7042.5,6960.5,7821.5,7419.0,7636.5,8176.5,8682.0,8957.0,8898.5,8165.5,7844.0]},"EICHERMOT":{"company":"Eicher Motors Ltd","ticker":"EICHERMOT","market":"INDIA","currency":"INR","sector":"Automobile and Auto Components","industry":"2/3 Wheelers","current_price":7100.0,"high_52w":8233.0,"low_52w":6439.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":56,"zone_label":"Greed Zone","tier":"greed"},"price_series":[3896.8999,4143.5,3839.6001,3792.3999,4019.3,4597.3999,4733.4502,4672.9502,4962.7002,4960.5,5026.25,4894.6499,4831.8501,4821.8999,5194.2998,4773.6001,5347.7002,5567.0,5333.5,5656.5,5468.5,6103.0,7005.5,7007.0,7053.5,7312.5,7122.5,8010.5,6586.0,7109.0,7177.0,7073.5,7833.5,7953.5,7150.0,7099.5]},"BAJAJ-AUTO":{"company":"Bajaj Auto Ltd","ticker":"BAJAJ-AUTO","market":"INDIA","currency":"INR","sector":"Automobile and Auto Components","industry":"2/3 Wheelers","current_price":10071.0,"high_52w":12470.0,"low_52w":8605.0,"quality_score":{"earned":20,"total":23,"pct":87.0,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":54,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[6090.5498,6797.25,7667.5498,7909.3501,9148.1504,8903.6504,9084.75,9501.6504,9664.2002,10891.5498,12345.9502,9836.2998,9033.6504,8798.5996,8847.7998,7902.8999,7878.8501,8030.0,8607.0,8376.0,8008.0,8631.5,8678.5,8892.5,9073.5,9343.0,9597.5,9972.5,8781.5,9994.0,10460.0,9716.0,11520.5,12130.0,10874.0,10071.0]},"SHREECEM":{"company":"Shree Cement Ltd","ticker":"SHREECEM","market":"INDIA","currency":"INR","sector":"Construction Materials","industry":"Cement & Cement Products","current_price":23540.0,"high_52w":29434.0,"low_52w":21355.0,"quality_score":{"earned":11,"total":23,"pct":47.8,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":27,"zone_label":"Fear Zone","tier":"fear"},"price_series":[26741.75,28653.3008,28556.25,25504.4004,25682.8496,24444.8496,24680.5996,27870.4004,27740.4492,25482.0,26308.9004,25072.1504,26076.4492,25694.1992,27795.9004,27284.0,30502.9492,29710.0,29595.0,31030.0,30810.0,29275.0,29265.0,28310.0,26400.0,26575.0,26985.0,26075.0,23020.0,24195.0,25275.0,25250.0,26055.0,23200.0,22345.0,23540.0]},"CDSL":{"company":"Central Depository Services (India) Ltd","ticker":"CDSL","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Depositories, Clearing Houses and Other Intermediaries","current_price":1196.0,"high_52w":1674.0,"low_52w":1116.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":51,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[946.9,912.2,887.525,958.575,855.975,1054.35,1039.85,1193.625,1250.75,1434.9,1437.1,1545.8,1639.45,1758.65,1309.7,1107.9,1220.05,1320.0,1529.7,1794.0,1480.8,1424.4,1458.6,1587.2,1617.2,1443.6,1320.2,1272.2,1119.4,1272.0,1244.6,1305.5,1333.0,1402.5,1264.0,1196.0]},"BSE":{"company":"BSE Ltd","ticker":"BSE","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Exchange and Data Platform","current_price":3359.0,"high_52w":4447.0,"low_52w":2326.0,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":59,"zone_label":"Greed Zone","tier":"greed"},"price_series":[825.65,740.4,774.5333,788.95,838.6334,930.05,897.95,860.85,852.15,944.2167,1228.2167,1488.5333,1556.9166,1775.1333,1768.65,1544.5667,1826.6,2119.6667,2674.0,2770.1001,2427.3999,2096.2,2040.2,2479.0,2902.3999,2632.2,2797.0,2707.1001,2683.5,3640.5,4146.1001,3865.6001,3646.2,3282.0,3092.0,3359.0]},"SUZLON":{"company":"Suzlon Energy Ltd","ticker":"SUZLON","market":"INDIA","currency":"INR","sector":"Capital Goods","industry":"Heavy Electrical Equipment","current_price":37.1,"high_52w":61.5,"low_52w":36.3,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":42,"zone_label":"Fear Zone","tier":"fear"},"price_series":[40.75,38.2,45.95,45.25,40.4,41.6,47.65,52.86,69.38,75.84,80.05,66.95,62.98,62.22,58.17,49.71,56.66,56.4,71.48,67.72,61.6,56.43,55.05,59.3,54.01,52.67,47.67,42.67,39.56,55.58,56.99,58.9,48.01,47.52,39.49,37.12]},"KPITTECH":{"company":"KPIT Technologies Ltd","ticker":"KPITTECH","market":"INDIA","currency":"INR","sector":"Information Technology","industry":"Computers - Software & Consulting","current_price":537.0,"high_52w":1285.0,"low_52w":470.0,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":45,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[1499.3,1513.85,1550.8,1570.55,1486.4,1494.2,1457.25,1634.75,1842.6,1815.15,1628.0,1393.25,1368.8,1464.7,1409.2,1197.4,1307.45,1253.6,1337.8,1258.7,1226.4,1190.5,1097.7,1166.7,1222.4,1172.5,1041.9,771.1,634.75,759.05,771.95,671.55,598.4,585.0,499.1,536.55]},"PG":{"company":"The Procter & Gamble Company","ticker":"PG","market":"USA","currency":"USD","sector":"Consumer Defensive","industry":"Household & Personal Products","current_price":159.07,"high_52w":167.25,"low_52w":137.62,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":65,"zone_label":"Greed Zone","tier":"greed"},"price_series":[153.52,146.54,157.14,158.94,162.25,163.2,164.54,164.92,160.76,171.54,173.2,165.18,179.26,167.65,165.99,173.84,170.42,162.57,169.89,159.32,150.47,157.04,153.65,150.37,148.16,143.31,151.77,167.2,144.44,147.09,143.56,146.64,144.49,145.12,145.28,159.07]},"JNJ":{"company":"Johnson & Johnson","ticker":"JNJ","market":"USA","currency":"USD","sector":"Healthcare","industry":"Drug Manufacturers - General","current_price":265.795,"high_52w":281.07,"low_52w":184.66,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":67,"zone_label":"Greed Zone","tier":"greed"},"price_series":[154.66,156.74,158.9,161.38,158.19,144.59,146.67,146.16,157.85,165.86,162.06,159.86,155.01,144.62,152.15,165.02,165.84,156.31,155.21,152.75,164.74,177.17,185.42,188.87,206.92,206.95,227.25,248.43,244.44,229.85,225.33,253.97,256.35,265.85,264.74,263.81]},"PEP":{"company":"PepsiCo, Inc.","ticker":"PEP","market":"USA","currency":"USD","sector":"Consumer Defensive","industry":"Beverages - Non-Alcoholic","current_price":135.36,"high_52w":171.48,"low_52w":123.47,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":37,"zone_label":"Fear Zone","tier":"fear"},"price_series":[168.29,169.84,168.53,165.34,175.01,175.91,172.9,164.93,172.67,172.88,170.05,166.08,163.45,152.06,150.69,153.47,149.94,135.58,131.45,132.04,137.92,148.65,140.44,146.09,148.74,143.52,153.63,169.74,155.29,158.49,144.19,135.4,139.56,140.34,126.72,135.36]},"MCD":{"company":"McDonald's Corporation","ticker":"MCD","market":"USA","currency":"USD","sector":"Consumer Cyclical","industry":"Restaurants","current_price":249.005,"high_52w":341.75,"low_52w":229.2,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":37,"zone_label":"Fear Zone","tier":"fear"},"price_series":[281.84,296.51,292.72,292.28,281.95,273.04,258.89,254.84,265.4,288.66,304.51,292.11,296.01,289.89,288.7,308.33,312.37,319.65,313.85,292.17,300.07,313.54,303.89,298.43,311.82,305.63,315.0,341.06,310.79,293.59,279.2,270.31,270.64,263.54,230.94,249.005]},"NKE":{"company":"NIKE, Inc.","ticker":"NKE","market":"USA","currency":"USD","sector":"Consumer Cyclical","industry":"Footwear & Accessories","current_price":37.5817,"high_52w":70.44,"low_52w":31.97,"quality_score":{"earned":14,"total":23,"pct":60.9,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":25,"zone_label":"Fear Zone","tier":"fear"},"price_series":[110.27,108.57,101.53,103.93,93.98,92.26,95.05,75.37,74.86,83.32,88.4,77.13,78.77,75.67,76.9,79.43,63.48,56.4,60.59,71.04,74.69,77.37,69.73,64.59,64.63,63.71,61.81,62.18,52.82,44.36,46.23,41.05,41.71,39.06,35.4,37.585]},"DIS":{"company":"The Walt Disney Company","ticker":"DIS","market":"USA","currency":"USD","sector":"Communication Services","industry":"Entertainment","current_price":110.16,"high_52w":117.09,"low_52w":92.19,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":50,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[92.69,90.29,96.05,111.58,122.36,111.1,103.91,99.29,93.69,90.38,96.19,96.2,117.47,111.35,113.06,113.8,98.7,90.95,113.04,124.01,119.11,118.38,114.5,112.62,104.47,113.77,112.8,106.04,96.38,103.75,101.83,96.25,96.19,107.55,104.9,110.16]},"HD":{"company":"The Home Depot, Inc.","ticker":"HD","market":"USA","currency":"USD","sector":"Consumer Cyclical","industry":"Home Improvement Retail","current_price":317.39,"high_52w":397.63,"low_52w":277.15,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":38,"zone_label":"Fear Zone","tier":"fear"},"price_series":[313.49,346.55,352.96,380.61,383.6,334.22,334.87,344.24,368.16,368.5,405.2,393.75,429.13,388.99,411.98,396.6,366.49,360.49,368.29,366.64,367.51,406.77,405.19,379.59,356.92,344.1,374.59,380.72,328.89,328.8,317.14,352.68,331.96,327.83,284.49,317.39]},"BAC":{"company":"Bank of America Corporation","ticker":"BAC","market":"USA","currency":"USD","sector":"Financial Services","industry":"Banks - Diversified","current_price":50.725,"high_52w":65.23,"low_52w":46.12,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":53,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[30.49,33.67,34.01,34.52,37.92,37.01,39.99,39.77,40.31,40.75,39.68,41.82,47.51,43.95,46.3,46.1,41.73,39.88,44.13,47.32,47.27,50.74,51.59,53.45,53.65,55.0,53.2,49.83,48.75,53.46,51.6,56.98,61.95,61.94,54.43,50.725]},"GS":{"company":"The Goldman Sachs Group, Inc.","ticker":"GS","market":"USA","currency":"USD","sector":"Financial Services","industry":"Capital Markets","current_price":897.565,"high_52w":1153.99,"low_52w":754.0,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":49,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[341.54,385.77,384.01,389.05,417.69,426.71,456.52,452.32,509.03,510.25,495.11,517.79,608.57,572.62,640.4,622.29,546.29,547.55,600.45,707.75,723.59,745.25,796.35,789.37,826.04,879.0,935.41,859.57,845.99,923.77,1025.5601,1011.37,1018.38,1025.9,900.36,897.565]},"MA":{"company":"Mastercard Incorporated","ticker":"MA","market":"USA","currency":"USD","sector":"Financial Services","industry":"Credit Services","current_price":614.16,"high_52w":633.29,"low_52w":464.52,"quality_score":{"earned":21,"total":23,"pct":91.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":74,"zone_label":"Greed Zone","tier":"greed"},"price_series":[413.83,426.51,449.23,474.76,481.57,451.2,447.07,441.16,463.71,483.34,493.8,499.59,532.94,526.57,555.43,576.31,548.12,548.06,585.6,561.94,566.47,595.29,568.81,551.99,550.53,570.88,538.79,517.21,499.66,502.92,493.98,513.6,573.1,589.31,551.47,614.16]},"UNH":{"company":"UnitedHealth Group Incorporated","ticker":"UNH","market":"USA","currency":"USD","sector":"Healthcare","industry":"Healthcare Plans","current_price":409.63,"high_52w":461.62,"low_52w":255.97,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":37,"zone_label":"Fear Zone","tier":"fear"},"price_series":[552.97,526.47,511.74,493.6,494.7,483.7,495.37,509.26,576.16,590.2,584.68,564.5,610.2,505.86,542.49,474.96,523.75,411.44,301.91,311.97,249.56,309.87,345.3,341.56,329.77,330.11,286.93,293.27,270.59,370.48,380.31,415.63,414.4,389.41,367.08,409.63]},"LLY":{"company":"Eli Lilly and Company","ticker":"LLY","market":"USA","currency":"USD","sector":"Healthcare","industry":"Drug Manufacturers - General","current_price":1278.26,"high_52w":1321.21,"low_52w":809.63,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":74,"zone_label":"Greed Zone","tier":"greed"},"price_series":[591.04,582.92,645.61,753.68,777.96,781.1,820.34,905.38,804.27,960.02,885.94,829.74,795.35,772.0,811.08,920.63,825.91,898.95,737.67,779.53,740.07,732.58,763.0,862.86,1075.47,1074.6801,1037.15,1051.99,919.77,934.6,1105.0,1199.4301,1148.84,1156.73,1157.08,1278.26]},"ABBV":{"company":"AbbVie Inc.","ticker":"ABBV","market":"USA","currency":"USD","sector":"Healthcare","industry":"Drug Manufacturers - General","current_price":285.74,"high_52w":291.4,"low_52w":190.75,"quality_score":{"earned":12,"total":23,"pct":52.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":77,"zone_label":"Extreme Greed Zone","tier":"extreme-greed"},"price_series":[142.39,154.97,164.4,176.05,182.1,162.64,161.24,171.52,185.32,196.31,197.48,203.87,182.93,177.7,183.9,209.03,209.52,195.1,186.11,185.62,189.02,210.4,231.54,218.04,227.7,228.49,223.01,232.08,217.49,211.32,217.72,251.64,250.94,256.42,261.59,285.74]},"MRK":{"company":"Merck & Co., Inc.","ticker":"MRK","market":"USA","currency":"USD","sector":"Healthcare","industry":"Drug Manufacturers - General","current_price":140.69,"high_52w":156.92,"low_52w":82.01,"quality_score":{"earned":21,"total":23,"pct":91.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":54,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[102.48,109.02,120.78,127.15,131.95,129.22,125.54,123.8,113.13,118.45,113.56,102.32,101.64,99.48,98.82,92.25,89.76,85.2,76.84,79.16,78.12,84.12,83.93,85.98,104.83,105.26,110.27,123.82,120.29,109.18,118.72,128.5,130.2,147.76,145.31,140.69]},"PFE":{"company":"Pfizer Inc.","ticker":"PFE","market":"USA","currency":"USD","sector":"Healthcare","industry":"Drug Manufacturers - General","current_price":29.7798,"high_52w":30.44,"low_52w":23.62,"quality_score":{"earned":10,"total":23,"pct":43.5,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":72,"zone_label":"Greed Zone","tier":"greed"},"price_series":[30.47,28.79,27.08,26.56,27.75,25.62,28.66,27.98,30.54,29.01,28.94,28.3,26.21,26.53,26.52,26.43,25.34,24.41,23.49,24.24,23.29,24.76,25.48,24.65,25.74,24.9,26.44,27.65,28.08,26.7,26.18,24.08,25.01,28.46,28.52,29.775]},"XOM":{"company":"ExxonMobil Holdings Corporation","ticker":"XOM","market":"USA","currency":"USD","sector":"Energy","industry":"Oil & Gas Integrated","current_price":184.21,"high_52w":184.5,"low_52w":112.51,"quality_score":{"earned":11,"total":23,"pct":47.8,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":80,"zone_label":"Extreme Greed Zone","tier":"extreme-greed"},"price_series":[102.74,99.98,102.81,104.52,116.24,118.27,117.26,115.12,118.59,117.94,117.22,116.78,117.96,107.57,106.83,111.33,118.93,105.63,102.3,107.8,111.64,114.29,112.75,114.36,115.92,120.34,141.4,152.5,169.66,154.33,145.26,136.72,155.44,160.95,162.75,183.21]},"CVX":{"company":"Chevron Corporation","ticker":"CVX","market":"USA","currency":"USD","sector":"Energy","industry":"Oil & Gas Integrated","current_price":232.33,"high_52w":234.08,"low_52w":146.49,"quality_score":{"earned":10,"total":23,"pct":43.5,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":75,"zone_label":"Greed Zone","tier":"greed"},"price_series":[143.6,149.16,147.43,152.01,157.74,161.27,162.3,156.42,160.47,147.95,147.27,148.82,161.93,144.84,149.19,158.62,167.29,136.06,136.7,143.19,151.64,160.6,155.29,157.72,151.13,152.41,176.9,186.76,206.9,193.31,182.46,165.76,196.83,206.14,204.21,232.33]},"CAT":{"company":"Caterpillar Inc.","ticker":"CAT","market":"USA","currency":"USD","sector":"Industrials","industry":"Farm & Heavy Construction Machinery","current_price":695.1039,"high_52w":1073.46,"low_52w":521.43,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":42,"zone_label":"Fear Zone","tier":"fear"},"price_series":[250.72,295.67,300.31,333.96,366.43,334.57,338.52,333.1,346.2,356.1,391.12,376.2,406.11,362.76,371.44,343.95,329.8,309.27,348.03,388.21,438.02,419.04,477.15,577.26,575.76,572.87,657.36,742.83,708.46,890.11,875.87,1064.9,814.81,797.47,810.79,695.1039]},"BA":{"company":"The Boeing Company","ticker":"BA","market":"USA","currency":"USD","sector":"Industrials","industry":"Aerospace & Defense","current_price":189.02,"high_52w":254.35,"low_52w":176.77,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":41,"zone_label":"Fear Zone","tier":"fear"},"price_series":[231.63,260.66,211.04,203.72,192.99,167.84,177.61,182.01,190.6,173.74,152.04,149.31,155.44,177.0,176.52,174.63,170.55,183.24,207.32,209.53,221.84,234.68,215.83,201.02,189.0,217.12,233.72,227.53,199.03,229.03,231.15,216.47,216.14,207.78,186.05,189.02]},"GE":{"company":"GE Aerospace","ticker":"GE","market":"USA","currency":"USD","sector":"Industrials","industry":"Aerospace & Defense","current_price":287.89,"high_52w":388.84,"low_52w":268.91,"quality_score":{"earned":10,"total":23,"pct":43.5,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":51,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[97.2067,101.8595,105.6824,125.2115,140.0878,161.82,165.14,158.97,170.2,174.62,188.58,171.78,182.16,166.79,203.57,206.98,200.15,201.54,245.91,257.39,271.08,275.2,300.82,308.95,298.45,308.03,306.79,342.26,283.77,289.93,323.76,373.73,360.07,335.71,312.29,287.85]},"IBM":{"company":"International Business Machines Corporation","ticker":"IBM","market":"USA","currency":"USD","sector":"Technology","industry":"Information Technology Services","current_price":253.615,"high_52w":332.46,"low_52w":199.19,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":60,"zone_label":"Greed Zone","tier":"greed"},"price_series":[158.56,163.55,183.66,185.03,190.96,166.2,166.85,172.95,192.14,202.13,221.08,206.72,227.41,219.83,255.7,252.44,248.66,241.82,259.06,294.78,253.15,243.49,282.16,307.41,308.58,296.21,306.7,240.21,242.39,230.98,297.8,281.21,223.65,233.87,219.93,253.615]},"INTC":{"company":"Intel Corporation","ticker":"INTC","market":"USA","currency":"USD","sector":"Technology","industry":"Semiconductors","current_price":91.84,"high_52w":142.35,"low_52w":32.89,"quality_score":{"earned":9,"total":23,"pct":39.1,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":45,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[44.7,50.25,43.08,43.05,44.17,30.47,30.85,30.97,30.74,22.04,23.46,21.52,24.05,20.05,19.43,23.73,22.71,20.1,19.55,22.4,19.8,24.35,33.55,39.99,40.56,36.9,46.47,45.61,44.13,94.48,114.68,139.63,90.2,89.51,120.23,86.96]},"CSCO":{"company":"Cisco Systems, Inc.","ticker":"CSCO","market":"USA","currency":"USD","sector":"Technology","industry":"Communication Equipment","current_price":110.59,"high_52w":130.37,"low_52w":70.43,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":58,"zone_label":"Greed Zone","tier":"greed"},"price_series":[48.38,50.52,50.18,48.37,49.91,46.98,46.5,47.51,48.45,50.54,53.22,54.77,59.21,59.2,60.6,64.11,61.71,57.73,63.04,69.38,68.08,69.09,68.42,73.11,76.94,77.03,78.32,79.46,77.59,91.5,120.42,117.46,115.99,110.49,107.63,110.595]},"ORCL":{"company":"Oracle Corporation","ticker":"ORCL","market":"USA","currency":"USD","sector":"Technology","industry":"Software - Infrastructure","current_price":125.78,"high_52w":287.0,"low_52w":114.5,"quality_score":{"earned":20,"total":23,"pct":87.0,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":25,"zone_label":"Fear Zone","tier":"fear"},"price_series":[116.21,105.43,111.7,111.68,125.61,113.75,117.19,141.2,139.45,141.29,170.4,167.84,184.84,166.64,170.06,166.06,139.81,140.72,165.53,218.63,253.77,226.13,281.24,262.61,201.95,194.91,164.58,145.4,147.11,161.39,225.78,146.55,129.87,149.12,137.3,125.77]},"CRM":{"company":"Salesforce, Inc.","ticker":"CRM","market":"USA","currency":"USD","sector":"Technology","industry":"Software - Application","current_price":245.22,"high_52w":269.11,"low_52w":146.32,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":41,"zone_label":"Fear Zone","tier":"fear"},"price_series":[251.9,263.14,281.09,308.82,301.18,268.94,234.44,257.1,258.8,252.9,273.71,291.37,329.99,334.33,341.7,297.85,268.36,268.71,265.37,272.69,258.33,256.25,237.0,260.41,230.54,264.91,212.29,194.79,186.67,176.53,191.1,156.66,184.02,257.54,229.57,245.22]},"ADBE":{"company":"Adobe Inc.","ticker":"ADBE","market":"USA","currency":"USD","sector":"Technology","industry":"Software - Application","current_price":255.155,"high_52w":363.7,"low_52w":190.12,"quality_score":{"earned":21,"total":23,"pct":91.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":39,"zone_label":"Fear Zone","tier":"fear"},"price_series":[611.01,596.6,617.78,560.28,504.6,462.83,444.76,555.54,551.65,574.41,517.78,478.08,515.93,444.68,437.45,438.56,383.53,374.98,415.09,386.88,357.69,356.7,352.75,340.31,320.13,349.99,293.25,262.41,243.08,246.1,259.21,205.02,250.41,292.79,239.94,255.15]},"AVGO":{"company":"Broadcom Inc.","ticker":"AVGO","market":"USA","currency":"USD","sector":"Technology","industry":"Semiconductors","current_price":331.02,"high_52w":495.0,"low_52w":289.96,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":50,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[92.573,111.625,118.0,130.049,132.541,130.027,132.855,160.553,160.68,162.82,172.5,169.77,162.08,231.84,221.27,199.43,167.43,192.47,242.07,275.65,293.7,297.39,329.91,369.63,402.96,346.1,331.3,319.55,309.51,417.43,446.77,377.75,389.28,370.34,351.19,331.02]},"QCOM":{"company":"QUALCOMM Incorporated","ticker":"QCOM","market":"USA","currency":"USD","sector":"Technology","industry":"Semiconductors","current_price":178.6767,"high_52w":259.92,"low_52w":121.99,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":49,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[129.05,144.63,148.51,157.79,169.3,165.85,204.05,199.18,180.95,175.3,170.05,162.77,158.53,153.62,172.93,157.17,153.61,148.46,145.2,159.26,146.76,160.73,166.36,180.9,168.09,171.05,151.59,142.36,128.78,179.58,251.02,184.79,147.61,170.48,184.04,178.6767]},"TXN":{"company":"Texas Instruments Incorporated","ticker":"TXN","market":"USA","currency":"USD","sector":"Technology","industry":"Semiconductors","current_price":296.85,"high_52w":334.03,"low_52w":152.73,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":61,"zone_label":"Greed Zone","tier":"greed"},"price_series":[152.71,170.46,160.12,167.33,174.21,176.42,195.01,194.53,203.81,214.34,206.57,203.16,201.03,187.51,184.61,195.99,179.7,160.05,182.85,207.62,181.06,202.48,183.73,161.46,168.27,173.49,215.55,212.11,194.14,281.08,305.68,298.07,275.74,260.91,280.09,296.85]},"UBER":{"company":"Uber Technologies, Inc.","ticker":"UBER","market":"USA","currency":"USD","sector":"Technology","industry":"Software - Application","current_price":66.065,"high_52w":100.35,"low_52w":65.41,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":28,"zone_label":"Fear Zone","tier":"fear"},"price_series":[56.38,61.57,65.27,79.5,76.99,66.27,64.56,72.68,64.47,73.13,75.16,72.05,71.96,60.32,66.85,76.01,72.86,81.01,84.16,93.3,87.75,93.75,97.97,96.5,87.54,81.71,80.05,75.42,71.93,74.61,70.4,72.16,70.36,75.65,68.51,66.065]},"PLTR":{"company":"Palantir Technologies Inc.","ticker":"PLTR","market":"USA","currency":"USD","sector":"Technology","industry":"Software - Infrastructure","current_price":199.765,"high_52w":212.94,"low_52w":106.37,"quality_score":{"earned":12,"total":23,"pct":52.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":75,"zone_label":"Greed Zone","tier":"greed"},"price_series":[20.05,17.17,16.09,25.08,23.01,21.97,21.68,25.33,26.89,31.48,37.2,41.56,67.08,75.63,82.49,84.92,84.4,118.44,131.78,136.32,158.35,156.71,182.42,200.47,168.45,177.75,146.59,137.19,146.28,139.11,156.54,116.67,123.06,186.38,187.05,199.765]},"COIN":{"company":"Coinbase Global, Inc.","ticker":"COIN","market":"USA","currency":"USD","sector":"Financial Services","industry":"Financial Data & Stock Exchanges","current_price":159.78,"high_52w":373.25,"low_52w":139.11,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":32,"zone_label":"Fear Zone","tier":"fear"},"price_series":[124.72,173.92,128.2,203.56,265.12,203.93,225.92,222.23,224.36,183.36,178.17,179.25,296.2,248.3,291.33,215.62,172.23,202.89,246.62,350.49,377.76,304.54,337.49,343.78,272.82,226.14,194.74,175.85,174.61,187.77,189.03,146.19,146.26,188.12,186.41,159.78]},"ASIANPAINT":{"company":"Asian Paints Ltd","ticker":"ASIANPAINT","market":"INDIA","currency":"INR","sector":"Consumer Durables","industry":"Paints","current_price":2307.0,"high_52w":2986.0,"low_52w":2115.0,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":51,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[3119.8999,3402.3999,2957.8501,2821.8999,2846.75,2875.8999,2881.2,2917.05,3084.45,3126.8,3329.1001,2935.6499,2479.6001,2281.3501,2300.8,2179.75,2340.6499,2425.7,2259.1001,2341.1001,2396.1001,2518.6001,2350.0,2510.8,2874.3999,2769.5,2428.3,2376.2,2165.2,2444.5,2671.6001,2635.7,2747.3,2653.6001,2402.6001,2307.0]},"MARUTI":{"company":"Maruti Suzuki India Ltd","ticker":"MARUTI","market":"INDIA","currency":"INR","sector":"Automobile and Auto Components","industry":"Passenger Cars & Utility Vehicles","current_price":11230.0,"high_52w":17372.0,"low_52w":10984.0,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":50,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[10608.7002,10302.3496,10186.9004,11288.3496,12600.3496,12817.5,12399.2998,12033.8496,13115.7998,12403.0,13238.0,11076.4502,11074.2002,10858.4004,12310.6504,11945.8496,11522.1504,12257.0,12319.0,12400.0,12608.0,14791.0,16029.0,16186.0,15900.0,16697.0,14599.0,14857.0,12306.0,13314.0,13127.0,14115.0,14234.0,13547.0,11967.0,11230.0]},"TATASTEEL":{"company":"Tata Steel Ltd","ticker":"TATASTEEL","market":"INDIA","currency":"INR","sector":"Metals & Mining","industry":"Iron & Steel","current_price":168.0,"high_52w":224.0,"low_52w":160.0,"quality_score":{"earned":11,"total":23,"pct":47.8,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":53,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[127.9,139.6,135.95,140.85,155.85,165.0,167.2,174.01,165.33,152.76,168.55,148.56,144.54,138.05,134.62,137.2,154.24,140.08,161.02,159.76,157.94,154.48,168.77,182.84,167.96,180.08,193.13,212.33,191.86,211.36,208.02,188.06,189.69,184.35,184.3,167.67]},"ONGC":{"company":"Oil & Natural Gas Corpn Ltd","ticker":"ONGC","market":"INDIA","currency":"INR","sector":"Oil, Gas & Consumable Fuels","industry":"Oil Exploration & Production","current_price":228.0,"high_52w":308.0,"low_52w":218.0,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":56,"zone_label":"Greed Zone","tier":"greed"},"price_series":[194.95,205.05,252.25,264.6,268.05,282.85,264.35,274.2,334.2,330.75,297.6,266.15,256.7,239.25,262.61,225.25,246.38,244.45,239.4,244.21,241.0,233.71,239.5,255.37,243.25,240.38,268.96,279.7,284.65,299.55,265.4,234.9,242.53,231.8,225.8,227.5]},"NTPC":{"company":"NTPC Ltd","ticker":"NTPC","market":"INDIA","currency":"INR","sector":"Power","industry":"Power Generation","current_price":298.0,"high_52w":414.0,"low_52w":292.0,"quality_score":{"earned":15,"total":23,"pct":65.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":49,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[261.3,311.15,317.5,335.6,335.8,363.2,359.0,378.35,416.0,416.2,443.2,408.15,363.65,333.35,324.0,311.45,357.6,354.55,333.9,334.9,334.25,327.55,340.45,336.95,326.45,329.55,356.0,381.9,370.65,399.15,386.9,356.65,347.25,327.4,322.75,298.0]},"PAGEIND":{"company":"Page Industries Ltd","ticker":"PAGEIND","market":"INDIA","currency":"INR","sector":"Textiles","industry":"Garments & Apparels","current_price":33830.0,"high_52w":43855.0,"low_52w":29800.0,"quality_score":{"earned":16,"total":23,"pct":69.6,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":51,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[37259.3984,38512.75,37314.1016,34309.5508,34450.9492,34784.0508,35954.6992,39099.3516,42396.75,42520.5508,42904.1992,43163.8008,44644.8984,47514.3984,44723.5508,40515.9492,42693.75,45615.0,46380.0,49410.0,48805.0,44335.0,40685.0,41200.0,38320.0,36045.0,32995.0,32110.0,31775.0,36785.0,38195.0,41370.0,40375.0,35800.0,36385.0,33830.0]},"VOLTAS":{"company":"Voltas Ltd","ticker":"VOLTAS","market":"INDIA","currency":"INR","sector":"Consumer Durables","industry":"Household Appliances","current_price":950.0,"high_52w":1582.0,"low_52w":939.0,"quality_score":{"earned":12,"total":23,"pct":52.2,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":47,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[827.95,978.35,1092.75,1109.1,1103.55,1474.75,1359.7,1472.2,1537.6,1743.65,1845.1,1649.5,1658.25,1789.95,1260.85,1320.1,1458.7,1236.1,1262.8,1314.1,1327.7,1374.0,1353.5,1383.6,1376.3,1361.2,1327.9,1561.3,1272.8,1430.4,1245.7,1277.6,1328.9,1194.4,1070.0,950.0]},"ASHOKLEY":{"company":"Ashok Leyland Ltd","ticker":"ASHOKLEY","market":"INDIA","currency":"INR","sector":"Capital Goods","industry":"Commercial Vehicles","current_price":145.0,"high_52w":215.0,"low_52w":136.0,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":58,"zone_label":"Greed Zone","tier":"greed"},"price_series":[91.575,90.775,87.95,84.95,85.625,96.325,112.0,120.945,128.545,128.225,117.7,104.09,116.04,110.25,108.415,106.47,102.11,112.655,118.015,125.455,121.05,126.98,142.67,141.53,158.12,179.19,196.69,211.1,154.13,162.09,155.44,157.7,166.18,175.64,154.19,144.95]},"SAIL":{"company":"Steel Authority of India Ltd","ticker":"SAIL","market":"INDIA","currency":"INR","sector":"Metals & Mining","industry":"Iron & Steel","current_price":164.0,"high_52w":210.0,"low_52w":124.0,"quality_score":{"earned":8,"total":23,"pct":34.8,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":52,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[92.3,123.65,122.5,121.2,134.25,164.2,158.5,148.65,153.04,133.69,141.36,115.75,117.11,113.13,107.43,105.02,115.18,113.71,129.18,131.99,124.2,118.66,134.48,136.85,134.91,146.99,151.13,165.71,151.42,184.62,204.37,173.49,169.03,195.0,181.49,164.34]},"IDEA":{"company":"Vodafone Idea Ltd","ticker":"IDEA","market":"INDIA","currency":"INR","sector":"Telecommunication","industry":"Telecom - Cellular & Fixed line services","current_price":11.4,"high_52w":15.8,"low_52w":8.13,"quality_score":{"earned":13,"total":23,"pct":56.5,"band_label":"Moderate Historical Consistency (12\u201316)","tier":"moderate"},"fear_greed":{"score":34,"zone_label":"Fear Zone","tier":"fear"},"price_series":[13.05,16.0,14.35,13.65,13.25,13.2,15.25,17.89,16.27,15.64,10.36,8.12,8.36,7.94,9.05,7.55,6.8,7.12,6.92,7.43,6.91,6.49,8.13,8.73,9.96,10.76,11.17,10.59,8.53,10.22,13.99,14.46,13.01,14.33,12.95,11.36]},"YESBANK":{"company":"Yes Bank Ltd","ticker":"YESBANK","market":"INDIA","currency":"INR","sector":"Financial Services","industry":"Private Sector Bank","current_price":15.8,"high_52w":25.8,"low_52w":15.6,"quality_score":{"earned":10,"total":23,"pct":43.5,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":35,"zone_label":"Fear Zone","tier":"fear"},"price_series":[19.35,21.45,24.1,24.45,23.2,26.15,23.0,23.69,26.51,23.61,22.48,20.4,19.96,19.59,19.23,16.75,16.88,17.72,21.48,20.34,18.92,19.1,21.25,22.74,22.93,21.6,21.41,20.72,17.25,19.93,23.15,24.18,22.77,22.83,20.95,15.8]},"AAPL":{"company":"Apple Inc.","ticker":"AAPL","market":"USA","currency":"USD","sector":"Technology","industry":"Consumer Electronics","current_price":342.98,"high_52w":351.73,"low_52w":243.42,"quality_score":{"earned":17,"total":23,"pct":73.9,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":74,"zone_label":"Greed Zone","tier":"greed"},"price_series":[189.95,192.53,184.4,180.75,171.48,170.33,192.25,210.62,222.08,229.0,233.0,225.91,237.33,250.42,236.0,241.84,222.13,212.5,200.85,205.17,207.57,232.14,254.63,270.37,278.85,271.86,259.48,264.18,253.79,271.35,312.06,289.36,308.91,316.85,333.02,342.96]},"MSFT":{"company":"Microsoft Corporation","ticker":"MSFT","market":"USA","currency":"USD","sector":"Technology","industry":"Software - Infrastructure","current_price":532.3001,"high_52w":553.72,"low_52w":349.2,"quality_score":{"earned":21,"total":23,"pct":91.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":72,"zone_label":"Greed Zone","tier":"greed"},"price_series":[378.91,376.04,397.58,413.64,420.72,389.33,415.13,446.95,418.35,417.14,430.3,406.35,423.46,421.5,415.06,396.99,375.39,395.26,460.36,497.41,533.5,506.69,517.95,517.81,492.01,483.62,430.29,392.74,370.17,407.78,450.24,373.02,464.72,507.29,512.9,532.3001]},"NVDA":{"company":"NVIDIA Corporation","ticker":"NVDA","market":"USA","currency":"USD","sector":"Technology","industry":"Semiconductors","current_price":216.016,"high_52w":243.37,"low_52w":164.27,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":64,"zone_label":"Greed Zone","tier":"greed"},"price_series":[46.77,49.522,61.527,79.112,90.356,86.402,109.633,123.54,117.02,119.37,121.44,132.76,138.25,134.29,120.07,124.92,108.38,108.92,135.13,157.99,177.87,174.18,186.58,202.49,177.0,186.5,191.13,177.19,174.4,199.57,211.14,200.09,200.75,220.78,228.38,216.02]},"GOOGL":{"company":"Alphabet Inc.","ticker":"GOOGL","market":"USA","currency":"USD","sector":"Communication Services","industry":"Internet Content & Information","current_price":317.635,"high_52w":408.61,"low_52w":264.28,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":47,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[132.53,139.69,140.1,138.46,150.93,162.78,172.5,182.15,171.54,163.38,165.85,171.11,168.95,189.3,204.02,170.28,154.64,158.8,171.74,176.23,191.9,212.91,243.1,281.19,320.18,313.0,338.0,311.76,287.56,384.8,380.34,357.37,356.13,339.35,344.08,317.635]},"AMZN":{"company":"Amazon.com, Inc.","ticker":"AMZN","market":"USA","currency":"USD","sector":"Consumer Cyclical","industry":"Internet Retail","current_price":248.86,"high_52w":287.2,"low_52w":196.0,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":60,"zone_label":"Greed Zone","tier":"greed"},"price_series":[146.09,151.94,155.2,176.76,180.38,175.0,176.44,193.25,186.98,178.5,186.33,186.4,207.89,219.39,237.68,212.28,190.26,184.42,205.01,219.39,234.11,229.0,219.57,244.22,233.22,230.82,239.3,210.0,208.27,265.06,270.64,238.34,271.58,259.77,249.15,248.845]},"META":{"company":"Meta Platforms, Inc.","ticker":"META","market":"USA","currency":"USD","sector":"Communication Services","industry":"Internet Content & Information","current_price":631.15,"high_52w":779.82,"low_52w":520.26,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":49,"zone_label":"Neutral Zone","tier":"neutral"},"price_series":[327.15,353.96,390.14,490.13,485.58,430.17,466.83,504.22,474.83,521.31,572.44,567.58,574.32,585.51,689.18,668.2,576.36,549.0,647.49,738.09,773.44,738.7,734.38,648.35,647.95,660.09,716.5,648.18,572.13,611.91,632.51,563.29,556.71,572.34,725.18,631.15]},"BRK-B":{"company":"Berkshire Hathaway Inc.","ticker":"BRK-B","market":"USA","currency":"USD","sector":"Financial Services","industry":"Insurance - Diversified","current_price":546.765,"high_52w":549.96,"low_52w":464.01,"quality_score":{"earned":9,"total":23,"pct":39.1,"band_label":"Low Historical Consistency (0\u201311)","tier":"low"},"fear_greed":{"score":79,"zone_label":"Extreme Greed Zone","tier":"extreme-greed"},"price_series":[360.0,356.66,383.74,409.4,420.52,396.73,414.4,406.8,438.5,475.92,460.26,450.92,483.02,453.28,468.67,513.83,532.58,533.25,503.96,485.77,471.88,502.98,502.74,477.54,513.81,502.65,480.53,504.95,479.2,473.6,474.48,500.39,511.54,504.03,497.95,546.765]},"KO":{"company":"The Coca-Cola Company","ticker":"KO","market":"USA","currency":"USD","sector":"Consumer Defensive","industry":"Beverages - Non-Alcoholic","current_price":92.53,"high_52w":95.37,"low_52w":67.27,"quality_score":{"earned":19,"total":23,"pct":82.6,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":73,"zone_label":"Greed Zone","tier":"greed"},"price_series":[58.44,58.93,59.49,60.02,61.18,61.77,62.93,63.65,66.74,72.47,71.86,65.31,64.08,62.26,63.48,71.21,71.62,72.55,72.1,70.75,67.89,68.99,66.32,68.9,73.12,69.91,74.81,81.56,76.05,78.76,79.01,81.27,87.59,88.67,86.08,92.53]},"NIFTY 50":{"company":"NIFTY 50","ticker":"NIFTY50","market":"INDIA","currency":"INR","sector":"Index","industry":"Broad Market Index","current_price":22753.1992,"high_52w":26373.1992,"low_52w":18837.8496,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":43,"zone_label":"Fear Zone","tier":"fear"},"price_series":[20133.1504,21731.4004,21725.6992,21982.8008,22326.9004,22604.8496,22530.6992,24010.5996,24951.1504,25235.9004,25810.8496,24205.3496,24131.0996,23644.8008,23508.4004,22124.6992,23519.3496,24334.1992,24750.6992,25517.0508,24768.3496,24426.8496,24611.0996,25722.0996,26202.9492,26129.5996,25320.6504,25178.6504,22331.4004,23997.5508,23547.75,23865.75,24383.5996,24080.4004,22620.4492,22753.1992]},"S&P 500":{"company":"S&P 500","ticker":"S&P500","market":"USA","currency":"USD","sector":"Index","industry":"Broad Market Index","current_price":7678.8301,"high_52w":7844.52,"low_52w":4103.7798,"quality_score":{"earned":18,"total":23,"pct":78.3,"band_label":"High Historical Consistency (17\u201323)","tier":"high"},"fear_greed":{"score":69,"zone_label":"Greed Zone","tier":"greed"},"price_series":[4567.7998,4769.8301,4845.6499,5096.27,5254.3501,5035.6899,5277.5098,5460.48,5522.2998,5648.3999,5762.48,5705.4502,6032.3799,5881.6299,6040.5298,5954.5,5611.8501,5569.0601,5911.6899,6204.9502,6339.3901,6460.2598,6688.46,6840.2002,6849.0898,6845.5,6939.0298,6878.8799,6528.52,7209.0098,7580.0601,7499.3599,7489.7202,7686.1401,7651.54,7678.8301]}};
-let STOCKS = {};
-function staticLoadUser() { try { return JSON.parse(localStorage.getItem("lojik_user") || localStorage.getItem("lojikgain_user") || "null"); } catch { return null; } }
-function staticSaveUser(u) { localStorage.setItem("lojik_user", JSON.stringify(u)); localStorage.setItem("lojikgain_user", JSON.stringify(u)); }
-function staticTrialDaysLeft(u) {
-  if (!u) return 0;
-  if (u.is_paid) return 999;
-  const ms = new Date(u.trial_end) - new Date();
-  if (ms <= 0) return 0;
-  return Math.max(1, Math.ceil(ms / 86400000));
-}
-function staticAccessGranted(u) {
-  if (!u) return false;
-  if (u.is_paid) return true;
-  if (u.is_admin) return true;
-  return staticTrialDaysLeft(u) > 0;
-}
-function normalizeUser(u) {
-  if (!u) return null;
-  const isAdmin = !!u.is_admin || ["dr.timothysuraj@gmail.com","admin"].includes((u.email||"").toLowerCase().trim());
-  if (isAdmin) u = { ...u, is_admin: true, is_paid: true };
-  const tdl = isAdmin ? 9999 : staticTrialDaysLeft(u);
-  return { ...u, is_admin: isAdmin, trial_days_left: tdl, trial_expired: isAdmin ? false : (!staticAccessGranted(u) && !u.is_paid), access_granted: isAdmin ? true : staticAccessGranted(u), plan_type: (u.is_paid || isAdmin) ? "pro" : null };
-}
-async function authRegister(email, name, password, provider) {
-  const now = new Date();
-  const trialEnd = new Date(now.getTime() + 7 * 86400000);
-  const u = { id: Date.now(), email: email.toLowerCase().trim(), name: name || email.split("@")[0],
-    auth_provider: provider || "email", created_at: now.toISOString(), trial_start: now.toISOString(),
-    trial_end: trialEnd.toISOString(), is_paid: false, utr: null };
-  staticSaveUser(u);
-  return { authenticated: true, user: normalizeUser(u) };
-}
-async function authLogin(email, password) {
-  const em = (email || "").toLowerCase().trim();
-  const adminEmails = ["dr.timothysuraj@gmail.com", "admin"];
-  if (adminEmails.includes(em) && password === "Loginme1") {
-    const now = new Date();
-    const u = { id: Date.now(), email: em, name: "Admin", auth_provider: "email", created_at: now.toISOString(), trial_start: now.toISOString(), trial_end: new Date(now.getTime() + 9999 * 86400000).toISOString(), is_paid: true, is_admin: true, utr: null };
-    staticSaveUser(u);
-    return { authenticated: true, user: normalizeUser(u) };
-  }
-  const u = staticLoadUser();
-  if (!u || u.email !== em) throw new Error("No account found. Register first.");
-  return { authenticated: true, user: normalizeUser(u) };
-}
-
-async function authGoogle(email, name) {
-  const existing = staticLoadUser();
-  if (existing && existing.email === email.toLowerCase().trim()) {
-    return { authenticated: true, user: normalizeUser(existing) };
-  }
-  return authRegister(email, name, "", "google");
-}
-async function authMe() {
-  const u = staticLoadUser();
-  if (!u) return { authenticated: false, user: null };
-  return { authenticated: true, user: normalizeUser(u) };
-}
-async function authLogout() {
-  localStorage.removeItem("lojik_user");
-  localStorage.removeItem("lojikgain_user");
-  state.user = null;
-}
-async function simulateExpiry(expired) {
-  const u = staticLoadUser();
-  if (!u) return null;
-  if (expired) u.trial_end = new Date(Date.now() - 86400000).toISOString();
-  else u.trial_end = new Date(Date.now() + 7 * 86400000).toISOString();
-  staticSaveUser(u);
-  return { authenticated: true, user: normalizeUser(u) };
-}
-async function verifyUtr(utr) {
-  if (!/^\d{12}$/.test(utr)) throw new Error("UTR must be a 12-digit number.");
-  const u = staticLoadUser();
-  if (!u) throw new Error("Not logged in.");
-  const used = JSON.parse(localStorage.getItem("lojik_used_utrs") || "[]");
-  if (used.includes(utr)) throw new Error("This UTR has already been used.");
-  u.is_paid = true; u.utr = utr; u.plan_type = "pro"; u.paid_at = new Date().toISOString();
-  staticSaveUser(u);
-  used.push(utr); localStorage.setItem("lojik_used_utrs", JSON.stringify(used));
-  return { ok: true, message: "Unlocked", status: { authenticated: true, user: normalizeUser(u) } };
-}
-function findStock(key) {
-  if (!key) return null;
-  const k = key.trim().toUpperCase();
-  if (STOCKS[k]) return STOCKS[k];
-  for (const kk of Object.keys(STOCKS)) if (kk.toUpperCase() === k) return STOCKS[kk];
-  for (const kk of Object.keys(STOCKS)) { const d = STOCKS[kk]; if ((d.company || "").toUpperCase() === k) return d; }
-  return null;
-}
-async function deterministicAnalysis(ticker, market) {
-  const t = (ticker || "").toUpperCase().trim();
-  const info = (typeof ALL_TICKERS !== "undefined" && ALL_TICKERS) ? ALL_TICKERS.find(x => (x.s || "").toUpperCase() === t) : null;
-  const companyName = info ? info.n : t;
-  const indiaList = ["ITC","TCS","INFY","HDFCBANK","ASIANPAINT","TITAN","MARUTI","TATASTEEL","ONGC","NTPC","PIDILITIND","PAGEIND","PERSISTENT","VOLTAS","EIHOTEL","ASHOKLEY","BHEL","SAIL","IDEA","YESBANK","NIFTY 50"];
-  const isIndia = (market === "INDIA") || (market === "AUTO" && indiaList.includes(t));
-  const mm = (market === "AUTO") ? (isIndia ? "INDIA" : "USA") : (market || (isIndia ? "INDIA" : "USA"));
-  const finalMarket = (info && info.m) ? info.m : mm;
-  const cur = finalMarket === "INDIA" ? "INR" : "USD";
-  let h = 0;
-  for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
-  const base = 50 + (h % 400);
-  const series = [];
-  let p = base;
-  for (let i = 0; i < 36; i++) { p = p * (1 + ((h >> (i % 16)) % 7 - 3) * 0.012); series.push(+p.toFixed(2)); }
-  const earned = 8 + (h % 16);
-  const fg = 20 + (h % 61);
-  let current_price = series[series.length - 1];
-  let high_52w = Math.max(...series);
-  let low_52w = Math.min(...series);
-  let price_series = series;
-  try {
-    const sym = finalMarket === "INDIA" ? (t + ".NS") : t;
-    const url = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/" + sym + "?range=3y&interval=1mo");
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 3000);
-    const res = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(timer);
-    if (res && res.ok) {
-      const json = await res.json();
-      const r = (json && json.chart && json.chart.result && json.chart.result[0]) ? json.chart.result[0] : null;
-      if (r) {
-        const meta = r.meta || {};
-        if (meta.regularMarketPrice != null) current_price = meta.regularMarketPrice;
-        if (meta.fiftyTwoWeekHigh != null) high_52w = meta.fiftyTwoWeekHigh;
-        if (meta.fiftyTwoWeekLow != null) low_52w = meta.fiftyTwoWeekLow;
-        const closes = ((((r.indicators || {}).quote || [])[0]) || {}).close || [];
-        const cleaned = closes.filter(x => x != null);
-        if (cleaned.length) price_series = cleaned.map(x => +Number(x).toFixed(2));
-      }
-    }
-  } catch (e) {}
-  return { company: companyName, ticker: t, market: finalMarket, currency: cur, sector: "\u2014", industry: "Live generated", current_price: current_price, high_52w: high_52w, low_52w: low_52w, quality_score: { earned: earned, total: 23, pct: +(earned / 23 * 100).toFixed(1), band_label: earned >= 17 ? "High Historical Consistency (17\u201323)" : earned >= 12 ? "Moderate Historical Consistency (12\u201316)" : "Low Historical Consistency (0\u201311)", tier: earned >= 17 ? "high" : earned >= 12 ? "moderate" : "low" }, fear_greed: { score: fg, zone_label: fg <= 24 ? "Extreme Fear Zone" : fg <= 44 ? "Fear Zone" : fg <= 55 ? "Neutral Zone" : fg <= 75 ? "Greed Zone" : "Extreme Greed Zone", tier: fg <= 24 ? "extreme-fear" : fg <= 44 ? "fear" : fg <= 55 ? "neutral" : fg <= 75 ? "greed" : "extreme-greed" }, price_series: price_series };
-}
-
-
+// Phase 2 Apple-Grade Public Frontend
+const state = {
+  market: "INDIA",
+  user: null,
+  config: {},
+  selectedTicker: null,
+  cache: {},
+  pendingTicker: null,
+  freeExampleViewed: true,
+  index: null,
+  currentView: "overview",
+  chartFilter: "all",
+  currentData: null,
+};
 
 const $ = (id) => document.getElementById(id);
-
 function svgEl(tag) { return document.createElementNS("http://www.w3.org/2000/svg", tag); }
-
-function polar(cx, cy, r, deg) {
-  const rad = deg * Math.PI / 180;
-  return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
-}
+function polar(cx, cy, r, deg) { const rad = deg * Math.PI / 180; return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)]; }
 function arcPath(cx, cy, r, startDeg, endDeg) {
   const [x1, y1] = polar(cx, cy, r, startDeg);
   const [x2, y2] = polar(cx, cy, r, endDeg);
   const large = (endDeg - startDeg) > 180 ? 1 : 0;
   return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
 }
+function num(v) { if (v === null || v === undefined || v === "") return "—"; if (typeof v === "number") return v.toLocaleString(undefined, { maximumFractionDigits: 2 }); return String(v); }
+function fmt(v, d = 2) { return v == null || isNaN(v) ? "—" : Number(v).toFixed(d); }
+const SERIES_LABELS = {"market_share_pct":"Market Share (%)","revenue":"Revenue","revenue_growth_pct":"Revenue YoY Growth (%)","gross_margin_pct":"Gross Margin (%)","operating_margin_pct":"Operating Margin (%)","net_margin_pct":"Net Margin (%)","eps":"Diluted EPS","dps":"Dividend / Share","eps_growth_pct":"EPS Growth (%)","roe_pct":"Return on Equity (ROE %)","roce_pct":"Return on Capital (ROCE %)","cfo":"Operating Cash Flow","capex":"Capital Expenditure","fcf":"Free Cash Flow","pe":"P/E Multiple (x)","peer_avg_pe":"Peer Avg P/E (x)","target_pe":"Fair Target P/E (x)","peg":"PEG Ratio (x)","value":"Valuation Bridge","price":"Implied Value / Share","tam_size_bn":"Addressable Market (Bn)","tam_growth_pct":"TAM CAGR (%)","rev_share_pct":"Revenue Share (%)","employees_pct":"Workforce Share (%)","share_pct":"Revenue / Ownership Share (%)","pct_of_revenue":"Share of Revenue (%)","amount":"Amount","revenue_per_share_index":"Revenue / Share Index (Base 100)","operating_leverage_index":"Operating Leverage Index (Base 100)","score":"Forensic Audit Score (0–100)","rsi":"14-Period RSI (0–100)","obv_index":"OBV Accumulation Index (0–100)","close":"Closing Price","dma_50":"50-Period Moving Avg","dma_200":"200-Period Moving Avg","trailing_pe":"Trailing P/E (x)","peer_avg":"Peer Group Avg P/E (x)"};
+function humanSeriesLabel(k){ if (SERIES_LABELS[k]) return SERIES_LABELS[k]; return String(k).replace(/_/g," ").replace(/\bpct\b/gi,"%").replace(/\b\w/g,c=>c.toUpperCase()); }
+function esc(s) { if (s && typeof s === "object") { try { s = JSON.stringify(s); } catch (e) { s = String(s); } } return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function money(cur, v) { if (v === null || v === undefined) return "—"; return `${cur || ""} ${num(v)}`.trim(); }
 
+// Theme
 function setTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
-  $("themeToggle").textContent = theme === "dark" ? "☀️" : "🌙";
+  const t = $("themeToggle"); if (t) t.textContent = theme === "dark" ? "☀️" : "🌙";
 }
 setTheme(localStorage.getItem("theme") || "dark");
-
-$("themeToggle").addEventListener("click", () => {
+const tt = $("themeToggle"); if (tt) tt.addEventListener("click", () => {
   const cur = document.documentElement.getAttribute("data-theme");
   setTheme(cur === "dark" ? "light" : "dark");
 });
 
-$("marketPill").addEventListener("click", () => {
+// Market toggle
+const mp = $("marketPill");
+if (mp) mp.addEventListener("click", () => {
   state.market = state.market === "INDIA" ? "USA" : "INDIA";
-  $("marketPill").textContent = state.market === "INDIA" ? "🇮🇳 India NSE" : "🇺🇸 US Market";
+  mp.textContent = state.market === "INDIA" ? "🇮🇳 India NSE" : "🇺🇸 US Market";
+  const showcase = state.market === "INDIA" ? "ITC" : "AAPL";
+  if (!state.user) { loadTickerData(showcase); }
+  else { /* keep current unless none */ if (!state.selectedTicker) loadTickerData(showcase); }
 });
 
-function openModal(id) { $(id).classList.add("open"); }
-function closeModal(id) { $(id).classList.remove("open"); }
+// Modal helpers
+function openModal(id) { const m = $(id); if (m) m.classList.add("open"); }
+function closeModal(id) { const m = $(id); if (m) m.classList.remove("open"); }
 document.querySelectorAll(".modal-close").forEach(b => {
   b.addEventListener("click", () => closeModal(b.dataset.close));
 });
@@ -178,167 +61,230 @@ document.querySelectorAll(".modal").forEach(m => {
   m.addEventListener("click", (e) => { if (e.target === m) closeModal(m.id); });
 });
 
-if ($("upiIdText")) $("upiIdText").textContent = state.config.upi_id;
+// Data paths
+function dataBases() {
+  const bases = [];
+  // Flask
+  bases.push("./static/data");
+  // GitHub Pages
+  bases.push("./data");
+  return bases;
+}
+function isLocalHost() { return /localhost|127\.0\.0\.1/.test(location.hostname); }
 
+// Index loading
+function getIndex() {
+  if (state.index) return state.index;
+  if (window.LOJIK_PUBLIC_INDEX) state.index = window.LOJIK_PUBLIC_INDEX;
+  return state.index;
+}
+async function ensureIndex() {
+  if (state.index) return state.index;
+  if (window.LOJIK_PUBLIC_INDEX) { state.index = window.LOJIK_PUBLIC_INDEX; return state.index; }
+  for (const base of dataBases()) {
+    try {
+      const r = await fetch(`${base}/public_index.json`);
+      if (r.ok) { state.index = await r.json(); return state.index; }
+    } catch (e) {}
+  }
+  return null;
+}
+
+// Auth
+function isAdminEmail(email) {
+  return ["dr.timothysuraj@gmail.com", "admin@lojikgain.com"].includes(String(email).toLowerCase());
+}
+function isAdminUser() { return Boolean(state.user && (state.user.is_admin || isAdminEmail(state.user.email))); }
 async function refreshAuth() {
-  const me = await authMe();
-  state.user = me.authenticated ? me.user : null;
-  if (me.authenticated) {
-    $("signinBtn").style.display = "none";
-    $("profilePill").style.display = "inline-block";
-    $("profilePill").textContent = me.user.name || me.user.email;
-    $("trialBadge").textContent = me.user.is_admin ? "\u{1F451} Admin \u2022 Unlimited" : (me.user.is_paid ? "Pro Unlocked" : (me.user.trial_expired ? "Trial Expired" : `${me.user.trial_days_left} Days Free Trial`));
+  // Try Flask
+  try {
+    const r = await fetch("/api/auth/me");
+    if (r.ok) {
+      const d = await r.json();
+      state.user = d.authenticated ? d.user : null;
+      updateAuthUI();
+      updateFounderBtn();
+      return;
+    }
+  } catch (e) {}
+  // Static fallback
+  try {
+    const u = JSON.parse(localStorage.getItem("lojik_public_user") || "null");
+    state.user = u;
+  } catch (e) { state.user = null; }
+  updateAuthUI();
+  updateFounderBtn();
+}
+function updateAuthUI() {
+  const signinBtn = $("signinBtn");
+  const profilePill = $("profilePill");
+  const trialBadge = $("trialBadge");
+  if (state.user) {
+    if (signinBtn) signinBtn.style.display = "none";
+    if (profilePill) { profilePill.style.display = "inline-block"; profilePill.textContent = state.user.name || state.user.email; }
+    if (trialBadge) trialBadge.textContent = state.user.is_admin ? "👑 Admin • Unlimited" : "Public Access";
   } else {
-    $("signinBtn").style.display = "inline-block";
-    $("profilePill").style.display = "none";
-    $("trialBadge").textContent = "7 Days Free Trial";
+    if (signinBtn) signinBtn.style.display = "inline-block";
+    if (profilePill) profilePill.style.display = "none";
+    if (trialBadge) trialBadge.textContent = "Public Access";
   }
 }
-refreshAuth();
-
-$("signinBtn").addEventListener("click", () => openModal("authModal"));
-
-$("testExpiryBtn").addEventListener("click", async () => {
-  if (!state.user) { openModal("authModal"); return; }
-  const expired = $("trialBadge").textContent !== "Trial Expired";
-  await simulateExpiry(expired);
-  await refreshAuth();
-});
-
-async function postAuth(url, body) {
-  const r = await fetch(url, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
-  const d = await r.json();
-  if (!r.ok) throw new Error(d.error || d.message || "Auth failed");
-  return d;
+function updateFounderBtn() {
+  const fb = $("founderBtn");
+  if (!fb) return;
+  if (state.user && state.user.is_admin) {
+    fb.style.display = "inline-flex";
+    fb.href = isLocalHost() ? "/personal" : "./founder.html";
+  } else {
+    fb.style.display = "none";
+  }
 }
-$("loginBtn").addEventListener("click", async () => {
+const signinBtn = $("signinBtn");
+if (signinBtn) signinBtn.addEventListener("click", () => openModal("authModal"));
+
+async function postAuth(path, body) {
+  // Try Flask
   try {
-    const d = await authLogin($("authEmail").value, $("authPassword").value);
-    state.user = d.user; closeModal("authModal"); refreshAuth();
-    $("authMsg").textContent = "";
-  } catch (e) { $("authMsg").textContent = e.message; }
-});
-$("registerBtn").addEventListener("click", async () => {
+    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (r.status !== 404) {
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || d.message || "Auth failed");
+      state.user = d.user || d;
+      localStorage.setItem("lojik_public_user", JSON.stringify(state.user));
+      refreshAuth();
+      if (state.currentData) { renderAll(state.currentData); }
+      if (state.pendingTicker) { const t = state.pendingTicker; state.pendingTicker = null; closeModal("authModal"); loadTickerData(t); }
+      else { closeModal("authModal"); }
+      return d;
+    }
+  } catch (e) {
+    if (e && e.message && e.message !== "Failed to fetch") {
+      // real auth error from server
+      const msg = $("authMsg"); if (msg) msg.textContent = e.message;
+      throw e;
+    }
+  }
+  // Static fallback
+  const email = body.email;
+  const user = {
+    email,
+    name: body.name || (email ? email.split("@")[0] : "User"),
+    is_admin: isAdminEmail(email),
+    is_paid: isAdminEmail(email),
+    access_granted: true,
+    auth_provider: path.includes("google") ? "google" : "email",
+  };
+  state.user = user;
+  localStorage.setItem("lojik_public_user", JSON.stringify(user));
+  refreshAuth();
+  if (state.currentData) { renderAll(state.currentData); }
+  if (state.pendingTicker) { const t = state.pendingTicker; state.pendingTicker = null; closeModal("authModal"); loadTickerData(t); }
+  else { closeModal("authModal"); }
+  return { authenticated: true, user };
+}
+
+// Auth modal handlers
+const loginBtn = $("loginBtn");
+if (loginBtn) loginBtn.addEventListener("click", async () => {
   try {
-    const d = await authRegister($("authEmail").value, $("authName").value, $("authPassword").value, "email");
-    state.user = d.user; closeModal("authModal"); refreshAuth();
-    $("authMsg").textContent = "";
-  } catch (e) { $("authMsg").textContent = e.message; }
+    await postAuth("/api/auth/login", { email: $("authEmail").value, password: $("authPassword").value });
+    const m = $("authMsg"); if (m) m.textContent = "";
+  } catch (e) { const m = $("authMsg"); if (m) m.textContent = e.message; }
 });
-$("googleBtn").addEventListener("click", async () => {
+const registerBtn = $("registerBtn");
+if (registerBtn) registerBtn.addEventListener("click", async () => {
+  try {
+    await postAuth("/api/auth/register", { email: $("authEmail").value, name: $("authName").value, password: $("authPassword").value });
+    const m = $("authMsg"); if (m) m.textContent = "";
+  } catch (e) { const m = $("authMsg"); if (m) m.textContent = e.message; }
+});
+const googleBtn = $("googleBtn");
+if (googleBtn) googleBtn.addEventListener("click", async () => {
   const email = prompt("Enter your Google email:");
   if (!email) return;
   const name = prompt("Enter your name:") || email.split("@")[0];
   try {
-    const d = await authGoogle(email, name);
-    state.user = d.user; closeModal("authModal"); refreshAuth();
-  } catch (e) { $("authMsg").textContent = e.message; }
+    await postAuth("/api/auth/google", { email, name });
+    const m = $("authMsg"); if (m) m.textContent = "";
+  } catch (e) { const m = $("authMsg"); if (m) m.textContent = e.message; }
+});
+const adminQuick = $("adminQuickLoginBtn");
+if (adminQuick) adminQuick.addEventListener("click", async () => {
+  try {
+    await postAuth("/api/auth/login", { email: "dr.timothysuraj@gmail.com", password: "Loginme1" });
+    const m = $("authMsg"); if (m) m.textContent = "";
+  } catch (e) { const m = $("authMsg"); if (m) m.textContent = e.message; }
 });
 
-// Search autocomplete (client-side across all 31 stocks)
-function searchStocks(q) {
-  q = (q || "").trim();
-  if (!q) return [];
-  const ql = q.toLowerCase();
-  const out = [];
-  const seenSym = new Set();
-  function add(sym, name, market, exchange) {
-    const key = (sym || "").toString().toUpperCase();
-    if (!key || seenSym.has(key)) return;
-    seenSym.add(key);
-    out.push({ symbol: sym, ticker: sym, name: name || "", company: name || "", market: market || "INDIA", exchange: exchange || "" });
-  }
-  if (typeof STOCKS !== "undefined" && STOCKS) {
-    for (const k of Object.keys(STOCKS)) {
-      const d = STOCKS[k];
-      const ticker = (d.ticker || k).toString();
-      const company = (d.company || "").toString();
-      if (ticker.toLowerCase().includes(ql) || company.toLowerCase().includes(ql)) {
-        add(ticker, company, d.market, d.exchange);
-      }
-    }
-  }
-  if (typeof ALL_TICKERS !== "undefined" && ALL_TICKERS) {
-    for (const it of ALL_TICKERS) {
-      const sym = (it.s || "").toString();
-      const name = (it.n || "").toString();
-      if (sym.toLowerCase().includes(ql) || name.toLowerCase().includes(ql)) {
-        add(sym, name, it.m, it.e);
-      }
-    }
-  }
-  const exact = out.some(x => (x.symbol || "").toUpperCase() === q.toUpperCase());
-  if (!exact) {
-    const currentMarket = (typeof state !== "undefined" && state && state.market) ? state.market : "INDIA";
-    add(q.toUpperCase(), q.toUpperCase() + " (Live Market Lookup)", currentMarket, "");
-  }
-  return out.slice(0, 12);
+// Free showcase gate
+const FREE_SHOWCASE = ["ITC", "AAPL"];
+function isFreeShowcase(t) { return FREE_SHOWCASE.includes(String(t).toUpperCase()); }
+function requireAuthFor(ticker) {
+  if (state.user) return false;
+  if (isFreeShowcase(ticker)) return false;
+  return true;
 }
 
-let acTimer = null;
-$("searchInput").addEventListener("input", (e) => {
-  clearTimeout(acTimer);
-  const q = e.target.value.trim();
-  if (q.length < 1) { $("autocomplete").style.display = "none"; return; }
-  acTimer = setTimeout(() => {
-    const results = searchStocks(q);
-    const box = $("autocomplete");
-    box.innerHTML = "";
-    results.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "ac-item";
-      div.textContent = `${item.symbol} — ${item.name || ""}`;
-      div.addEventListener("click", () => {
-        $("searchInput").value = item.symbol;
-        box.style.display = "none";
-        analyze(item.symbol);
-      });
-      box.appendChild(div);
-    });
-    box.style.display = results.length ? "block" : "none";
-  }, 120);
-});
-$("searchInput").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") { $("autocomplete").style.display = "none"; analyze($("searchInput").value.trim()); }
-});
-
-async function analyze(raw) {
-  let ticker=(typeof raw==="string")?raw.trim():String((raw&&(raw.ticker||raw.symbol))||"").trim();
-  if(!ticker) return;
-  const sym=ticker;
-  let analyzingBanner=document.getElementById("analyzingBanner");
-  if(!analyzingBanner){analyzingBanner=document.createElement("div");analyzingBanner.id="analyzingBanner";(document.querySelector(".search-studio")||document.body).insertAdjacentElement("afterend",analyzingBanner);}
-  analyzingBanner.textContent="⏳ Analyzing "+sym+" — Computing 10-Year Financials & Market Mood...";
-  analyzingBanner.classList.add("show");
-  const u = state.user;
-  if (!u || !staticAccessGranted(u)) { setTimeout(function(){var b=document.getElementById("analyzingBanner");if(b)b.classList.remove("show");},280); openModal("upiModal"); return; }
-  let m = state.market || "AUTO";
-  const indiaList = ["ITC","TCS","INFY","HDFCBANK","ASIANPAINT","TITAN","MARUTI","TATASTEEL","ONGC","NTPC","PIDILITIND","PAGEIND","PERSISTENT","VOLTAS","EIHOTEL","ASHOKLEY","BHEL","SAIL","IDEA","YESBANK","NIFTY 50"];
-  if (m === "AUTO") m = indiaList.includes(ticker.toUpperCase()) ? "INDIA" : "USA";
-  let data = findStock(ticker);
-  if (!data) data = await deterministicAnalysis(ticker, m);
-  if (!data.market) data.market = m;
-  setTimeout(function(){ var b=document.getElementById("analyzingBanner"); if(b) b.classList.remove("show"); applyAnalysis(data, ticker); }, 280);
+// Load ticker data
+async function loadTickerData(ticker) {
+  ticker = String(ticker || "").trim();
+  if (!ticker) return;
+  const upper = ticker.toUpperCase();
+  // normalize to index ticker if possible
+  const idx = getIndex() || await ensureIndex();
+  let resolved = ticker;
+  if (idx && idx.tickers) {
+    const found = idx.tickers.find(r => String(r.ticker).toUpperCase() === upper);
+    if (found) resolved = found.ticker;
+  }
+  if (requireAuthFor(resolved)) {
+    state.pendingTicker = resolved;
+    openModal("authModal");
+    return;
+  }
+  if (state.cache[resolved]) { renderAll(state.cache[resolved]); return; }
+  // embedded payload
+  if (idx && idx.payloads && idx.payloads[resolved]) {
+    state.cache[resolved] = idx.payloads[resolved];
+    renderAll(state.cache[resolved]);
+    return;
+  }
+  // per-ticker json
+  const safeFile = (idx && idx.safe_filename && idx.safe_filename[resolved]) ? idx.safe_filename[resolved] : (resolved.replace(/\s+/g, "_") + ".json");
+  for (const base of dataBases()) {
+    try {
+      const r = await fetch(`${base}/tickers/${safeFile}`);
+      if (r.ok) {
+        const d = await r.json();
+        state.cache[resolved] = d;
+        renderAll(d);
+        return;
+      }
+    } catch (e) {}
+  }
+  // Flask fallback
+  try {
+    const r = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ticker: resolved, market: state.market }) });
+    if (r.status === 401) { state.pendingTicker = resolved; openModal("authModal"); return; }
+    if (r.ok) {
+      const d = await r.json();
+      state.cache[resolved] = d;
+      renderAll(d);
+      return;
+    }
+  } catch (e) {}
+  console.warn("Could not load ticker", resolved);
 }
 
-// ---------- Jewel ring ----------
+// ---------- Score ring / speedo (reuse) ----------
 const SCORE_SEGMENTS = 23;
-const SCORE_SLOT = 360 / SCORE_SEGMENTS; // 15.652
+const SCORE_SLOT = 360 / SCORE_SEGMENTS;
 const SCORE_SEG_ANG = 12.5;
-
-function tierForIndex(i) {
-  const n = i + 1;
-  if (n >= 17) return "emerald";
-  if (n >= 12) return "amber";
-  return "coral";
-}
-const TIER_GRAD = { emerald: "gradEmerald", amber: "gradAmber", coral: "gradCoral" };
-
+function tierForIndex(i) { const n = i + 1; if (n >= 17) return "emerald"; if (n >= 12) return "amber"; return "coral"; }
 function initScoreRing() {
-  const svg = $("scoreRingSvg");
+  const svg = $("scoreRingSvg"); if (!svg) return;
   svg.innerHTML = "";
   const defs = svgEl("defs");
-  // gradients
   const gEmerald = svgEl("linearGradient"); gEmerald.id = "gradEmerald"; gEmerald.setAttribute("x1","0%"); gEmerald.setAttribute("y1","0%"); gEmerald.setAttribute("x2","100%"); gEmerald.setAttribute("y2","100%");
   [["#30D158","0%"],["#00C7BE","100%"]].forEach(([c,o])=>{const s=svgEl("stop");s.setAttribute("offset",o);s.setAttribute("stop-color",c);gEmerald.appendChild(s);});
   const gAmber = svgEl("linearGradient"); gAmber.id = "gradAmber"; gAmber.setAttribute("x1","0%"); gAmber.setAttribute("y1","0%"); gAmber.setAttribute("x2","100%"); gAmber.setAttribute("y2","100%");
@@ -346,17 +292,11 @@ function initScoreRing() {
   const gCoral = svgEl("linearGradient"); gCoral.id = "gradCoral"; gCoral.setAttribute("x1","0%"); gCoral.setAttribute("y1","0%"); gCoral.setAttribute("x2","100%"); gCoral.setAttribute("y2","100%");
   [["#FF453A","0%"],["#FF6961","100%"]].forEach(([c,o])=>{const s=svgEl("stop");s.setAttribute("offset",o);s.setAttribute("stop-color",c);gCoral.appendChild(s);});
   defs.appendChild(gEmerald); defs.appendChild(gAmber); defs.appendChild(gCoral);
-  // glow filter
-  const filter = svgEl("filter"); filter.id = "glow"; filter.setAttribute("x","-50%"); filter.setAttribute("y","-50%"); filter.setAttribute("width","200%"); filter.setAttribute("height","200%");
+  const filter = svgEl("filter"); filter.id = "glow-score"; filter.setAttribute("x","-50%"); filter.setAttribute("y","-50%"); filter.setAttribute("width","200%"); filter.setAttribute("height","200%");
   const fe = svgEl("feGaussianBlur"); fe.setAttribute("stdDeviation","3"); fe.setAttribute("result","coloredBlur");
-  const feMerge = svgEl("feMerge");
-  const n1 = svgEl("feMergeNode"); n1.setAttribute("in","coloredBlur");
-  const n2 = svgEl("feMergeNode"); n2.setAttribute("in","SourceGraphic");
-  feMerge.appendChild(n1); feMerge.appendChild(n2);
-  filter.appendChild(fe); filter.appendChild(feMerge);
-  defs.appendChild(filter);
+  const feMerge = svgEl("feMerge"); const n1 = svgEl("feMergeNode"); n1.setAttribute("in","coloredBlur"); const n2 = svgEl("feMergeNode"); n2.setAttribute("in","SourceGraphic"); feMerge.appendChild(n1); feMerge.appendChild(n2);
+  filter.appendChild(fe); filter.appendChild(feMerge); defs.appendChild(filter);
   svg.appendChild(defs);
-
   const g = svgEl("g");
   for (let i = 0; i < SCORE_SEGMENTS; i++) {
     const start = -90 + i * SCORE_SLOT;
@@ -372,22 +312,15 @@ function initScoreRing() {
   }
   svg.appendChild(g);
 }
-
 function updateScoreRing(earned) {
-  const svg = $("scoreRingSvg");
+  const svg = $("scoreRingSvg"); if (!svg) return;
   svg.querySelectorAll(".jewel-seg").forEach((p, i) => {
     p.setAttribute("stroke", i < earned ? (earned >= 17 ? "#10b981" : earned >= 12 ? "#f59e0b" : "#ef4444") : "rgba(148,163,184,0.28)");
-    const lit = i < earned;
-    p.classList.toggle("lit", lit);
-    if (lit) {
-      p.style.filter = "url(#glow)";
-    } else {
-      p.style.filter = "none";
-    }
+    p.classList.toggle("lit", i < earned);
+    p.style.filter = i < earned ? "url(#glow-score)" : "none";
     p.style.transitionDelay = `${i * 28}ms`;
   });
-  $("scoreValue").textContent = `${earned} / 23`;
-  // pills
+  const sv = $("scoreValue"); if (sv) sv.textContent = `${earned} / 23`;
   document.querySelectorAll("#scorePills .tier-pill").forEach(pill => {
     const range = pill.dataset.range;
     let active = false;
@@ -396,21 +329,11 @@ function updateScoreRing(earned) {
     else if (range === "17-23") active = earned >= 17;
     pill.classList.toggle("active", active);
   });
-  // badge
-  const band = earned >= 17 ? "High Historical Consistency (17–23)"
-             : earned >= 12 ? "Moderate Historical Consistency (12–16)"
-             : "Low Historical Consistency (0–11)";
-  $("scoreBand").textContent = band;
-  $("scoreExplain").textContent = scoreExplainText(earned);
+  const band = earned >= 17 ? "High Historical Consistency (17–23)" : earned >= 12 ? "Moderate Historical Consistency (12–16)" : "Low Historical Consistency (0–11)";
+  const sb = $("scoreBand"); if (sb) sb.textContent = band;
+  const se = $("scoreExplain"); if (se) se.textContent = earned >= 17 ? `This company passed ${earned} out of our 23 strict 10-year financial durability tests.` : earned >= 12 ? `A mixed record: strong in ${earned} of 23 years.` : `Fragile: only ${earned} strong years out of 23.`;
 }
 
-function scoreExplainText(earned) {
-  if (earned >= 17) return `This company passed ${earned} out of our 23 strict 10-year financial durability tests. That kind of boring consistency is what historically compounded capital. Not a prediction — just what the numbers already proved.`;
-  if (earned >= 12) return `A mixed record: strong in ${earned} of 23 years. Cyclical or average business — expect drawdowns and don't expect smooth compounding.`;
-  return `Fragile: only ${earned} strong years out of 23. Historically these balance sheets struggled to compound capital.`;
-}
-
-// ---------- Speedometer ----------
 const ZONES = [
   { name: "Extreme Fear", color: "#FF3B30", start: -180, end: -136.5, range: [0, 25] },
   { name: "Fear", color: "#FF9500", start: -133.5, end: -100.5, range: [25, 45] },
@@ -418,7 +341,6 @@ const ZONES = [
   { name: "Greed", color: "#34C759", start: -79.5, end: -46.5, range: [55, 75] },
   { name: "Extreme Greed", color: "#00C7BE", start: -43.5, end: 0, range: [75, 100] },
 ];
-
 function zoneForScore(score) {
   if (score <= 24) return "Extreme Fear";
   if (score <= 44) return "Fear";
@@ -426,446 +348,1004 @@ function zoneForScore(score) {
   if (score <= 75) return "Greed";
   return "Extreme Greed";
 }
-
 function initSpeedo() {
-  const svg = $("speedoSvg");
+  const svg = $("speedoSvg"); if (!svg) return;
   svg.innerHTML = "";
   const defs = svgEl("defs");
-
-  // needle gradient
   const ng = svgEl("linearGradient"); ng.id = "needleGrad"; ng.setAttribute("x1","0%"); ng.setAttribute("y1","0%"); ng.setAttribute("x2","0%"); ng.setAttribute("y2","100%");
   [["#e8ecf4","0%"],["#8a93a6","100%"]].forEach(([c,o])=>{const s=svgEl("stop");s.setAttribute("offset",o);s.setAttribute("stop-color",c);ng.appendChild(s);});
   defs.appendChild(ng);
-  // hub gradient
   const hg = svgEl("radialGradient"); hg.id = "hubGrad"; hg.setAttribute("cx","50%"); hg.setAttribute("cy","40%");
   [["#e8ecf4","0%"],["#4a5160","100%"]].forEach(([c,o])=>{const s=svgEl("stop");s.setAttribute("offset",o);s.setAttribute("stop-color",c);hg.appendChild(s);});
   defs.appendChild(hg);
-  // glow filter
-  const filter = svgEl("filter"); filter.id = "glow"; filter.setAttribute("x","-50%"); filter.setAttribute("y","-50%"); filter.setAttribute("width","200%"); filter.setAttribute("height","200%");
+  const filter = svgEl("filter"); filter.id = "glow-speedo"; filter.setAttribute("x","-50%"); filter.setAttribute("y","-50%"); filter.setAttribute("width","200%"); filter.setAttribute("height","200%");
   const fe = svgEl("feGaussianBlur"); fe.setAttribute("stdDeviation","4"); fe.setAttribute("result","b");
   const m = svgEl("feMerge"); const n1=svgEl("feMergeNode"); n1.setAttribute("in","b"); const n2=svgEl("feMergeNode"); n2.setAttribute("in","SourceGraphic"); m.appendChild(n1); m.appendChild(n2);
-  filter.appendChild(fe); filter.appendChild(m);
-  defs.appendChild(filter);
+  filter.appendChild(fe); filter.appendChild(m); defs.appendChild(filter);
   svg.appendChild(defs);
-
-  // zone arcs
   ZONES.forEach(z => {
     const path = svgEl("path");
     path.setAttribute("d", arcPath(180, 170, 122, z.start, z.end));
-    path.setAttribute("fill", "none");
-    path.setAttribute("stroke", z.color);
-    path.classList.add("zone-arc");
-    path.dataset.zone = z.name;
+    path.setAttribute("fill", "none"); path.setAttribute("stroke", z.color);
+    path.classList.add("zone-arc"); path.dataset.zone = z.name;
     svg.appendChild(path);
   });
-
-  // active glow arc
-  const glow = svgEl("path");
-  glow.id = "speedoActiveGlow";
-  glow.setAttribute("fill", "none");
-  glow.classList.add("speedo-active-glow");
-  svg.appendChild(glow);
-
-  // ticks at boundaries
+  const glow = svgEl("path"); glow.id = "speedoActiveGlow"; glow.setAttribute("fill", "none"); glow.classList.add("speedo-active-glow"); svg.appendChild(glow);
   [0,25,45,55,75,100].forEach(s => {
     const ang = -180 + (s/100)*180;
     const [x1,y1] = polar(180,170,108,ang);
     const [x2,y2] = polar(180,170,136,ang);
-    const line = svgEl("line");
-    line.setAttribute("x1",x1); line.setAttribute("y1",y1);
-    line.setAttribute("x2",x2); line.setAttribute("y2",y2);
-    line.classList.add("speedo-tick");
-    svg.appendChild(line);
-    // number label
+    const line = svgEl("line"); line.setAttribute("x1",x1); line.setAttribute("y1",y1); line.setAttribute("x2",x2); line.setAttribute("y2",y2); line.classList.add("speedo-tick"); svg.appendChild(line);
     const [lx,ly] = polar(180,170,148,ang);
-    const text = svgEl("text");
-    text.setAttribute("x",lx); text.setAttribute("y",ly+4);
-    text.classList.add("speedo-tick-label");
-    text.textContent = s;
-    svg.appendChild(text);
+    const text = svgEl("text"); text.setAttribute("x",lx); text.setAttribute("y",ly+4); text.classList.add("speedo-tick-label"); text.textContent = s; svg.appendChild(text);
   });
-
-  // zone labels (mid-angle)
   ZONES.forEach(z => {
     const mid = (z.start + z.end) / 2;
     const [x,y] = polar(180,170,95,mid);
-    const text = svgEl("text");
-    text.setAttribute("x",x); text.setAttribute("y",y);
-    text.setAttribute("transform", `rotate(${mid+90}, ${x}, ${y})`);
-    text.classList.add("speedo-zone-label");
-    text.textContent = z.name.toUpperCase();
-    svg.appendChild(text);
+    const text = svgEl("text"); text.setAttribute("x",x); text.setAttribute("y",y); text.setAttribute("transform", `rotate(${mid+90}, ${x}, ${y})`); text.classList.add("speedo-zone-label"); text.textContent = z.name.toUpperCase(); svg.appendChild(text);
   });
-
-  // needle group
-  const g = svgEl("g");
-  g.id = "speedoNeedleGroup";
-  g.setAttribute("transform", "rotate(-90 180 170)");
-
-  const tail = svgEl("polygon");
-  tail.setAttribute("points", "178,170 182,170 181,188 179,188");
-  tail.classList.add("needle-tail");
-  g.appendChild(tail);
-
-  const body = svgEl("polygon");
-  body.setAttribute("points", "174,170 186,170 181.5,56 178.5,56");
-  body.classList.add("needle-body");
-  g.appendChild(body);
-
-  const tip = svgEl("circle");
-  tip.setAttribute("cx","180"); tip.setAttribute("cy","56"); tip.setAttribute("r","3.5");
-  tip.classList.add("needle-tip");
-  g.appendChild(tip);
-
-  const hubOuter = svgEl("circle");
-  hubOuter.setAttribute("cx","180"); hubOuter.setAttribute("cy","170"); hubOuter.setAttribute("r","16");
-  hubOuter.classList.add("hub-outer");
-  g.appendChild(hubOuter);
-
-  const hubInner = svgEl("circle");
-  hubInner.setAttribute("cx","180"); hubInner.setAttribute("cy","170"); hubInner.setAttribute("r","7");
-  hubInner.classList.add("hub-inner");
-  g.appendChild(hubInner);
-
+  const g = svgEl("g"); g.id = "speedoNeedleGroup"; g.setAttribute("transform", "rotate(-90 180 170)");
+  const tail = svgEl("polygon"); tail.setAttribute("points", "178,170 182,170 181,188 179,188"); tail.classList.add("needle-tail"); g.appendChild(tail);
+  const body = svgEl("polygon"); body.setAttribute("points", "174,170 186,170 181.5,56 178.5,56"); body.classList.add("needle-body"); g.appendChild(body);
+  const tip = svgEl("circle"); tip.setAttribute("cx","180"); tip.setAttribute("cy","56"); tip.setAttribute("r","3.5"); tip.classList.add("needle-tip"); g.appendChild(tip);
+  const hubOuter = svgEl("circle"); hubOuter.setAttribute("cx","180"); hubOuter.setAttribute("cy","170"); hubOuter.setAttribute("r","16"); hubOuter.classList.add("hub-outer"); g.appendChild(hubOuter);
+  const hubInner = svgEl("circle"); hubInner.setAttribute("cx","180"); hubInner.setAttribute("cy","170"); hubInner.setAttribute("r","7"); hubInner.classList.add("hub-inner"); g.appendChild(hubInner);
   svg.appendChild(g);
 }
-
 function updateSpeedo(score) {
-  const theta = -90 + (score / 100) * 180;
-  $("speedoNeedleGroup").setAttribute("transform", `rotate(${theta} 180 170)`);
-
+  const ng = $("speedoNeedleGroup"); if (ng) ng.setAttribute("transform", `rotate(${-90 + (score / 100) * 180} 180 170)`);
   const zoneName = zoneForScore(score);
-  // active glow
   const zone = ZONES.find(z => z.name === zoneName);
   const glow = $("speedoActiveGlow");
-  if (zone) {
-    glow.setAttribute("d", arcPath(180, 170, 122, zone.start, zone.end));
-    glow.setAttribute("stroke", zone.color);
-  }
-  $("moodValue").textContent = score;
-  const zoneLabelMap = {
-    "Extreme Fear": "Extreme Fear Zone",
-    "Fear": "Fear Zone",
-    "Neutral": "Neutral Zone",
-    "Greed": "Greed Zone",
-    "Extreme Greed": "Extreme Greed Zone",
-  };
-  $("moodZone").textContent = zoneLabelMap[zoneName];
-  // pills
-  document.querySelectorAll("#zonePills .zone-pill").forEach(pill => {
-    pill.classList.toggle("active", pill.dataset.zone === zoneName);
-  });
-  $("moodExplain").textContent = moodExplainText(score, zoneName);
+  if (zone && glow) { glow.setAttribute("d", arcPath(180, 170, 122, zone.start, zone.end)); glow.setAttribute("stroke", zone.color); }
+  const mv = $("moodValue"); if (mv) mv.textContent = score;
+  const mz = $("moodZone"); if (mz) mz.textContent = zoneName + " Zone";
+  document.querySelectorAll("#zonePills .zone-pill").forEach(pill => { pill.classList.toggle("active", pill.dataset.zone === zoneName); });
+  const me = $("moodExplain"); if (me) me.textContent = score <= 24 ? "Extreme fear." : score <= 44 ? "Fear dominates." : score <= 55 ? "Neutral." : score <= 75 ? "Greed creeping in." : "Extreme greed.";
 }
 
-function moodExplainText(score, zone) {
-  if (zone === "Extreme Fear") return `The crowd is in extreme fear. Statistically that's when prices are depressed relative to fundamentals — but fear can last. A label, not a signal.`;
-  if (zone === "Fear") return `Fear dominates. Prices reflect pessimism; historically that's been a better entry zone than greed, though nothing is guaranteed.`;
-  if (zone === "Neutral") return `Neither fear nor greed dominates. The market is pricing things roughly fairly — no statistical edge either way.`;
-  if (zone === "Greed") return `Greed is creeping in. Prices may be running ahead of fundamentals; the crowd is paying up.`;
-  return `Extreme greed. The crowd is euphoric. Historically the worst time to chase, not a reason to panic — just a warning.`;
-}
-
-// ---------- Area chart ----------
 function renderAreaChart(series) {
-  const svg = $("areaChart");
+  const svg = $("areaChart"); if (!svg) return;
   svg.innerHTML = "";
   if (!series || series.length < 2) return;
   const w = 720, h = 220, pad = 28;
   const min = Math.min(...series), max = Math.max(...series);
   const range = max - min || 1;
-  const pts = series.map((v, i) => ({
-    x: pad + (i / (series.length - 1)) * (w - 2 * pad),
-    y: h - pad - ((v - min) / range) * (h - 2 * pad),
-    v,
-  }));
+  const pts = series.map((v, i) => ({ x: pad + (i / (series.length - 1)) * (w - 2 * pad), y: h - pad - ((v - min) / range) * (h - 2 * pad), v }));
   const defs = svgEl("defs");
   const grad = svgEl("linearGradient"); grad.id = "areaGrad"; grad.setAttribute("x1","0%"); grad.setAttribute("y1","0%"); grad.setAttribute("x2","0%"); grad.setAttribute("y2","100%");
   const s1 = svgEl("stop"); s1.setAttribute("offset","0%"); s1.setAttribute("stop-color", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#4da3ff"); s1.setAttribute("stop-opacity","0.5");
   const s2 = svgEl("stop"); s2.setAttribute("offset","100%"); s2.setAttribute("stop-color", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#4da3ff"); s2.setAttribute("stop-opacity","0.02");
-  grad.appendChild(s1); grad.appendChild(s2);
-  defs.appendChild(grad);
-  svg.appendChild(defs);
-
+  grad.appendChild(s1); grad.appendChild(s2); defs.appendChild(grad); svg.appendChild(defs);
   const lineD = pts.map((p, i) => (i ? "L" : "M") + p.x.toFixed(1) + "," + p.y.toFixed(1)).join(" ");
   const areaD = `M ${pts[0].x.toFixed(1)},${(h - pad).toFixed(1)} ` + pts.map(p => `L ${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + ` L ${pts[pts.length-1].x.toFixed(1)},${(h-pad).toFixed(1)} Z`;
-
-  const areaPath = svgEl("path");
-  areaPath.setAttribute("d", areaD);
-  areaPath.setAttribute("fill", "url(#areaGrad)");
-  svg.appendChild(areaPath);
-
-  const linePath = svgEl("path");
-  linePath.setAttribute("d", lineD);
-  linePath.setAttribute("fill", "none");
-  linePath.setAttribute("stroke", "var(--accent)");
-  linePath.setAttribute("stroke-width", "2.4");
-  linePath.setAttribute("stroke-linecap", "round");
-  linePath.setAttribute("stroke-linejoin", "round");
-  svg.appendChild(linePath);
-
-  // hover overlay
-  const tooltip = $("chartTooltip");
-  const overlay = svgEl("rect");
-  overlay.setAttribute("x", 0); overlay.setAttribute("y", 0);
-  overlay.setAttribute("width", w); overlay.setAttribute("height", h);
-  overlay.setAttribute("fill", "transparent");
-  overlay.style.cursor = "crosshair";
-  overlay.addEventListener("mousemove", (e) => {
-    const rect = svg.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (w / rect.width);
-    let idx = Math.round(((x - pad) / (w - 2 * pad)) * (pts.length - 1));
-    idx = Math.max(0, Math.min(pts.length - 1, idx));
-    const p = pts[idx];
-    tooltip.style.display = "block";
-    tooltip.textContent = `#${idx + 1}: ${Number(p.v).toLocaleString()}`;
-    const tx = (p.x / w) * rect.width;
-    const ty = (p.y / h) * rect.height;
-    tooltip.style.left = (tx + 12) + "px";
-    tooltip.style.top = (ty - 10) + "px";
-  });
-  overlay.addEventListener("mouseleave", () => { tooltip.style.display = "none"; });
-  svg.appendChild(overlay);
+  const areaPath = svgEl("path"); areaPath.setAttribute("d", areaD); areaPath.setAttribute("fill", "url(#areaGrad)"); svg.appendChild(areaPath);
+  const linePath = svgEl("path"); linePath.setAttribute("d", lineD); linePath.setAttribute("fill", "none"); linePath.setAttribute("stroke", "var(--accent)"); linePath.setAttribute("stroke-width", "2.4"); linePath.setAttribute("stroke-linecap", "round"); linePath.setAttribute("stroke-linejoin", "round"); svg.appendChild(linePath);
 }
 
-function renderSparkline(series) { renderAreaChart(series); }
+// ---------- Chart renderer for 23 charts ----------
+function makeSvg(w, h) {
+  const svg = svgEl("svg"); svg.setAttribute("viewBox", `0 0 ${w} ${h}`); svg.setAttribute("preserveAspectRatio", "xMidYMid meet"); return svg;
+}
+function renderChartCard(chart) {
+  const card = document.createElement("div");
+  card.className = "chart-card glass";
+  card.dataset.chartId = chart.id;
+  card.innerHTML = `<h4>${esc(chart.title)}</h4>`;
+  const svg = makeSvg(400, 200);
+  const labels = chart.labels || [];
+  const series = chart.series || {};
+  const type = chart.type;
+  const seriesKeys = Object.keys(series);
+  const colors = seriesKeys.map((sk, i) => `hsl(${i * 90 + 200}, 60%, 55%)`);
+  function tip(el, label, val) { el.setAttribute("data-tip", `${label}: ${fmt(val, 1)}`); }
 
-// ---------- BHEL timeline ----------
-function renderBhelTimeline() {
-  const el = $("bhelTimeline");
-  if (!el) return;
-  const data = [
-    [2010,16],[2011,16],[2012,18],[2013,17],[2014,12],[2015,11],
-    [2016,7],[2017,8],[2018,9],[2019,10],[2020,9],[2021,8],
-    [2022,7],[2023,9],[2024,9],[2025,10],[2026,11],
-  ];
-  el.innerHTML = "";
-  data.forEach(([year, score]) => {
-    const wrap = document.createElement("div");
-    wrap.className = "bhel-bar-wrap";
-    const bar = document.createElement("div");
-    bar.className = "bhel-bar";
-    const height = Math.max(6, (score / 23) * 90);
-    bar.style.height = height + "px";
-    if (score >= 17) bar.style.background = "linear-gradient(180deg,#30d158,#00c7be)";
-    else if (score >= 12) bar.style.background = "linear-gradient(180deg,#ff9f0a,#ffd60a)";
-    else bar.style.background = "linear-gradient(180deg,#ff453a,#ff6961)";
-    const sc = document.createElement("div");
-    sc.className = "bhel-score";
-    sc.textContent = score;
-    const yr = document.createElement("div");
-    yr.className = "bhel-year";
-    yr.textContent = String(year).slice(2);
-    wrap.appendChild(sc);
-    wrap.appendChild(bar);
-    wrap.appendChild(yr);
-    el.appendChild(wrap);
+  if (type === "pie" || type === "donut") {
+    const vals = series[seriesKeys[0]] || [];
+    const total = vals.reduce((a, b) => a + (b || 0), 0) || 1;
+    let ang = -90;
+    const cx = 100, cy = 100, r = 80;
+    vals.forEach((v, i) => {
+      const slice = (v / total) * 360;
+      const path = svgEl("path");
+      const [x1, y1] = polar(cx, cy, r, ang);
+      const [x2, y2] = polar(cx, cy, r, ang + slice);
+      const large = slice > 180 ? 1 : 0;
+      path.setAttribute("d", `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`);
+      const col = `hsl(${(i * 360 / vals.length)}, 65%, 55%)`;
+      path.setAttribute("fill", col); path.setAttribute("stroke", "var(--bg)"); path.setAttribute("stroke-width", "1");
+      tip(path, labels[i] || ("Slice " + (i + 1)), v);
+      svg.appendChild(path);
+      ang += slice;
+    });
+    if (type === "donut") {
+      const hole = svgEl("circle"); hole.setAttribute("cx", cx); hole.setAttribute("cy", cy); hole.setAttribute("r", 45); hole.setAttribute("fill", "var(--bg)"); svg.appendChild(hole);
+    }
+    labels.forEach((lab, i) => {
+      const vals2 = series[seriesKeys[0]] || [];
+      const t = svgEl("text"); t.setAttribute("x", 210); t.setAttribute("y", 20 + i * 14); t.setAttribute("font-size", "10"); t.setAttribute("fill", "var(--muted)");
+      t.textContent = `${lab}: ${fmt(vals2[i], 1)}`;
+      t.setAttribute("data-tip", `${lab}: ${fmt(vals2[i], 1)}`);
+      svg.appendChild(t);
+    });
+  } else if (type === "heatmap") {
+    const rows = seriesKeys;
+    const cols = labels;
+    const cellW = 360 / cols.length;
+    const cellH = 160 / rows.length;
+    const allVals = rows.flatMap(k => series[k]);
+    const min = Math.min(...allVals), max = Math.max(...allVals);
+    rows.forEach((rk, ri) => {
+      cols.forEach((cl, ci) => {
+        const v = series[rk][ci];
+        const t = (v - min) / (max - min || 1);
+        const rect = svgEl("rect");
+        rect.setAttribute("x", 20 + ci * cellW);
+        rect.setAttribute("y", 20 + ri * cellH);
+        rect.setAttribute("width", cellW - 2);
+        rect.setAttribute("height", cellH - 2);
+        rect.setAttribute("fill", `rgba(77,163,255,${0.2 + t * 0.7})`);
+        rect.setAttribute("rx", "4");
+        tip(rect, rk + " / " + cl, v);
+        svg.appendChild(rect);
+        const txt = svgEl("text"); txt.setAttribute("x", 20 + ci * cellW + cellW / 2); txt.setAttribute("y", 20 + ri * cellH + cellH / 2 + 4);
+        txt.setAttribute("text-anchor", "middle"); txt.setAttribute("font-size", "9"); txt.setAttribute("fill", "var(--text)");
+        txt.textContent = typeof v === "number" ? v.toFixed(0) : v;
+        svg.appendChild(txt);
+      });
+    });
+    cols.forEach((cl, ci) => {
+      const t = svgEl("text"); t.setAttribute("x", 20 + ci * cellW + cellW / 2); t.setAttribute("y", 195);
+      t.setAttribute("text-anchor", "middle"); t.setAttribute("font-size", "8"); t.setAttribute("fill", "var(--muted)");
+      t.textContent = String(cl).slice(0, 16);
+      t.setAttribute("data-tip", String(cl));
+      svg.appendChild(t);
+    });
+    rows.forEach((rk, ri) => {
+      const t = svgEl("text"); t.setAttribute("x", 10); t.setAttribute("y", 20 + ri * cellH + cellH / 2 + 4);
+      t.setAttribute("font-size", "8"); t.setAttribute("fill", "var(--muted)");
+      t.textContent = String(rk).slice(0, 16);
+      t.setAttribute("data-tip", String(rk));
+      svg.appendChild(t);
+    });
+  } else if (type === "treemap") {
+    const vals = series[seriesKeys[0]] || [];
+    const total = vals.reduce((a, b) => a + (b || 0), 0) || 1;
+    let cy = 10;
+    vals.forEach((v, i) => {
+      const area = (v / total) * (380 * 180);
+      const bh = Math.max(12, area / 380);
+      const rect = svgEl("rect");
+      rect.setAttribute("x", 10); rect.setAttribute("y", cy);
+      rect.setAttribute("width", 380); rect.setAttribute("height", bh);
+      rect.setAttribute("fill", `hsl(${i * 60 + 200}, 55%, 50%)`);
+      rect.setAttribute("stroke", "var(--bg)"); rect.setAttribute("stroke-width", "2");
+      tip(rect, labels[i] || ("Block " + (i + 1)), v);
+      svg.appendChild(rect);
+      const t = svgEl("text"); t.setAttribute("x", 16); t.setAttribute("y", cy + 14);
+      t.setAttribute("font-size", "10"); t.setAttribute("fill", "#fff");
+      t.textContent = `${labels[i]} (${v}%)`;
+      t.setAttribute("data-tip", `${labels[i]}: ${v}%`);
+      svg.appendChild(t);
+      cy += bh;
+    });
+  } else if (type === "radar") {
+    const vals = series[seriesKeys[0]] || [];
+    const n = vals.length;
+    const cx = 100, cy = 100, r = 80;
+    for (let lvl = 1; lvl <= 4; lvl++) {
+      const rr = (r * lvl) / 4;
+      const pts = [];
+      for (let i = 0; i < n; i++) {
+        const ang = -90 + (i / n) * 360;
+        pts.push(polar(cx, cy, rr, ang));
+      }
+      const poly = svgEl("polygon");
+      poly.setAttribute("points", pts.map(p => p.join(",")).join(" "));
+      poly.setAttribute("fill", "none"); poly.setAttribute("stroke", "rgba(148,163,184,0.3)"); poly.setAttribute("stroke-width", "1");
+      svg.appendChild(poly);
+    }
+    const pts = [];
+    vals.forEach((v, i) => {
+      const rr = r * ((v || 0) / 100);
+      const ang = -90 + (i / n) * 360;
+      pts.push(polar(cx, cy, rr, ang));
+    });
+    const poly = svgEl("polygon");
+    poly.setAttribute("points", pts.map(p => p.join(",")).join(" "));
+    poly.setAttribute("fill", "rgba(77,163,255,0.25)"); poly.setAttribute("stroke", "#4da3ff"); poly.setAttribute("stroke-width", "2");
+    svg.appendChild(poly);
+    pts.forEach((p, i) => {
+      const c = svgEl("circle"); c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("r", "3"); c.setAttribute("fill", "#4da3ff");
+      tip(c, labels[i] || ("Axis " + (i + 1)), vals[i]);
+      svg.appendChild(c);
+    });
+    labels.forEach((lab, i) => {
+      const ang = -90 + (i / n) * 360;
+      const [x, y] = polar(cx, cy, r + 12, ang);
+      const t = svgEl("text"); t.setAttribute("x", x); t.setAttribute("y", y + 3);
+      t.setAttribute("text-anchor", "middle"); t.setAttribute("font-size", "8"); t.setAttribute("fill", "var(--muted)");
+      t.textContent = String(lab).slice(0, 16);
+      t.setAttribute("data-tip", String(lab));
+      svg.appendChild(t);
+    });
+  } else if (type === "waterfall") {
+    const vals = series[seriesKeys[0]] || [];
+    const max = Math.max(...vals.map(v => Math.abs(v))) || 1;
+    const barW = 360 / vals.length;
+    let cum = 0;
+    // gridlines
+    [0,0.5,1].forEach(f=>{
+      const y=170 - f*150;
+      const line=svgEl("line"); line.setAttribute("x1",20); line.setAttribute("y1",y); line.setAttribute("x2",380); line.setAttribute("y2",y); line.setAttribute("stroke","rgba(148,163,184,0.25)"); svg.appendChild(line);
+    });
+    vals.forEach((v, i) => {
+      const hBar = (Math.abs(v) / (max || 1)) * 150;
+      const rect = svgEl("rect");
+      rect.setAttribute("x", 20 + i * barW + 4);
+      rect.setAttribute("y", v >= 0 ? 170 - cum - hBar : 170 - cum);
+      rect.setAttribute("width", barW - 8);
+      rect.setAttribute("height", hBar);
+      rect.setAttribute("fill", v >= 0 ? "#30d158" : "#ff453a");
+      rect.setAttribute("rx", "4");
+      tip(rect, labels[i] || ("Step " + (i + 1)), v);
+      svg.appendChild(rect);
+      const vt=svgEl("text"); vt.setAttribute("x",20+i*barW+barW/2); vt.setAttribute("y",(v>=0?170-cum-hBar:170-cum)-2); vt.setAttribute("text-anchor","middle"); vt.setAttribute("font-size","8"); vt.setAttribute("fill","var(--text)"); vt.textContent=fmt(v,1); svg.appendChild(vt);
+      cum += v;
+    });
+    labels.forEach((lab, i) => {
+      const t = svgEl("text"); t.setAttribute("x", 20 + i * barW + barW / 2); t.setAttribute("y", 195);
+      t.setAttribute("text-anchor", "middle"); t.setAttribute("font-size", "8"); t.setAttribute("fill", "var(--muted)");
+      t.textContent = String(lab).slice(0, 16);
+      t.setAttribute("data-tip", String(lab));
+      svg.appendChild(t);
+    });
+  } else {
+    const isBar = type.includes("bar");
+    const isLine = type.includes("line");
+    const allVals = seriesKeys.flatMap(k => series[k] || []).map(v => Math.abs(v || 0));
+    const max = Math.max(...allVals) || 1;
+    const min = Math.min(...allVals) || 0;
+    [0,0.5,1].forEach(f=>{
+      const y=170 - f*150;
+      const line=svgEl("line"); line.setAttribute("x1",20); line.setAttribute("y1",y); line.setAttribute("x2",380); line.setAttribute("y2",y); line.setAttribute("stroke","rgba(148,163,184,0.25)"); svg.appendChild(line);
+      const tl=svgEl("text"); tl.setAttribute("x",10); tl.setAttribute("y",y+4); tl.setAttribute("font-size","8"); tl.setAttribute("fill","var(--muted)"); tl.setAttribute("text-anchor","end"); tl.textContent=fmt(min+(max-min)*f,1); svg.appendChild(tl);
+    });
+    if (isBar) {
+      const nSeries = seriesKeys.length;
+      const groupW = 360 / labels.length;
+      const barW = groupW / (nSeries + 1);
+      seriesKeys.forEach((sk, si) => {
+        const vals = series[sk] || [];
+        vals.forEach((v, i) => {
+          const hBar = (Math.abs(v || 0) / max) * 150;
+          const rect = svgEl("rect");
+          rect.setAttribute("x", 20 + i * groupW + si * barW);
+          rect.setAttribute("y", 170 - hBar);
+          rect.setAttribute("width", Math.max(2, barW - 2));
+          rect.setAttribute("height", hBar);
+          rect.setAttribute("fill", colors[si]);
+          rect.setAttribute("rx", "2");
+          tip(rect, (labels[i] || "") + " • " + humanSeriesLabel(sk), v);
+          svg.appendChild(rect);
+          const vt=svgEl("text"); vt.setAttribute("x",20+i*groupW+si*barW+barW/2); vt.setAttribute("y",170-hBar-2); vt.setAttribute("text-anchor","middle"); vt.setAttribute("font-size","8"); vt.setAttribute("fill","var(--text)"); vt.textContent=fmt(v,1); svg.appendChild(vt);
+        });
+      });
+    }
+    if (isLine || type === "bar_line") {
+      seriesKeys.forEach((sk, si) => {
+        if (isBar && type !== "bar_line" && !type.includes("line")) return;
+        const vals = series[sk] || [];
+        const pts = vals.map((v, i) => {
+          const x = 20 + (i / (vals.length - 1 || 1)) * 360;
+          const y = 170 - ((v || 0) / max) * 150;
+          return [x, y];
+        });
+        if (pts.length > 1) {
+          const poly = svgEl("polyline");
+          poly.setAttribute("points", pts.map(p => p.join(",")).join(" "));
+          poly.setAttribute("fill", "none");
+          const col = `hsl(${si * 90 + 30}, 70%, 55%)`;
+          poly.setAttribute("stroke", col);
+          poly.setAttribute("stroke-width", "2");
+          svg.appendChild(poly);
+          pts.forEach((p, i) => {
+            const c = svgEl("circle"); c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("r", "3"); c.setAttribute("fill", col);
+            tip(c, (labels[i] || "") + " • " + humanSeriesLabel(sk), vals[i]);
+            svg.appendChild(c);
+          });
+        }
+      });
+    }
+    labels.forEach((lab, i) => {
+      if (i % Math.ceil(labels.length / 6) !== 0) return;
+      const t = svgEl("text"); t.setAttribute("x", 20 + (i / (labels.length - 1 || 1)) * 360);
+      t.setAttribute("y", 195); t.setAttribute("text-anchor", "middle"); t.setAttribute("font-size", "8"); t.setAttribute("fill", "var(--muted)");
+      t.textContent = String(lab).slice(0, 16);
+      t.setAttribute("data-tip", String(lab));
+      svg.appendChild(t);
+    });
+  }
+
+  card.appendChild(svg);
+  const legend = document.createElement("div");
+  legend.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:10px;color:var(--muted);";
+  seriesKeys.forEach((sk, i) => {
+    const span = document.createElement("span");
+    span.className = "chart-legend-item";
+    const col = colors[i] || "#4da3ff";
+    span.innerHTML = `<i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${col};margin-right:4px"></i>${esc(humanSeriesLabel(sk))}`;
+    legend.appendChild(span);
   });
+  card.appendChild(legend);
+  if (chart.note) {
+    const note = document.createElement("div");
+    note.className = "chart-note";
+    note.style.cssText = "margin-top:8px;font-size:11px;color:var(--muted);";
+    note.textContent = chart.note;
+    card.appendChild(note);
+  }
+  return card;
 }
 
-// ---------- Render analysis ----------
-function renderAnalysis(d, ticker) {
-  const earned = d.quality_score.earned;
-  const total = d.quality_score.total;
-  updateScoreRing(earned);
 
-  const score = d.fear_greed.score;
-  updateSpeedo(score);
+// Floating chart tooltip
+function ensureFloatingTip(){ if(document.getElementById("chartFloatingTip")) return; const tip=document.createElement("div"); tip.id="chartFloatingTip"; tip.style.cssText="position:fixed;pointer-events:none;display:none;padding:6px 10px;border-radius:8px;background:rgba(20,24,36,0.92);color:#fff;font-size:12px;z-index:9999;max-width:260px;"; (document.body || document.documentElement).appendChild(tip); }
+ensureFloatingTip();
+document.addEventListener("mouseover", function(e){ const el=e.target; const t=el && el.getAttribute ? el.getAttribute("data-tip") : null; const tip=document.getElementById("chartFloatingTip"); if(tip){ if(t){ tip.textContent=t; tip.style.display="block"; } } });
+document.addEventListener("mousemove", function(e){ const tip=document.getElementById("chartFloatingTip"); if(tip && tip.style.display==="block"){ tip.style.left=(e.clientX+12)+"px"; tip.style.top=(e.clientY+12)+"px"; } });
+document.addEventListener("mouseout", function(e){ const tip=document.getElementById("chartFloatingTip"); if(tip) tip.style.display="none"; });
 
-  const series = d.price_series || [];
-  renderAreaChart(series);
-  $("stripTitle").textContent = `${d.company || ticker} (${d.ticker || ticker})`;
-  $("stripPrice").textContent = d.current_price ? `${d.currency || ""} ${Number(d.current_price).toLocaleString()}` : "—";
-  $("low52").textContent = d.low_52w ? Number(d.low_52w).toLocaleString() : "—";
-  $("high52").textContent = d.high_52w ? Number(d.high_52w).toLocaleString() : "—";
+// ---------- Render all ----------
+function renderAll(d) {
+  state.selectedTicker = d.ticker || state.selectedTicker;
+  state.currentData = d;
+  renderHero(d);
+  renderOverview(d);
+  renderExecSummary(d);
+  renderDashboard(d);
+  renderReport(d);
+  renderForensic(d);
+}
+
+function renderHero(d) {
+  const t = d.ticker || state.selectedTicker;
+  const set = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+  set("heroCompany", d.company || t);
+  set("heroTicker", t);
+  set("heroBadge", `${d.market || ""} · ${d.sector || ""}`.trim());
+  set("heroQuarter", "2026-Q4");
+  set("heroPrice", money(d.currency, d.current_price));
+  set("heroLow", money(d.currency, d.low_52w));
+  set("heroHigh", money(d.currency, d.high_52w));
+  const hev = d.hev || {};
+  const val = hev.valuation || {};
+  const target = val.triangulated_target_price || d.triangulated_target_price;
+  const upside = val.upside_pct !== undefined ? val.upside_pct : d.upside_pct;
+  set("heroTarget", money(d.currency, target));
+  const upEl = $("heroUpside");
+  if (upEl) { upEl.textContent = (upside !== undefined && upside !== null) ? `${Number(upside).toFixed(2)}%` : "—"; upEl.style.color = (upside >= 0) ? "#30d158" : "#ff453a"; }
+  const _earned = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
+  const _total = (d.quality_score && d.quality_score.total) || 23;
+  let _band = "Fair Value Band";
+  if (_earned >= 17) _band = "High Consistency • " + _earned + "/" + _total;
+  else if (_earned >= 12) _band = "Moderate Consistency • " + _earned + "/" + _total;
+  set("heroRating", _band);
+  // range dot
   if (d.low_52w && d.high_52w && d.current_price) {
     const range = d.high_52w - d.low_52w;
     const pos = (d.current_price - d.low_52w) / range;
-    $("rangeDot").style.left = `${Math.max(0, Math.min(100, pos * 100))}%`;
+    const dot = $("heroRangeDot");
+    if (dot) dot.style.left = `${Math.max(0, Math.min(100, pos * 100))}%`;
   }
+  // strip
+  set("stripTitle", `${d.company || t} (${t})`);
+  set("stripPrice", money(d.currency, d.current_price));
+  set("low52", d.low_52w ? Number(d.low_52w).toLocaleString() : "—");
+  set("high52", d.high_52w ? Number(d.high_52w).toLocaleString() : "—");
+  if (d.low_52w && d.high_52w && d.current_price) {
+    const range = d.high_52w - d.low_52w;
+    const pos = (d.current_price - d.low_52w) / range;
+    const rd = $("rangeDot"); if (rd) rd.style.left = `${Math.max(0, Math.min(100, pos * 100))}%`;
+  }
+  renderAreaChart(d.price_series || []);
 }
 
-// ---------- UPI modal ----------
-function openUpiModal() {
-  openModal("upiModal");
-  const utr = "123456789012";
-  const upiId = state.config.upi_id || "lojikgain@upi";
-  const amount = 10;
-  const upiUrl = `upi://pay?pa=${upiId}&pn=LojikGain&am=${amount}&cu=INR&tn=LojikGainUnlock`;
-  $("upiPayBtn").href = upiUrl;
-  const qrDiv = $("qrCode");
-  qrDiv.innerHTML = "";
-  if (window.QRCode) {
-    QRCode.toCanvas(document.createElement("canvas"), upiUrl, { width: 180 }, (err, canvas) => {
-      if (!err) qrDiv.appendChild(canvas);
+function renderOverview(d) {
+  const earned = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
+  updateScoreRing(earned);
+  const fg = d.fear_greed || {};
+  updateSpeedo(fg.score || 0);
+  // company type badge
+  const cb = $("companyTypeBadge");
+  if (cb) {
+    const pts = d.points || [];
+    const p51 = pts.find(p => p.id === "p5_1") || pts.find(p => p.id === "p5.1");
+    let ct = "—";
+    if (p51 && p51.value) {
+      const parts = String(p51.value).split(" - ");
+      ct = parts.length >= 2 ? (parts[0] + " - " + parts[1]) : parts[0];
+    }
+    cb.textContent = `Company Type: ${ct}`;
+  }
+  // tech strip
+  const th = (d.hev || {}).technicals_hev || {};
+  const ts = $("techStrip");
+  if (ts) ts.textContent = th.summary_sentence || "";
+  // HEV valuation card
+  const v = (d.hev || {}).valuation || {};
+  const t = (id, val) => { const e = $(id); if (e) e.textContent = (val !== undefined && val !== null) ? (typeof val === "number" ? money(d.currency, val) : val) : "—"; };
+  t("hvPe", v.pe && v.pe.target_price);
+  t("hvPr", v.pr && v.pr.target_price);
+  t("hvDcf", v.dcf && v.dcf.target_price);
+  t("hvBlended", v.triangulated_target_price);
+  t("hvUpside", (v.upside_pct !== undefined ? v.upside_pct : null) !== null ? `${Number(v.upside_pct).toFixed(2)}%` : "—");
+  t("hvWacc", v.dcf && v.dcf.wacc);
+  t("hvTg", v.dcf && v.dcf.terminal_growth_pct);
+  const tri = v.triangulation || {};
+  t("hvBv", tri.bv_intrinsic_value);
+  t("hvEps", tri.eps_intrinsic_value);
+  t("hvBond", tri.bond_intrinsic_value);
+  // snapshot catalysts/risks
+  const qual = (d.hev || {}).qualitative || {};
+  const cats = (qual.catalysts_drivers && qual.catalysts_drivers.catalysts) || [];
+  const cl = $("snapCatalysts"); if (cl) { cl.innerHTML = ""; (cats.length ? cats : ["—"]).slice(0, 3).forEach(c => { const li = document.createElement("li"); li.textContent = c; cl.appendChild(li); }); }
+  const es = (d.hev || {}).exec_summary || {};
+  const risks = es.top_5_risks || [];
+  const rl = $("snapRisks"); if (rl) { rl.innerHTML = ""; risks.slice(0, 5).forEach((r, i) => { const li = document.createElement("li"); li.textContent = r; rl.appendChild(li); }); }
+  const fa = (d.hev || {}).forensic_audit || {};
+  const fs = $("forensicSummary"); if (fs) fs.textContent = `${fa.clean_count || 0} / ${fa.total || 17} PASS · ${fa.watch_count || 0} WATCH · ${fa.flag_count || 0} FLAG — ${fa.verdict_label || ""}`;
+  const _e2 = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
+  const _t2 = (d.quality_score && d.quality_score.total) || 23;
+  let _b2 = "Fair Value Band";
+  if (_e2 >= 17) _b2 = "High Consistency • " + _e2 + "/" + _t2;
+  else if (_e2 >= 12) _b2 = "Moderate Consistency • " + _e2 + "/" + _t2;
+  const _hvv = $("hvVerdict"); if (_hvv) _hvv.textContent = _b2;
+}
+
+function renderExecSummary(d) {
+  const es = (d.hev || {}).exec_summary || {};
+  const s = (d.hev || {}).settings || {};
+  const set = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+  set("execTitleBanner", es.title_banner || "—");
+  set("execMarketStrip", es.market_strip || "—");
+  set("execGuidanceStrip", es.guidance_strip || "—");
+  // drivers
+  const dr = $("execDrivers"); if (dr) { dr.innerHTML = ""; (es.drivers_catalysts_box || []).forEach(x => { const p = document.createElement("p"); p.textContent = x; p.style.cssText = "font-size:13px;color:var(--muted);margin:6px 0;"; dr.appendChild(p); }); }
+  const fi = $("execFinancials"); if (fi) { fi.textContent = es.financials_box || "—"; fi.style.cssText = "font-size:13px;color:var(--muted);line-height:1.5;"; }
+  // comp
+  const comp = es.comp_dist_prod_box || {};
+  const cb = $("execComp"); if (cb) {
+    cb.innerHTML = "";
+    if (comp.moat) { const p = document.createElement("p"); p.textContent = "Moat: " + comp.moat; p.style.cssText = "font-size:13px;color:var(--muted);margin:4px 0;"; cb.appendChild(p); }
+    if (comp.distribution) { const p = document.createElement("p"); p.textContent = "Distribution: " + comp.distribution; p.style.cssText = "font-size:13px;color:var(--muted);margin:4px 0;"; cb.appendChild(p); }
+    if (comp.products) { const ul = document.createElement("ul"); ul.style.cssText = "font-size:12px;color:var(--muted);margin:6px 0;padding-left:18px;"; comp.products.forEach(pr => { const li = document.createElement("li"); li.textContent = pr; ul.appendChild(li); }); cb.appendChild(ul); }
+  }
+  // competitors mini table
+  const peers = (d.hev || {}).peers || {};
+  const peerRows = peers.rows || [];
+  const pt = $("execPeerMini"); 
+  // Top 5 peers sentence
+  const ps = $("execPeersSentence"); if (ps) ps.textContent = es.top_5_peers_sentence || "";
+  const pp = $("execPeParagraph"); if (pp) pp.textContent = es.pe_vs_peers_paragraph || "";
+  set("execCompetitors", (s.competitors || []).slice(0, 6).map(c => '<span class="mini-pill">' + esc(c.company || c.ticker) + (c.pe ? ' • ' + fmt(c.pe, 1) + 'x' : '') + '</span>').join(""));
+  if (pt) {
+    pt.innerHTML = "";
+    const table = document.createElement("table"); table.className = "report-table";
+    const thead = document.createElement("thead"); thead.innerHTML = "<tr><th>Ticker</th><th>P/E</th><th>Margin</th><th>EPS Gr</th></tr>"; table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    peerRows.slice(0, 11).forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${esc(row.ticker)}</td><td>${num(row.pe)}</td><td>${num(row.operating_margin_pct || row.margin || 0)}%</td><td>${num(row.eps_growth_pct || 0)}%</td>`;
+      if (row.is_target) tr.style.fontWeight = "700";
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); pt.appendChild(table);
+  }
+  const mgmt = $("execManagement"); if (mgmt) { mgmt.textContent = es.management_box || "—"; mgmt.style.cssText = "font-size:13px;color:var(--muted);line-height:1.5;"; }
+  const tam = $("execTam"); if (tam) { tam.textContent = es.tam_box || "—"; tam.style.cssText = "font-size:13px;color:var(--muted);line-height:1.5;"; }
+  const risks = $("execRisks"); if (risks) {
+    risks.innerHTML = "";
+    (es.top_5_risks || []).forEach((r, i) => {
+      const div = document.createElement("div"); div.className = "exec-risk-card";
+      div.innerHTML = `<strong>${i + 1}.</strong> ${esc(r)}`;
+      risks.appendChild(div);
     });
   }
+  const bf = $("execBottomFund"); if (bf) bf.textContent = es.bottom_line_fundamentals || "—";
+  const bv = $("execBottomVal"); if (bv) bv.textContent = es.bottom_line_valuation || "—";
+  const bt = $("execBottomTech"); if (bt) bt.textContent = es.bottom_line_technicals || "—";
+  const et = $("execTechnicals"); if (et) { et.textContent = es.technicals_sentence || "—"; et.style.cssText = "font-size:13px;color:var(--muted);line-height:1.5;"; }
 }
-$("verifyUtrBtn").addEventListener("click", async () => {
-  const utr = $("utrInput").value.trim();
-  try {
-    await verifyUtr(utr);
-    $("upiMsg").textContent = "Unlocked!";
-    closeModal("upiModal");
-    await refreshAuth();
-  } catch (e) { $("upiMsg").textContent = e.message; }
-});
-$("demoUtrBtn").addEventListener("click", () => {
-  let u = "";
-  for (let i = 0; i < 12; i++) u += Math.floor(Math.random() * 10);
-  $("utrInput").value = u;
-});
 
-async function loadStocks() {
-  try {
-    const r = await fetch("./stocks_data.json", { cache: "no-store" });
-    if (r.ok) {
-      const j = await r.json();
-      if (j && Object.keys(j).length) { STOCKS = j; return; }
+function renderDashboard(d) {
+  const hev = d.hev || {};
+  const charts = hev.charts_23 || {};
+  const grid = $("chartsGrid");
+  if (grid) {
+    grid.innerHTML = "";
+    Object.keys(charts).forEach(k => {
+      const card = renderChartCard(charts[k]);
+      grid.appendChild(card);
+    });
+  }
+  // sensitivity matrix
+  const sens = (hev.valuation || {}).sensitivity || {};
+  const sm = $("sensMatrix");
+  if (sm && sens.grid) {
+    const rows = sens.terminal_growth_rows || [];
+    const cols = sens.wacc_columns || [];
+    const gridData = sens.grid || [];
+    let html = "<table class='report-table'><thead><tr><th>TG \\ WACC</th>" + cols.map(c => `<th>${c}%</th>`).join("") + "</tr></thead><tbody>";
+    rows.forEach((tg, ri) => {
+      html += `<tr><td><strong>${tg}%</strong></td>`;
+      (gridData[ri] || []).forEach(cell => {
+        const cls = cell.bucket === "bull" ? "background:rgba(48,209,88,0.15)" : cell.bucket === "bear" ? "background:rgba(255,69,58,0.15)" : "background:rgba(255,204,0,0.15)";
+        html += `<td style="${cls}">${num(cell.target_price)}<br><span style="font-size:10px;color:var(--muted)">${Number(cell.upside_pct).toFixed(1)}%</span></td>`;
+      });
+      html += "</tr>";
+    });
+    html += "</tbody></table>";
+    sm.innerHTML = html;
+  }
+  // peer table
+  const peers = hev.peers || {};
+  const peerRows = peers.rows || [];
+  const ptab = $("peerTable");
+  if (ptab) {
+    let html = "<table class='report-table'><thead><tr><th>Ticker</th><th>Company</th><th>P/E</th><th>P/S</th><th>Op Margin</th><th>EPS Gr</th><th>Mkt Share</th></tr></thead><tbody>";
+    peerRows.forEach(row => {
+      html += `<tr ${row.is_target ? 'style="font-weight:700;background:rgba(0,113,227,0.08)"' : ""}><td>${esc(row.ticker)}</td><td>${esc(row.company)}</td><td>${num(row.pe)}</td><td>${num(row.ps)}</td><td>${num(row.operating_margin_pct)}%</td><td>${num(row.eps_growth_pct)}%</td><td>${num(row.market_share_pct)}%</td></tr>`;
+    });
+    html += "</tbody></table>";
+    ptab.innerHTML = html;
+  }
+  const CHART_GROUPS = {
+    market: new Set(["c1_market_share","c13_tam_bar","c14_geo_donut","c15_sector_treemap","c16_cost_waterfall","c17_customer_concentration","c18_shareholder_mix","c19_unit_economics"]),
+    financials: new Set(["c2_revenue_trend","c3_margin_trend","c4_eps_trend","c5_roe_roce","c6_fcf_trend","c10_dcf_bridge"]),
+    valuation: new Set(["c7_pe_band","c8_peer_pe_bar","c9_peer_margin_bar","c11_sensitivity_heatmap","c12_target_price_bar"]),
+    forensic: new Set(["c20_forensic_radar","c21_rsi_obv","c22_price_vs_dma","c23_trailing_pe"]),
+  };
+  function applyChartFilter() {
+    document.querySelectorAll("#chartsGrid .chart-card").forEach(card => {
+      const id = card.dataset.chartId;
+      if (state.chartFilter === "all") { card.style.display = ""; return; }
+      const grp = CHART_GROUPS[state.chartFilter];
+      card.style.display = (grp && grp.has(id)) ? "" : "none";
+    });
+  }
+  document.querySelectorAll("#chartFilters .filter-pill").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll("#chartFilters .filter-pill").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      state.chartFilter = btn.dataset.filter;
+      applyChartFilter();
+    };
+  });
+  applyChartFilter();
+}
+
+function renderReport(d) {
+  const hev = d.hev || {};
+  const chapters = hev.report_chapters || [];
+  const admin = isAdminUser();
+  const list = $("chapterList");
+  if (list) {
+    list.innerHTML = "";
+    chapters.forEach((ch, i) => {
+      const item = document.createElement("div");
+      item.className = "chapter-item" + (i === 0 ? " active" : "");
+      item.dataset.id = ch.id;
+      item.innerHTML = `<div>${esc(ch.num)}. ${esc(ch.title)}</div><div class="chapter-range">${esc(ch.subtitle || "")}</div>`;
+      item.addEventListener("click", () => {
+        document.querySelectorAll(".chapter-item").forEach(x => x.classList.remove("active"));
+        item.classList.add("active");
+        const el = document.getElementById("ch-" + ch.id);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      list.appendChild(item);
+    });
+  }
+  const canvas = $("reportCanvas");
+  if (canvas) {
+    canvas.innerHTML = "";
+    chapters.forEach(ch => {
+      const sec = document.createElement("section");
+      sec.className = "report-chapter";
+      sec.id = "ch-" + ch.id;
+      let html = `<h3>${esc(ch.num)}. ${esc(ch.title)}</h3><div class="ch-sub">${esc(ch.subtitle || "")}</div>`;
+      if (ch.kpis && ch.kpis.length) {
+        html += `<div class="ch-kpis">${ch.kpis.map(k => '<span class="kpi-chip"><strong>' + esc(k.label || "") + ':</strong> ' + esc(k.value || "") + (k.unit ? ' ' + esc(k.unit) : '') + '</span>').join("")}</div>`;
+      }
+      (ch.sections || []).forEach(s => {
+        html += `<div class="report-section"><h4>${esc(s.heading)}</h4>`;
+        (s.paragraphs || []).forEach(p => { html += `<p>${esc(p)}</p>`; });
+        if (s.table) {
+          const isCh10 = (ch.num === 10 || ch.id === "ch10");
+          const isQualityTable = Array.isArray(s.table.rows) && s.table.rows.length >= 20;
+          if (isCh10 && isQualityTable) {
+            if (!admin) {
+              const pts = (typeof d.points !== "undefined") ? (d.points || []) : [];
+              const passedOf = (nums) => pts.filter(p => nums.includes(Number(p.num)) && (p.verdict === "YES" || p.score === 1)).length;
+              const pillars = [
+                { name: "Pillar I: Earnings & Margin Durability", factors: "Factors 1-6", nums: [1,2,3,4,5,6], total: 6 },
+                { name: "Pillar II: Capital Allocation & Compounding Power", factors: "Factors 7-13", nums: [7,8,9,10,11,12,13], total: 7 },
+                { name: "Pillar III: Cash Flow Integrity & Debt Discipline", factors: "Factors 14-18", nums: [14,15,16,17,18], total: 5 },
+                { name: "Pillar IV: Intrinsic Valuation & Risk-Adjusted Yield", factors: "Factors 19-23", nums: [19,20,21,22,23], total: 5 },
+              ];
+              const cols = ["Pillar", "Factors", "Passed / Total"];
+              html += "<table class='report-table pillar-summary-table'><thead><tr>" + cols.map(c => `<th>${esc(c)}</th>`).join("") + "</tr></thead><tbody>";
+              pillars.forEach(pl => {
+                const passed = passedOf(pl.nums);
+                html += "<tr><td>" + esc(pl.name) + "</td><td>" + esc(pl.factors) + "</td><td>" + esc(passed + "/" + pl.total) + "</td></tr>";
+              });
+              html += "</tbody></table>";
+            } else {
+              html += "<table class='report-table'><thead><tr>" + s.table.columns.map(c => `<th>${esc(c)}</th>`).join("") + "</tr></thead><tbody>";
+              s.table.rows.forEach(row => { html += "<tr>" + row.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>"; });
+              html += "</tbody></table>";
+            }
+          } else if (isCh10) {
+            // Render compact risk register as cards (no <tr>) to keep ch10 focused on the quality audit.
+            html += "<div class='risk-register'>";
+            s.table.rows.forEach(row => {
+              html += "<div class='risk-row'><strong>" + esc(row[0] || "") + "</strong> — " + esc(row.slice(1).join(" / ")) + "</div>";
+            });
+            html += "</div>";
+          } else {
+            html += "<table class='report-table'><thead><tr>" + s.table.columns.map(c => `<th>${esc(c)}</th>`).join("") + "</tr></thead><tbody>";
+            s.table.rows.forEach(row => { html += "<tr>" + row.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>"; });
+            html += "</tbody></table>";
+          }
+        }
+        if (s.chart_ref && hev.charts_23 && hev.charts_23[s.chart_ref]) {
+          const c = hev.charts_23[s.chart_ref];
+          const card = renderChartCard(c);
+          html += `<div style="margin:10px 0">${card.outerHTML}</div>`;
+        }
+        html += "</div>";
+      });
+      sec.innerHTML = html;
+      canvas.appendChild(sec);
+    });
+    // Strategic frameworks card (append to ch4 or end)
+    const fw = (d.hev || {}).qualitative && (d.hev.qualitative.frameworks);
+    if (fw) {
+      const fsec = document.createElement("section");
+      fsec.className = "report-chapter";
+      fsec.innerHTML = `<h3>Strategic Frameworks</h3>`;
+      // Porter
+      const porter = fw.porter_5f || {};
+      let porterHtml = `<div class="fw-card"><h5>Porter's 5 Forces</h5>`;
+      Object.keys(porter).forEach(k => {
+        const v = porter[k];
+        const score = (v.score_1_to_5 || 0) * 20;
+        porterHtml += `<div class="fw-bar"><span style="width:160px">${esc(k.replace(/_/g, " "))}</span><div class="bar"><div style="width:${score}%"></div></div><span>${esc(v.rating || "")} (${v.score_1_to_5}/5)</span></div><p style="font-size:11px;color:var(--muted);margin:2px 0 8px">${esc(v.analysis || "")}</p>`;
+      });
+      porterHtml += `</div>`;
+      // SWOT
+      const swot = fw.swot || {};
+      let swotHtml = `<div class="fw-card"><h5>SWOT Matrix</h5><div class="swot-grid">`;
+      ["strengths", "weaknesses", "opportunities", "threats"].forEach(key => {
+        const items = swot[key] || [];
+        swotHtml += `<div class="swot-cell"><strong>${esc(key)}</strong>${items.map(i => `<div style="margin:4px 0">• ${esc(i)}</div>`).join("")}</div>`;
+      });
+      swotHtml += `</div></div>`;
+      // BCG
+      const bcg = fw.bcg_matrix || {};
+      let bcgHtml = `<div class="fw-card"><h5>BCG Matrix</h5><div class="bcg-grid">`;
+      Object.keys(bcg).forEach(key => {
+        const items = bcg[key] || [];
+        bcgHtml += `<div class="bcg-cell"><strong>${esc(key.replace(/_/g, " "))}</strong>${(Array.isArray(items) ? items : [items]).map(i => `<div>• ${esc(i)}</div>`).join("")}</div>`;
+      });
+      bcgHtml += `</div></div>`;
+      // PLC
+      const plc = fw.plc_stage || {};
+      let plcHtml = `<div class="fw-card"><h5>Product Life Cycle</h5><p><strong>${esc(plc.stage || "")}</strong> — ${esc(plc.rationale || "")}</p></div>`;
+      // HEV 15C
+      const hev15 = fw.hev_15c || {};
+      let hevHtml = `<div class="fw-card"><h5>LojikX™ 8-Dimension Commercial Execution</h5>`;
+      Object.keys(hev15).forEach(k => {
+        const v = hev15[k];
+        hevHtml += `<div class="fw-bar"><span style="width:160px">${esc(k.replace(/_/g, " "))}</span><div class="bar"><div style="width:${(v.score_1_to_10 || 0) * 10}%"></div></div><span>${v.score_1_to_10}/10</span></div>`;
+      });
+      hevHtml += `</div>`;
+      // Culture
+      const cult = fw.culture_scorecard || {};
+      let cultHtml = `<div class="fw-card"><h5>6-Dimension Culture Scorecard</h5>`;
+      Object.keys(cult).forEach(k => {
+        const v = cult[k];
+        cultHtml += `<div class="fw-bar"><span style="width:160px">${esc(k.replace(/_/g, " "))}</span><div class="bar"><div style="width:${(v.score_1_to_10 || 0) * 10}%"></div></div><span>${v.score_1_to_10}/10</span></div>`;
+      });
+      cultHtml += `</div>`;
+      fsec.innerHTML += porterHtml + swotHtml + bcgHtml + plcHtml + hevHtml + cultHtml;
+      canvas.appendChild(fsec);
     }
-  } catch (e) {}
-  if (!STOCKS || !Object.keys(STOCKS).length) {
-    STOCKS = JSON.parse(JSON.stringify((typeof EMBEDDED_STOCKS !== "undefined") ? EMBEDDED_STOCKS : {}));
+  }
+
+  // search filter
+  const rs = $("reportSearch");
+  if (rs) {
+    rs.oninput = () => {
+      const q = rs.value.toLowerCase();
+      document.querySelectorAll(".report-chapter").forEach(ch => {
+        ch.style.display = ch.textContent.toLowerCase().includes(q) ? "" : "none";
+      });
+    };
+  }
+  const expandBtn = $("expandAllChapters");
+  if (expandBtn) expandBtn.onclick = () => { document.querySelectorAll(".report-chapter").forEach(c => c.style.display = ""); };
+  const printFull = $("printFullReport");
+  if (printFull) printFull.onclick = () => window.print();
+}
+
+function renderForensic(d) {
+  const hev = d.hev || {};
+  const fa = hev.forensic_audit || {};
+  const banner = $("forensicBanner");
+  if (banner) banner.textContent = `${fa.clean_count || 0} / ${fa.total || 17} PASS — ${fa.watch_count || 0} WATCH — ${fa.flag_count || 0} FLAG — ${fa.verdict_label || ""}`;
+  const checks = fa.checks || [];
+  const container = $("forensicChecks");
+  if (container) {
+    container.innerHTML = "";
+    checks.forEach(c => {
+      const div = document.createElement("div");
+      div.className = "forensic-check";
+      div.innerHTML = `
+        <div class="fc-id">${esc(c.id)}</div>
+        <div>
+          <div class="fc-title">${esc(c.title)}</div>
+          <div class="fc-metric">${esc(c.metric_value)}</div>
+          <div class="fc-expl">${esc(c.explanation)}</div>
+        </div>
+        <div class="fc-badge ${esc(c.status)}">${esc(c.status)}</div>
+      `;
+      container.appendChild(div);
+    });
+  }
+  // LojikX points
+  const pts = d.points || [];
+  const bp = $("buffettPoints");
+  if (bp) {
+    bp.innerHTML = "";
+    const admin = isAdminUser();
+    if (admin) {
+      if (pts.length) {
+        pts.forEach(p => {
+          const badge = (p.verdict === "YES" || p.score === 1) ? "YES" : "NO";
+          const div = document.createElement("div");
+          div.className = "point-card";
+          const calc = (p.calc || []).map(c => `${esc(c.label)}: ${esc(c.value)} ${esc(c.unit || "")}`).join(" — ");
+          div.innerHTML = `
+            <div class="point-head">
+              <div class="point-title">${esc(p.num)}. ${esc(p.title)}</div>
+              <div class="point-badge ${badge}">${badge}</div>
+            </div>
+            <div class="point-q">${esc(p.question || p.principle || "")}</div>
+            <div class="point-calc">${esc(calc)}</div>
+            <div class="point-value">${esc(p.value || "")}</div>
+          `;
+          bp.appendChild(div);
+        });
+      } else {
+        const ch = (hev.report_chapters && hev.report_chapters[9]) || {};
+        const st = hev.settings || {};
+        const card = document.createElement("div");
+        card.className = "point-card";
+        let html = `<div class="point-head"><div class="point-title">Index Benchmark Summary</div><div class="point-badge YES">INDEX</div></div>`;
+        html += `<div class="point-q">${esc(ch.title || (d.company || "Broad Market Index"))}</div>`;
+        if (ch.kpis && ch.kpis.length) {
+          html += `<div class="point-calc">${ch.kpis.map(k => esc(k.label) + ": " + esc(k.value) + esc(k.unit || "")).join(" — ")}</div>`;
+        }
+        html += `<div class="point-value">${esc(st.company || d.company || "")} — P/E ${num(st.pe)} — ROE ${num(st.roe_pct)}% — Quality ${st.quality_earned || 0}/${st.quality_total || 23}</div>`;
+        (ch.sections || []).forEach(sec => {
+          (sec.paragraphs || []).slice(0, 3).forEach(p => { html += `<p style="font-size:12px;color:var(--muted);margin:4px 0">${esc(p)}</p>`; });
+        });
+        card.innerHTML = html;
+        bp.appendChild(card);
+      }
+    } else {
+      // 4-Pillar LojikX 23-Factor Executive Architecture Summary
+      const passedOf = (nums) => pts.filter(p => nums.includes(Number(p.num)) && (p.verdict === "YES" || p.score === 1)).length;
+      const pillars = [
+        { name: "Pillar I: Earnings & Margin Durability", factors: "Factors 1–6", nums: [1,2,3,4,5,6], total: 6 },
+        { name: "Pillar II: Capital Allocation & Compounding Power", factors: "Factors 7–13", nums: [7,8,9,10,11,12,13], total: 7 },
+        { name: "Pillar III: Cash Flow Integrity & Debt Discipline", factors: "Factors 14–18", nums: [14,15,16,17,18], total: 5 },
+        { name: "Pillar IV: Intrinsic Valuation & Risk-Adjusted Yield", factors: "Factors 19–23", nums: [19,20,21,22,23], total: 5 },
+      ];
+      pillars.forEach(pl => {
+        const passed = passedOf(pl.nums);
+        const card = document.createElement("div");
+        card.className = "pillar-summary-card";
+        card.innerHTML = `
+          <div class="pillar-head">
+            <div class="pillar-name">${esc(pl.name)}</div>
+            <div class="pillar-badge">${passed}/${pl.total}</div>
+          </div>
+          <div class="pillar-factors">${esc(pl.factors)}</div>
+          <div class="pillar-bar"><div class="pillar-bar-fill" style="width:${(passed / pl.total) * 100}%"></div></div>
+        `;
+        bp.appendChild(card);
+      });
+      const note = document.createElement("div");
+      note.className = "point-card";
+      note.innerHTML = `<div class="point-q">Apple institutional note: LojikX™ 23-Factor Quality Architecture is summarised at the pillar level for public visitors. The full 23 individual checkpoints, formulas and calculated values are available to authorised institutional users.</div>`;
+      bp.appendChild(note);
+    }
+  }
+  // when to sell
+  const wts = d.when_to_sell || {};
+  const w = $("whenToSell");
+  if (w) {
+    w.innerHTML = "";
+    const admin = isAdminUser();
+    if (admin) {
+      const hasWts = (wts && ((wts.current_price !== undefined && wts.current_price !== null) || wts.winner));
+      if (hasWts) {
+        const card = document.createElement("div");
+        card.className = "wts-card";
+        let html = `<h4 style="margin-bottom:8px">10-Year Equity vs. T-Bond Comparison</h4>`;
+        const rows = [
+          ["Current Price", money(d.currency, wts.current_price)],
+          ["Years", wts.years],
+          ["T-Bond Rate %", wts.tbond_rate_pct],
+          ["EPS CAGR %", wts.eps_cagr_pct],
+          ["Cumulative EPS 10Y", money(d.currency, wts.cumulative_eps_10y)],
+          ["Bond Value 10Y", money(d.currency, wts.bond_value_10y)],
+          ["Equity Yield %", wts.equity_yield_pct],
+          ["Bond Total Return %", wts.bond_total_return_pct],
+          ["Winner", wts.winner],
+          ["Winner Yield", wts.winner_yield],
+        ];
+        rows.forEach(([k, v]) => { html += `<div class="wts-row"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`; });
+        if (wts.conditions) { html += `<div style="margin-top:10px;font-size:12px;color:var(--muted)">${wts.conditions.map(c => `<div>${esc(c)}</div>`).join("")}</div>`; }
+        if (wts.note) { html += `<p style="margin-top:8px;font-size:12px;color:var(--muted)">${esc(wts.note)}</p>`; }
+        card.innerHTML = html;
+        w.appendChild(card);
+      } else {
+        const ch = (hev.report_chapters && hev.report_chapters[9]) || {};
+        const st = hev.settings || {};
+        const card = document.createElement("div");
+        card.className = "wts-card";
+        let html = `<h4 style="margin-bottom:8px">Index Benchmark Summary</h4>`;
+        html += `<div class="wts-row"><span>Index</span><strong>${esc(st.company || d.company || "")}</strong></div>`;
+        html += `<div class="wts-row"><span>Current Price</span><strong>${money(d.currency, st.current_price)}</strong></div>`;
+        html += `<div class="wts-row"><span>P/E</span><strong>${num(st.pe)}</strong></div>`;
+        html += `<div class="wts-row"><span>ROE %</span><strong>${num(st.roe_pct)}</strong></div>`;
+        html += `<div class="wts-row"><span>ROCE %</span><strong>${num(st.roce_pct)}</strong></div>`;
+        html += `<div class="wts-row"><span>Quality</span><strong>${st.quality_earned || 0}/${st.quality_total || 23}</strong></div>`;
+        html += `<div class="wts-row"><span>Forensic Verdict</span><strong>${esc((hev.forensic_audit || {}).verdict_label || "")}</strong></div>`;
+        const riskSec = (ch.sections || []).find(sec => /risk/i.test(sec.heading || ""));
+        if (riskSec) { (riskSec.paragraphs || []).slice(0, 3).forEach(p => { html += `<p style="font-size:12px;color:var(--muted);margin:4px 0">${esc(p)}</p>`; }); }
+        card.innerHTML = html;
+        w.appendChild(card);
+      }
+    } else {
+      const card = document.createElement("div");
+      card.className = "wts-card";
+      let html = `<h4 style="margin-bottom:8px">LojikX™ Long-Horizon Sovereign Yield Benchmark</h4>`;
+      html += `<div class="wts-row"><span>Benchmark</span><strong>10-Year Sovereign Yield</strong></div>`;
+      html += `<div class="wts-row"><span>Equity Compounding</span><strong>Long-horizon intrinsic value</strong></div>`;
+      html += `<div class="wts-row"><span>Verdict</span><strong>${esc((hev.forensic_audit || {}).verdict_label || "Monitor")}</strong></div>`;
+      html += `<p style="margin-top:8px;font-size:12px;color:var(--muted)">High-level summary for public visitors. Detailed 10-Year Equity vs. T-Bond comparison is available to authorised institutional users.</p>`;
+      card.innerHTML = html;
+      w.appendChild(card);
+    }
   }
 }
-
-// ---------- Initial showcase state ----------
-const SHOWCASE_PRICE_SERIES = [395.2,398.1,401.5,399.8,403.2,406.7,404.9,408.3,411.0,409.5,413.2,416.8,414.6,418.9,421.3,419.7,423.1,426.4,424.8,428.2,430.5,427.9,425.3,422.1,419.4,416.8,414.2,411.5,409.0,406.4,404.1,402.3,400.5,399.3,401.2,416.45];
-
-const SHOWCASE = {
-  company: "ITC Limited",
-  ticker: "ITC",
-  market: "INDIA",
-  currency: "INR",
-  current_price: 416.45,
-  low_52w: 399.30,
-  high_52w: 528.50,
-  quality_score: { earned: 20, total: 23, pct: 87.0, band_label: "High Historical Consistency (17–23)", tier: "high" },
-  fear_greed: { score: 32, zone_label: "Fear Zone", tier: "fear" },
-  price_series: SHOWCASE_PRICE_SERIES,
-};
-
-function checkMe() {
-  if (!staticLoadUser()) {
-    authRegister("guest@lojikgain.local", "Guest", "", "email").then(() => refreshAuth()).catch(() => {});
-  } else {
-    refreshAuth();
-  }
+// Tabs
+function switchView(v) {
+  state.currentView = v;
+  document.querySelectorAll(".view").forEach(el => el.style.display = "none");
+  const target = $("view-" + v);
+  if (target) target.style.display = "";
+  document.querySelectorAll("#workspaceTabs .ws-tab").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.view === v);
+  });
 }
-
-function renderShowcase() {
-  initScoreRing();
-  initSpeedo();
-  renderBhelTimeline();
-  renderAnalysis(SHOWCASE, "ITC");
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  STOCKS = JSON.parse(JSON.stringify(EMBEDDED_STOCKS));
-  try { await loadStocks(); } catch (e) {}
-  if (!staticLoadUser()) await authRegister("guest@lojikgain.local", "Guest", "", "email").catch(() => {});
-  await refreshAuth();
-  renderShowcase();
-  renderQuickPicksLive();
-  if ($("upiIdText")) $("upiIdText").textContent = state.config.upi_id;
+document.querySelectorAll("#workspaceTabs .ws-tab").forEach(btn => {
+  btn.addEventListener("click", () => switchView(btn.dataset.view));
 });
-// shield ring dashoffset already 0 (full)
-// ---------- Quick-Pick Stock Chips + Autocomplete Dropdown (client-side) ----------
-const QUICK_PICKS_LIVE = ["ITC","TCS","PERSISTENT","HDFCBANK","TITAN","BHEL","NIFTY 50","AAPL","MSFT","NVDA","GOOGL","S&P 500"];
-function renderQuickPicksLive() {
-  const wrap = document.getElementById("quickPicks");
-  if (!wrap) return;
+
+// Print
+const printBtn = $("printBtn");
+if (printBtn) printBtn.addEventListener("click", () => window.print());
+
+// Search autocomplete
+let acTimer = null;
+const searchInput = $("searchInput");
+if (searchInput) {
+  searchInput.addEventListener("input", (e) => {
+    clearTimeout(acTimer);
+    const q = e.target.value.trim();
+    if (q.length < 1) { const ac = $("autocomplete"); if (ac) ac.style.display = "none"; const sd = $("searchDropdown"); if (sd) sd.style.display = "none"; return; }
+    acTimer = setTimeout(() => {
+      const idx = getIndex();
+      let results = [];
+      if (idx && idx.tickers) {
+        const ql = q.toLowerCase();
+        results = idx.tickers.filter(r => (r.ticker || "").toLowerCase().includes(ql) || (r.company || "").toLowerCase().includes(ql)).slice(0, 12);
+      }
+      const box = $("autocomplete");
+      if (box) {
+        box.innerHTML = "";
+        results.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "ac-item";
+          div.textContent = `${item.ticker} — ${item.company || ""}`;
+          div.addEventListener("click", () => {
+            searchInput.value = item.ticker;
+            box.style.display = "none";
+            handleTickerSelection(item.ticker);
+          });
+          box.appendChild(div);
+        });
+        box.style.display = results.length ? "block" : "none";
+      }
+      const sd = $("searchDropdown");
+      if (sd && box) { sd.innerHTML = box.innerHTML; sd.style.display = box.style.display; }
+    }, 150);
+  });
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const ac = $("autocomplete"); if (ac) ac.style.display = "none";
+      handleTickerSelection(searchInput.value.trim());
+    }
+  });
+}
+function handleTickerSelection(ticker) {
+  if (!ticker) return;
+  if (requireAuthFor(ticker)) {
+    state.pendingTicker = ticker;
+    openModal("authModal");
+    return;
+  }
+  loadTickerData(ticker);
+}
+
+// Quick picks
+function renderQuickPicks() {
+  const wrap = $("quickPicks"); if (!wrap) return;
+  const idx = getIndex();
+  const picks = ["ITC", "TCS", "PERSISTENT", "HDFCBANK", "TITAN", "BHEL", "AAPL", "MSFT", "NVDA", "GOOGL"];
   wrap.innerHTML = "";
-  QUICK_PICKS_LIVE.forEach(sym => {
+  picks.forEach(sym => {
     const btn = document.createElement("button");
     btn.className = "quick-chip";
     btn.innerHTML = `<span class="chip-sym">${sym}</span>`;
-    btn.addEventListener("click", () => {
-      const inp = document.getElementById("searchInput");
-      if (inp) inp.value = sym;
-      if (typeof analyze === "function") analyze(sym);
-    });
+    btn.addEventListener("click", () => { const inp = $("searchInput"); if (inp) inp.value = sym; handleTickerSelection(sym); });
     wrap.appendChild(btn);
   });
 }
-// alias searchDropdown to autocomplete behavior
-(function(){
-  const inp = document.getElementById("searchInput");
-  const ac = document.getElementById("autocomplete");
-  const sd = document.getElementById("searchDropdown");
-  if (!inp) return;
-  // mirror autocomplete into searchDropdown too
-  const origInput = inp.oninput;
-  inp.addEventListener("input", () => {
-    setTimeout(() => {
-      if (ac && sd) sd.innerHTML = ac.innerHTML;
-      if (sd) sd.style.display = ac && ac.style.display === "block" ? "block" : "none";
-    }, 260);
-  });
-})();
-document.addEventListener("DOMContentLoaded", () => { renderQuickPicksLive(); });
 
+// Stock directory (from index) optional search not needed.
 
-// aliases
-function applyAnalysis(d, ticker) { return renderAnalysis(d, ticker); }
-const renderScoreRing = updateScoreRing;
-const renderSpeedo = updateSpeedo;
+// Stock directory search via index tickers could be added; keep minimal.
 
+// Init
+async function init() {
+  await ensureIndex();
+  initScoreRing();
+  initSpeedo();
+  renderQuickPicks();
+  const showcase = state.market === "INDIA" ? "ITC" : "AAPL";
+  loadTickerData(showcase);
+  refreshAuth();
+}
+document.addEventListener("DOMContentLoaded", init);
 
-document.addEventListener("DOMContentLoaded", function () {
-  const ab = document.getElementById("adminQuickLoginBtn");
-  if (ab) {
-    ab.addEventListener("click", async function () {
-      try {
-        const d = await authLogin("admin@lojikgain.com", "LojikAdmin@2026");
-        state.user = d.user;
-        if (typeof closeModal === "function") closeModal("authModal");
-        if (typeof refreshAuth === "function") refreshAuth();
-        const m = document.getElementById("authMsg");
-        if (m) m.textContent = "";
-      } catch (e) {
-        const m = document.getElementById("authMsg");
-        if (m) m.textContent = e.message;
-      }
-    });
+// Founder btn ensure
+setInterval(() => {
+  const fb = $("founderBtn");
+  if (!fb) return;
+  if (state.user && state.user.is_admin) {
+    fb.style.display = "inline-flex";
+    fb.href = isLocalHost() ? "/personal" : "./founder.html";
+  } else {
+    fb.style.display = "none";
   }
-});
+}, 2000);
 
-document.addEventListener("DOMContentLoaded", function(){
-  function ensureFounderBtn(){
-    var user=(typeof state!=="undefined"&&state&&state.user)?state.user:null;
-    if(!user){try{user=JSON.parse(localStorage.getItem("lojik_user")||localStorage.getItem("lojikgain_user")||"null");}catch(e){}}
-    if(user&&user.is_admin&&!document.getElementById("founderBtn")){
-      var top=document.querySelector(".nav-right")||document.body;
-      top.insertAdjacentHTML("afterbegin", `<a id="founderBtn" href="./founder.html" style="display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:12px;font-weight:600;text-decoration:none;margin-right:6px;">👑 Founder 10Y</a>`);
-    }
-  }
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",ensureFounderBtn); else ensureFounderBtn();
-  setInterval(ensureFounderBtn,2000);
-});
-
-document.addEventListener("DOMContentLoaded", function(){
-  function ensureFounderBtn(){
-    var user=(typeof state!=="undefined"&&state&&state.user)?state.user:null;
-    if(!user){try{user=JSON.parse(localStorage.getItem("lojik_user")||localStorage.getItem("lojikgain_user")||"null");}catch(e){}}
-    if(user&&user.is_admin&&!document.getElementById("founderBtn")){
-      var top=document.querySelector(".nav-right")||document.body;
-      top.insertAdjacentHTML("afterbegin", `<a id="founderBtn" href="./founder.html" style="display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:12px;font-weight:600;text-decoration:none;margin-right:6px;">👑 Founder 10Y</a>`);
-    }
-  }
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",ensureFounderBtn); else ensureFounderBtn();
-  setInterval(ensureFounderBtn,2000);
-});
-
-document.addEventListener("DOMContentLoaded", function(){
-  function ensureFounderBtn(){
-    var user=(typeof state!=="undefined"&&state&&state.user)?state.user:null;
-    if(!user){try{user=JSON.parse(localStorage.getItem("lojik_user")||localStorage.getItem("lojikgain_user")||"null");}catch(e){}}
-    if(user&&user.is_admin&&!document.getElementById("founderBtn")){
-      var top=document.querySelector(".nav-right")||document.body;
-      top.insertAdjacentHTML("afterbegin", `<a id="founderBtn" href="./founder.html" style="display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:12px;font-weight:600;text-decoration:none;margin-right:6px;">Founder 10Y</a>`);
-    }
-  }
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",ensureFounderBtn); else ensureFounderBtn();
-  setInterval(ensureFounderBtn,2000);
-});
+// Expose
+window.loadTickerData = loadTickerData;
+window.state = state;

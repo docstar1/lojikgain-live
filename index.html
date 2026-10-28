@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LojikGain — Statistical Consistency & Market Mood</title>
-  <link rel="stylesheet" href="./style.css?v=12" />
+  <title>LojikGain — Apple-Grade Institutional Equity Research</title>
+  <link rel="stylesheet" href="./static/style.css?v=20261029_v2" />
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <!-- Data bundles: Flask (/static/data/...) and GitHub Pages (./data/...) -->
+  <script src="./static/data/public_index.js" onerror="this.remove()"></script>
+  <script src="./data/public_index.js" onerror="this.remove()"></script>
 </head>
 <body>
   <div class="aurora" aria-hidden="true"></div>
@@ -17,151 +20,226 @@
         <button class="market-pill" id="marketPill">🇮🇳 India NSE</button>
       </div>
       <div class="nav-right">
-        <div class="trial-badge" id="trialBadge">7 Days Free Trial</div>
-        <button class="icon-btn" id="testExpiryBtn" title="Test Expiry">⏳</button>
+        <div class="trial-badge" id="trialBadge">Public Access</div>
         <button class="icon-btn" id="themeToggle" title="Theme">☀️</button>
         <button class="signin-btn" id="signinBtn">Sign In</button>
         <div class="profile-pill" id="profilePill" style="display:none"></div>
+        <a id="founderBtn" style="display:none" class="founder-btn" href="./founder.html">👑 Founder 10Y</a>
       </div>
     </div>
   </nav>
 
   <main class="main">
+    <!-- Hero Stock Header Bar -->
+    <section class="hero-header glass" id="heroHeader">
+      <div class="hero-left">
+        <div class="hero-company" id="heroCompany">—</div>
+        <div class="hero-ticker-row">
+          <span class="hero-ticker" id="heroTicker">—</span>
+          <span class="hero-badge" id="heroBadge">—</span>
+          <span class="hero-quarter" id="heroQuarter">2026-Q4</span>
+        </div>
+      </div>
+      <div class="hero-mid">
+        <div class="hero-price" id="heroPrice">—</div>
+        <div class="hero-range">
+          <div class="range-labels"><span id="heroLow">—</span><span id="heroHigh">—</span></div>
+          <div class="range-bar"><div class="range-fill"></div><div class="range-dot" id="heroRangeDot"></div></div>
+          <div class="range-caption">52-Week Range</div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-target-block">
+          <div class="hero-label">LojikX™ Triangulated Valuation Model</div>
+          <div class="hero-target" id="heroTarget">—</div>
+          <div class="hero-upside" id="heroUpside">—</div>
+        </div>
+        <div class="hero-rating" id="heroRating">—</div>
+        <button class="print-btn" id="printBtn">🖨️ Print / Export PDF</button>
+      </div>
+    </section>
+
     <section class="hero">
-      <h1 class="hero-title">Most people buy great companies at the worst possible time. Or terrible companies just because the crowd is excited.</h1>
-      <p class="hero-sub">LojikGain gives you two honest numbers for any stock in India or the US: how strong the business actually proved to be over 10+ years (out of 23), and whether the crowd is currently in Fear or Greed (0 to 100).</p>
+      <h1 class="hero-title">Institutional-grade equity research, free during public access.</h1>
+      <p class="hero-sub">LojikGain gives you two honest numbers for any stock in India or the US: how strong the business proved to be over 10+ years (out of 23), and whether the crowd is currently in Fear or Greed (0 to 100). Plus an Institutional Research Report.</p>
       <div class="search-studio">
         <input id="searchInput" type="text" placeholder="Search TCS, AAPL, NIFTY 50…" autocomplete="off" />
         <div class="autocomplete" id="autocomplete"></div>
         <div class="search-dropdown" id="searchDropdown" style="display:none"></div>
       </div>
-      <div class="quick-chips" id="quickPicks" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px"></div>
+      <div class="quick-chips" id="quickPicks" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center"></div>
     </section>
 
-    <section class="bento-dual">
-      <!-- Left: 23-segment jewel ring -->
-      <div class="card glass score-card">
-        <div class="card-title">Historical Consistency Score</div>
-        <div class="ring-wrap">
-          <svg id="scoreRingSvg" class="jewel-ring" viewBox="0 0 280 280" aria-label="23-segment consistency ring"></svg>
-          <div class="ring-center">
-            <div class="ring-score" id="scoreValue">— / 23</div>
-            <div class="ring-badge" id="scoreBand">—</div>
-          </div>
-        </div>
-        <div class="pill-strip" id="scorePills">
-          <span class="tier-pill tier-coral" data-range="0-11">0–11 Fragile</span>
-          <span class="tier-pill tier-amber" data-range="12-16">12–16 Mixed / Cyclical</span>
-          <span class="tier-pill tier-emerald" data-range="17-23">17–23 High Consistency</span>
-        </div>
-        <div class="explain-box" id="scoreExplain">Analyze a stock to see how strong the business proved to be.</div>
-      </div>
+    <!-- Workspace Tabs -->
+    <div class="workspace-tabs" id="workspaceTabs">
+      <button class="ws-tab active" data-view="overview">Overview &amp; Pulse</button>
+      <button class="ws-tab" data-view="exec-summary">Executive Summary</button>
+      <button class="ws-tab" data-view="dashboard">Visual Analytics</button>
+      <button class="ws-tab" data-view="report">Deep Research Report</button>
+      <button class="ws-tab" data-view="forensic">Forensic &amp; LojikX™ Quality Audit</button>
+    </div>
 
-      <!-- Right: 5-zone speedometer -->
-      <div class="card glass mood-card">
-        <div class="card-title">Market Mood & Sentiment</div>
-        <div class="speedo-wrap">
-          <svg id="speedoSvg" class="speedo" viewBox="0 0 360 215" aria-label="5-zone mood dial"></svg>
-        </div>
-        <div class="speedo-readout">
-          <span class="speedo-score" id="moodValue">—</span>
-          <span class="speedo-denom">/ 100</span>
-        </div>
-        <div class="speedo-zone" id="moodZone">—</div>
-        <div class="zone-pills" id="zonePills">
-          <span class="zone-pill z-extreme-fear" data-zone="Extreme Fear">Extreme Fear</span>
-          <span class="zone-pill z-fear" data-zone="Fear">Fear</span>
-          <span class="zone-pill z-neutral" data-zone="Neutral">Neutral</span>
-          <span class="zone-pill z-greed" data-zone="Greed">Greed</span>
-          <span class="zone-pill z-extreme-greed" data-zone="Extreme Greed">Extreme Greed</span>
-        </div>
-        <div class="explain-box" id="moodExplain">Analyze a stock to see where the crowd stands.</div>
-      </div>
-    </section>
-
-    <!-- Area chart + 52-week range -->
-    <section class="card glass strip-card">
-      <div class="strip-top">
-        <div>
-          <div class="strip-title" id="stripTitle">Price Trend</div>
-          <div class="strip-price" id="stripPrice">—</div>
-        </div>
-        <div class="range-bar-wrap">
-          <div class="range-labels"><span id="low52">—</span><span id="high52">—</span></div>
-          <div class="range-bar"><div class="range-fill" id="rangeFill"></div><div class="range-dot" id="rangeDot"></div></div>
-          <div class="range-caption">52-Week Range</div>
-        </div>
-      </div>
-      <div class="chart-wrap">
-        <svg id="areaChart" class="area-chart" viewBox="0 0 720 220" preserveAspectRatio="none"></svg>
-        <div class="chart-tooltip" id="chartTooltip"></div>
-      </div>
-    </section>
-
-    <!-- Candid research bento -->
-    <section class="research">
-      <h2 class="section-title">We Tested This So You Don't Have to Guess</h2>
-      <div class="research-grid">
-        <div class="card glass bento-2x1">
-          <div class="bento-head">₹1,00,000 → ₹5,25,886: What Happened From 2020 to 2026</div>
-          <div class="bento-sub">Historical cohort study (2020–2026)</div>
-          <div class="bar-row"><span>Top-5 Scorers</span><div class="bar"><div style="width:100%"></div></div><span>₹5.26L · 30.1% CAGR</span></div>
-          <div class="bar-row"><span>All 17+/23 Scorers</span><div class="bar"><div style="width:88%"></div></div><span>₹4.61L · 27.4% CAGR</span></div>
-          <div class="bar-row"><span>Nifty 50 Index</span><div class="bar"><div style="width:44%"></div></div><span>₹2.19L · 13.3% CAGR</span></div>
-        </div>
-
-        <div class="card glass bento-1x1">
-          <div class="bento-head">6 out of 6 Survived &amp; Compounded</div>
-          <div class="bento-sub">Capital survival</div>
-          <div class="shield-wrap">
-            <svg viewBox="0 0 120 120" class="shield-ring">
-              <circle cx="60" cy="60" r="46" class="ring-bg" fill="none" />
-              <circle cx="60" cy="60" r="46" class="ring-fg shield-fg" fill="none" />
-              <text x="60" y="66" text-anchor="middle" class="shield-text">6/6</text>
-            </svg>
-          </div>
-          <p class="bento-text">0 wipeouts among the 17+/23 cohort (2020–2026) vs. YESBANK 7/23 → -38%, IDEA 10/23.</p>
-        </div>
-
-        <div class="card glass bento-1x1">
-          <div class="bento-head">Why Sitting Still Beat Trading Every Year</div>
-          <div class="bento-sub">Hold vs. churn</div>
-          <div class="compare">
-            <div class="compare-row"><span>Buy 2020 &amp; Hold</span><strong>₹4.61L · 27.4%</strong></div>
-            <div class="compare-row"><span>Annual Rebalancing</span><strong>₹3.05L · 19.3%</strong></div>
-          </div>
-          <p class="bento-text">Holding high-scoring companies outperformed annual churning by +₹1.56L per ₹1L.</p>
-        </div>
-
-        <div class="card glass bento-2x1">
-          <div class="bento-head">The BHEL Story (2010–2026): Spotting the Crack Two Years Early</div>
-          <div class="bento-sub">BHEL score trajectory, 2010 → 2026</div>
-          <div class="bhel-timeline" id="bhelTimeline"></div>
-          <p class="bento-text">ROE fell below threshold two years before net losses began in 2016.</p>
-        </div>
-
-        <div class="card glass bento-2x1">
-          <div class="bento-head">Why Generic Market Mood Dials Mislead Stock Pickers</div>
-          <div class="bento-sub">Index-only vs. stock-specific</div>
-          <div class="compare-grid">
-            <div class="compare-col">
-              <div class="compare-label">Generic Index Dial</div>
-              <div class="compare-val bad">Futures-based · index mood only</div>
-              <p class="bento-text">Tracks Nifty/S&P futures sentiment. Says nothing about the single stock you actually own.</p>
-            </div>
-            <div class="compare-col">
-              <div class="compare-label">LojikGain Dial</div>
-              <div class="compare-val good">Cash volume · 10-yr valuation stretch</div>
-              <p class="bento-text">Stock-specific cash-volume and 10-year valuation stretch. Measures the crowd around your stock.</p>
+    <!-- Tab 1: Overview -->
+    <div class="view" id="view-overview">
+      <section class="bento-dual">
+        <div class="card glass score-card">
+          <div class="card-title">LojikX™ 23-Factor Consistency Score</div>
+          <div class="ring-wrap">
+            <svg id="scoreRingSvg" class="jewel-ring" viewBox="0 0 280 280" aria-label="23-segment consistency ring"></svg>
+            <div class="ring-center">
+              <div class="ring-score" id="scoreValue">— / 23</div>
+              <div class="ring-badge" id="scoreBand">—</div>
             </div>
           </div>
+          <div class="pill-strip" id="scorePills">
+            <span class="tier-pill tier-coral" data-range="0-11">0–11 Fragile</span>
+            <span class="tier-pill tier-amber" data-range="12-16">12–16 Mixed / Cyclical</span>
+            <span class="tier-pill tier-emerald" data-range="17-23">17–23 High Consistency</span>
+          </div>
+          <div class="explain-box" id="scoreExplain">Analyze a stock to see how strong the business proved to be.</div>
+          <div class="company-type-badge" id="companyTypeBadge">—</div>
         </div>
+        <div class="card glass mood-card">
+          <div class="card-title">Market Mood &amp; Technical Speedometer</div>
+          <div class="speedo-wrap">
+            <svg id="speedoSvg" class="speedo" viewBox="0 0 360 215" aria-label="5-zone mood dial"></svg>
+          </div>
+          <div class="speedo-readout">
+            <span class="speedo-score" id="moodValue">—</span>
+            <span class="speedo-denom">/ 100</span>
+          </div>
+          <div class="speedo-zone" id="moodZone">—</div>
+          <div class="zone-pills" id="zonePills">
+            <span class="zone-pill z-extreme-fear" data-zone="Extreme Fear">Extreme Fear</span>
+            <span class="zone-pill z-fear" data-zone="Fear">Fear</span>
+            <span class="zone-pill z-neutral" data-zone="Neutral">Neutral</span>
+            <span class="zone-pill z-greed" data-zone="Greed">Greed</span>
+            <span class="zone-pill z-extreme-greed" data-zone="Extreme Greed">Extreme Greed</span>
+          </div>
+          <div class="explain-box" id="moodExplain">Analyze a stock to see where the crowd stands.</div>
+          <div class="tech-strip" id="techStrip"></div>
+        </div>
+      </section>
+
+      <section class="card glass strip-card">
+        <div class="strip-top">
+          <div>
+            <div class="strip-title" id="stripTitle">Price Trend</div>
+            <div class="strip-price" id="stripPrice">—</div>
+          </div>
+          <div class="range-bar-wrap">
+            <div class="range-labels"><span id="low52">—</span><span id="high52">—</span></div>
+            <div class="range-bar"><div class="range-fill"></div><div class="range-dot" id="rangeDot"></div></div>
+            <div class="range-caption">52-Week Range</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <svg id="areaChart" class="area-chart" viewBox="0 0 720 220" preserveAspectRatio="none"></svg>
+          <div class="chart-tooltip" id="chartTooltip"></div>
+        </div>
+      </section>
+
+      <!-- LojikX™ Triangulated Valuation Card -->
+      <section class="card glass" id="hevValuationCard">
+        <div class="card-title">LojikX™ Triangulated Valuation Model</div>
+        <div class="hev-val-grid">
+          <div class="hev-val-item"><span class="hv-label">P/E Target Price</span><span class="hv-val" id="hvPe">—</span></div>
+          <div class="hev-val-item"><span class="hv-label">P/R Target Price</span><span class="hv-val" id="hvPr">—</span></div>
+          <div class="hev-val-item"><span class="hv-label">DCF Target Price</span><span class="hv-val" id="hvDcf">—</span></div>
+          <div class="hev-val-item highlight"><span class="hv-label">Blended Target Price</span><span class="hv-val" id="hvBlended">—</span></div>
+          <div class="hev-val-item"><span class="hv-label">Upside %</span><span class="hv-val" id="hvUpside">—</span></div>
+          <div class="hev-val-item"><span class="hv-label">WACC %</span><span class="hv-val" id="hvWacc">—</span></div>
+          <div class="hev-val-item"><span class="hv-label">Terminal Growth %</span><span class="hv-val" id="hvTg">—</span></div>
+          <div class="hev-val-item"><span class="hv-label">Book Value Model</span><span class="hv-val" id="hvBv">—</span></div>
+          <div class="hev-val-item"><span class="hv-label">EPS Growth Model</span><span class="hv-val" id="hvEps">—</span></div>
+          <div class="hev-val-item"><span class="hv-label">Bond Coupon Model</span><span class="hv-val" id="hvBond">—</span></div>
+        </div>
+      </section>
+
+      <!-- Quick Snapshot Cards -->
+      <section class="snapshot-grid">
+        <div class="card glass"><div class="card-title">Top 3 Catalysts</div><ul class="snap-list" id="snapCatalysts"></ul></div>
+        <div class="card glass"><div class="card-title">Top 5 Risks (preview)</div><ol class="snap-list" id="snapRisks"></ol></div>
+        <div class="card glass"><div class="card-title">17-Point Forensic Cleanliness</div><div class="forensic-summary" id="forensicSummary">—</div></div>
+      </section>
+    </div>
+
+    <!-- Tab 2: Executive Summary -->
+    <div class="view" id="view-exec-summary" style="display:none">
+      <div class="exec-sheet glass" id="execSheet">
+        <div class="exec-banner" id="execTitleBanner">—</div>
+        <div class="exec-strip" id="execMarketStrip">—</div>
+        <div class="exec-strip" id="execGuidanceStrip">—</div>
+        <div class="exec-grid">
+          <div class="exec-col">
+            <div class="exec-box"><div class="exec-box-title">Drivers &amp; Catalysts</div><div id="execDrivers"></div></div>
+            <div class="exec-box"><div class="exec-box-title">Core Financials</div><div id="execFinancials"></div></div>
+          </div>
+          <div class="exec-col">
+            <div class="exec-box"><div class="exec-box-title">Competition, Distribution &amp; Production</div><div id="execComp"></div><div id="execCompetitors"></div></div>
+            <div class="exec-box"><div class="exec-box-title">Management Assessment</div><div id="execManagement"></div></div>
+            <div class="exec-box"><div class="exec-box-title">TAM Sizing &amp; Growth</div><div id="execTam"></div></div>
+          </div>
+        </div>
+        <div class="exec-risks"><div class="exec-box-title">Top 5 Institutional Risks</div><div id="execRisks"></div></div>
+        <div class="exec-callout" id="execBottomFund">—</div>
+        <div class="exec-section"><div class="exec-box-title">Valuation vs. 10 Competitors</div><div id="execPeParagraph"></div><div id="execPeersSentence"></div><div id="execPeerMini"></div><div class="exec-callout" id="execBottomVal">—</div></div>
+        <div class="exec-section"><div class="exec-box-title">Technicals &amp; Stop-Loss</div><div id="execTechnicals"></div><div class="exec-callout" id="execBottomTech">—</div></div>
       </div>
-    </section>
+    </div>
+
+    <!-- Tab 3: Dashboard -->
+    <div class="view" id="view-dashboard" style="display:none">
+      <div class="chart-filters" id="chartFilters">
+        <button class="filter-pill active" data-filter="all">All 23 Charts</button>
+        <button class="filter-pill" data-filter="market">Market &amp; Macro (8)</button>
+        <button class="filter-pill" data-filter="financials">Financials &amp; 10Y Forecast (6)</button>
+        <button class="filter-pill" data-filter="valuation">Valuation &amp; Peers (5)</button>
+        <button class="filter-pill" data-filter="forensic">Forensic &amp; Technicals (4)</button>
+      </div>
+      <div class="charts-grid" id="chartsGrid"></div>
+      <section class="card glass" style="margin-top:22px">
+        <div class="card-title">3×5 DCF WACC × Terminal Growth Sensitivity Matrix</div>
+        <div id="sensMatrix"></div>
+      </section>
+      <section class="card glass" style="margin-top:22px">
+        <div class="card-title">Peer Benchmarking Table</div>
+        <div id="peerTable"></div>
+      </section>
+    </div>
+
+    <!-- Tab 4: Report -->
+    <div class="view" id="view-report" style="display:none">
+      <div class="report-layout">
+        <aside class="report-sidebar glass">
+          <input class="report-search" id="reportSearch" placeholder="Search chapters…" />
+          <div id="chapterList"></div>
+          <div class="report-actions">
+            <button id="expandAllChapters">Expand All Chapters</button>
+            <button id="printFullReport">Print Full Report</button>
+          </div>
+        </aside>
+        <main class="report-canvas" id="reportCanvas"></main>
+      </div>
+    </div>
+
+    <!-- Tab 5: Forensic -->
+    <div class="view" id="view-forensic" style="display:none">
+      <section class="card glass">
+        <div class="card-title">Section A — LojikX™ 17-Point Forensic Accounting &amp; Red Flag Audit</div>
+        <div class="forensic-banner" id="forensicBanner">—</div>
+        <div id="forensicChecks"></div>
+      </section>
+      <section class="card glass" style="margin-top:22px">
+        <div class="card-title">Section B — LojikX™ 23-Factor Quality Architecture &amp; Sovereign Benchmark</div>
+        <div class="buffett-points" id="buffettPoints"></div>
+        <div class="when-to-sell" id="whenToSell"></div>
+      </section>
+    </div>
   </main>
 
   <footer class="footer">
-    <p>Disclaimer: LojikGain provides statistical, historical research for educational purposes only. Not investment advice. Markets carry risk. SEBI (India) / SEC (US) compliance: no recommendations are made.</p>
+    <p>Disclaimer: LojikGain provides statistical, historical research for educational purposes only. Not investment advice. Markets carry risk.</p>
   </footer>
 
   <!-- Auth Modal -->
@@ -169,6 +247,7 @@
     <div class="modal-card glass">
       <button class="modal-close" data-close="authModal">✕</button>
       <h2>Welcome to LojikGain</h2>
+      <p class="auth-subtitle">You've explored the free showcase report. Sign in with Email or Google to unlock all 126+ Nifty 50, India &amp; US Institutional Equity Research Reports — 100% Free during Public Access.</p>
       <button class="google-btn" id="googleBtn">Continue with Google</button>
       <div class="divider">or</div>
       <input id="authEmail" type="email" placeholder="Email" />
@@ -178,26 +257,25 @@
         <button id="loginBtn">Log In</button>
         <button id="registerBtn">Sign Up</button>
       </div>
-      <button id="adminQuickLoginBtn">\u{1F451} Founder Admin Quick Login</button>
+      <button id="adminQuickLoginBtn">👑 Founder Admin Quick Login</button>
       <div id="authMsg" class="msg"></div>
     </div>
   </div>
 
-  <!-- UPI Modal -->
-  <div class="modal" id="upiModal">
+  <!-- UPI Modal (hidden from normal public browsing; kept for compatibility) -->
+  <div class="modal" id="upiModal" style="display:none">
     <div class="modal-card glass">
       <button class="modal-close" data-close="upiModal">✕</button>
-      <h2>Unlock Full Access — ₹10</h2>
+      <h2>Unlock Full Access</h2>
       <div id="qrCode" class="qr"></div>
       <p class="upi-id">UPI ID: <strong id="upiIdText"></strong></p>
-      <a id="upiPayBtn" class="upi-pay-btn" href="#">Pay ₹10 via UPI App</a>
-      <input id="utrInput" type="text" placeholder="Enter 12-digit UTR / Ref No." maxlength="12" />
-      <button id="verifyUtrBtn">Verify &amp; Unlock</button>
-      <button id="demoUtrBtn" class="demo-btn">Fill Demo UTR</button>
+      <a id="upiPayBtn" class="upi-pay-btn" href="#">Pay via UPI</a>
+      <input id="utrInput" type="text" placeholder="UTR" maxlength="12" />
+      <button id="verifyUtrBtn">Verify</button>
       <div id="upiMsg" class="msg"></div>
     </div>
   </div>
 
-  <script src="./app.js?v=12"></script>
+  <script src="./static/app.js?v=20261029_v2"></script>
 </body>
 </html>
