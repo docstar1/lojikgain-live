@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LojikGain — Apple-Grade Institutional Equity Research</title>
-  <link rel="stylesheet" href="./static/style.css?v=20261029_v5" />
+  <link rel="stylesheet" href="./static/style.css?v=20261029_v6" />
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <!-- Data bundles: Flask (/static/data/...) and GitHub Pages (./data/...) -->
   <script src="./static/data/public_index.js" onerror="this.remove()"></script>
@@ -30,6 +30,18 @@
   </nav>
 
   <main class="main">
+
+    <section class="hero">
+      <h1 class="hero-title">Institutional-grade equity research, free during public access.</h1>
+      <p class="hero-sub">LojikGain gives you two honest numbers for any stock in India or the US: a proprietary LojikX™ Consistency Score (0 to 100), and whether the crowd is currently in Fear or Greed (0 to 100). Plus a complete Institutional Research Report.</p>
+      <div class="search-studio">
+        <input id="searchInput" type="text" placeholder="Search TCS, AAPL, NIFTY 50…" autocomplete="off" />
+        <div class="autocomplete" id="autocomplete"></div>
+        <div class="search-dropdown" id="searchDropdown" style="display:none"></div>
+      </div>
+      <div class="quick-chips" id="quickPicks" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center"></div>
+    </section>
+
     <!-- Hero Stock Header Bar -->
     <section class="hero-header glass" id="heroHeader">
       <div class="hero-left">
@@ -57,17 +69,6 @@
         <div class="hero-rating" id="heroRating">—</div>
         <button class="print-btn" id="printBtn">🖨️ Print / Export PDF</button>
       </div>
-    </section>
-
-    <section class="hero">
-      <h1 class="hero-title">Institutional-grade equity research, free during public access.</h1>
-      <p class="hero-sub">LojikGain gives you two honest numbers for any stock in India or the US: a proprietary LojikX™ Consistency Score (0 to 100), and whether the crowd is currently in Fear or Greed (0 to 100). Plus a complete Institutional Research Report.</p>
-      <div class="search-studio">
-        <input id="searchInput" type="text" placeholder="Search TCS, AAPL, NIFTY 50…" autocomplete="off" />
-        <div class="autocomplete" id="autocomplete"></div>
-        <div class="search-dropdown" id="searchDropdown" style="display:none"></div>
-      </div>
-      <div class="quick-chips" id="quickPicks" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center"></div>
     </section>
 
     <!-- Workspace Tabs -->
@@ -276,6 +277,6 @@
     </div>
   </div>
 
-  <script src="./static/app.js?v=20261029_v5"></script>
+  <script src="./static/app.js?v=20261029_v6"></script>
 </body>
 </html>
