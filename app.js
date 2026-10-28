@@ -314,13 +314,21 @@ function initScoreRing() {
 }
 function updateScoreRing(earned) {
   const svg = $("scoreRingSvg"); if (!svg) return;
-  svg.querySelectorAll(".jewel-seg").forEach((p, i) => {
-    p.setAttribute("stroke", i < earned ? (earned >= 17 ? "#10b981" : earned >= 12 ? "#f59e0b" : "#ef4444") : "rgba(148,163,184,0.28)");
-    p.classList.toggle("lit", i < earned);
-    p.style.filter = i < earned ? "url(#glow-score)" : "none";
-    p.style.transitionDelay = `${i * 28}ms`;
+  svg.querySelectorAll(".jewel-seg").forEach((seg, i) => {
+    if (i < earned) {
+      const tier = seg.getAttribute("data-tier");
+      const grad = tier === "emerald" ? "url(#gradEmerald)" : tier === "amber" ? "url(#gradAmber)" : "url(#gradCoral)";
+      seg.setAttribute("stroke", grad);
+      seg.setAttribute("filter", "url(#glow-score)");
+      seg.classList.add("lit");
+    } else {
+      seg.setAttribute("stroke", "rgba(148,163,184,0.28)");
+      seg.classList.remove("lit");
+      seg.setAttribute("filter", "none");
+    }
+    seg.style.transitionDelay = `${i * 28}ms`;
   });
-  const sv = $("scoreValue"); if (sv) sv.textContent = `${earned} / 23`;
+  const sv = $("scoreValue"); if (sv) sv.textContent = isAdminUser() ? `${earned} / 23` : `${Math.round(earned / 23 * 100)} / 100`;
   document.querySelectorAll("#scorePills .tier-pill").forEach(pill => {
     const range = pill.dataset.range;
     let active = false;
@@ -966,20 +974,8 @@ function renderReport(d) {
           if (isCh10 && isQualityTable) {
             if (!admin) {
               const pts = (typeof d.points !== "undefined") ? (d.points || []) : [];
-              const passedOf = (nums) => pts.filter(p => nums.includes(Number(p.num)) && (p.verdict === "YES" || p.score === 1)).length;
-              const pillars = [
-                { name: "Pillar I: Earnings & Margin Durability", factors: "Factors 1-6", nums: [1,2,3,4,5,6], total: 6 },
-                { name: "Pillar II: Capital Allocation & Compounding Power", factors: "Factors 7-13", nums: [7,8,9,10,11,12,13], total: 7 },
-                { name: "Pillar III: Cash Flow Integrity & Debt Discipline", factors: "Factors 14-18", nums: [14,15,16,17,18], total: 5 },
-                { name: "Pillar IV: Intrinsic Valuation & Risk-Adjusted Yield", factors: "Factors 19-23", nums: [19,20,21,22,23], total: 5 },
-              ];
-              const cols = ["Pillar", "Factors", "Passed / Total"];
-              html += "<table class='report-table pillar-summary-table'><thead><tr>" + cols.map(c => `<th>${esc(c)}</th>`).join("") + "</tr></thead><tbody>";
-              pillars.forEach(pl => {
-                const passed = passedOf(pl.nums);
-                html += "<tr><td>" + esc(pl.name) + "</td><td>" + esc(pl.factors) + "</td><td>" + esc(passed + "/" + pl.total) + "</td></tr>";
-              });
-              html += "</tbody></table>";
+              const earned = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
+              html += "<div class='lojikx-prose-card'><div class='lojikx-prose-title'>LojikX™ Proprietary Quality Synthesis</div><p class='lojikx-prose-body'>" + esc(d.company || "") + " posts a LojikX™ consistency score of " + (Math.round(earned / 23 * 100) / 100) + " (" + earned + " of 23 institutional checkpoints), reflecting multi-year earnings and margin durability, ROE/ROCE capital-allocation efficiency, free-cash-flow conversion, and balance-sheet resilience. The full 23 individual checkpoints, formulas and calculated values are available to authorised institutional users.</p></div>";
             } else {
               html += "<table class='report-table'><thead><tr>" + s.table.columns.map(c => `<th>${esc(c)}</th>`).join("") + "</tr></thead><tbody>";
               s.table.rows.forEach(row => { html += "<tr>" + row.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>"; });
@@ -1092,7 +1088,7 @@ function renderForensic(d) {
       const div = document.createElement("div");
       div.className = "forensic-check";
       div.innerHTML = `
-        <div class="fc-id">${esc(c.id)}</div>
+        <div class="fc-id">#${esc(c.id)}</div>
         <div>
           <div class="fc-title">${esc(c.title)}</div>
           <div class="fc-metric">${esc(c.metric_value)}</div>
@@ -1145,32 +1141,11 @@ function renderForensic(d) {
         bp.appendChild(card);
       }
     } else {
-      // 4-Pillar LojikX 23-Factor Executive Architecture Summary
-      const passedOf = (nums) => pts.filter(p => nums.includes(Number(p.num)) && (p.verdict === "YES" || p.score === 1)).length;
-      const pillars = [
-        { name: "Pillar I: Earnings & Margin Durability", factors: "Factors 1–6", nums: [1,2,3,4,5,6], total: 6 },
-        { name: "Pillar II: Capital Allocation & Compounding Power", factors: "Factors 7–13", nums: [7,8,9,10,11,12,13], total: 7 },
-        { name: "Pillar III: Cash Flow Integrity & Debt Discipline", factors: "Factors 14–18", nums: [14,15,16,17,18], total: 5 },
-        { name: "Pillar IV: Intrinsic Valuation & Risk-Adjusted Yield", factors: "Factors 19–23", nums: [19,20,21,22,23], total: 5 },
-      ];
-      pillars.forEach(pl => {
-        const passed = passedOf(pl.nums);
-        const card = document.createElement("div");
-        card.className = "pillar-summary-card";
-        card.innerHTML = `
-          <div class="pillar-head">
-            <div class="pillar-name">${esc(pl.name)}</div>
-            <div class="pillar-badge">${passed}/${pl.total}</div>
-          </div>
-          <div class="pillar-factors">${esc(pl.factors)}</div>
-          <div class="pillar-bar"><div class="pillar-bar-fill" style="width:${(passed / pl.total) * 100}%"></div></div>
-        `;
-        bp.appendChild(card);
-      });
-      const note = document.createElement("div");
-      note.className = "point-card";
-      note.innerHTML = `<div class="point-q">Apple institutional note: LojikX™ 23-Factor Quality Architecture is summarised at the pillar level for public visitors. The full 23 individual checkpoints, formulas and calculated values are available to authorised institutional users.</div>`;
-      bp.appendChild(note);
+      const earned = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
+      const card = document.createElement("div");
+      card.className = "lojikx-prose-card";
+      card.innerHTML = `<div class="lojikx-prose-title">LojikX™ Proprietary Quality Synthesis</div><p class="lojikx-prose-body">${esc(d.company || "")} posts a LojikX™ consistency score of ${Math.round(earned / 23 * 100) / 100} (${earned} of 23 institutional checkpoints), reflecting multi-year earnings and margin durability, ROE/ROCE capital-allocation efficiency, free-cash-flow conversion, and balance-sheet resilience. The full 23 individual checkpoints, formulas and calculated values are available to authorised institutional users.</p>`;
+      bp.appendChild(card);
     }
   }
   // when to sell
