@@ -24,7 +24,7 @@ function arcPath(cx, cy, r, startDeg, endDeg) {
 }
 function num(v) { if (v === null || v === undefined || v === "") return "—"; if (typeof v === "number") return v.toLocaleString(undefined, { maximumFractionDigits: 2 }); return String(v); }
 function fmt(v, d = 2) { return v == null || isNaN(v) ? "—" : Number(v).toFixed(d); }
-const SERIES_LABELS = {"market_share_pct":"Market Share (%)","revenue":"Revenue","revenue_growth_pct":"Revenue YoY Growth (%)","gross_margin_pct":"Gross Margin (%)","operating_margin_pct":"Operating Margin (%)","net_margin_pct":"Net Margin (%)","eps":"Diluted EPS","dps":"Dividend / Share","eps_growth_pct":"EPS Growth (%)","roe_pct":"Return on Equity (ROE %)","roce_pct":"Return on Capital (ROCE %)","cfo":"Operating Cash Flow","capex":"Capital Expenditure","fcf":"Free Cash Flow","pe":"P/E Multiple (x)","peer_avg_pe":"Peer Avg P/E (x)","target_pe":"Fair Target P/E (x)","peg":"PEG Ratio (x)","value":"Valuation Bridge","price":"Implied Value / Share","tam_size_bn":"Addressable Market (Bn)","tam_growth_pct":"TAM CAGR (%)","rev_share_pct":"Revenue Share (%)","employees_pct":"Workforce Share (%)","share_pct":"Revenue / Ownership Share (%)","pct_of_revenue":"Share of Revenue (%)","amount":"Amount","revenue_per_share_index":"Revenue / Share Index (Base 100)","operating_leverage_index":"Operating Leverage Index (Base 100)","score":"Forensic Audit Score (0–100)","rsi":"14-Period RSI (0–100)","obv_index":"OBV Accumulation Index (0–100)","close":"Closing Price","dma_50":"50-Period Moving Avg","dma_200":"200-Period Moving Avg","trailing_pe":"Trailing P/E (x)","peer_avg":"Peer Group Avg P/E (x)"};
+const SERIES_LABELS = {"market_share_pct":"Market Share (%)","revenue":"Revenue","revenue_growth_pct":"Revenue YoY Growth (%)","gross_margin_pct":"Gross Margin (%)","operating_margin_pct":"Operating Margin (%)","net_margin_pct":"Net Margin (%)","eps":"Diluted EPS","dps":"Dividend / Share","eps_growth_pct":"EPS Growth (%)","roe_pct":"Return on Equity (ROE %)","roce_pct":"Return on Capital (ROCE %)","cfo":"Operating Cash Flow","capex":"Capital Expenditure","fcf":"Free Cash Flow","pe":"P/E Multiple (x)","peer_avg_pe":"Peer Avg P/E (x)","target_pe":"Fair Target P/E (x)","peg":"PEG Ratio (x)","value":"Valuation Bridge","price":"Implied Value / Share","tam_size_bn":"Addressable Market (Bn)","tam_growth_pct":"TAM CAGR (%)","rev_share_pct":"Revenue Share (%)","employees_pct":"Workforce Share (%)","share_pct":"Revenue / Ownership Share (%)","pct_of_revenue":"Share of Revenue (%)","amount":"Amount","revenue_per_share_index":"Revenue / Share Index (Base 100)","operating_leverage_index":"Operating Leverage Index (Base 100)","score":"Forensic Audit Score (0–100)","rsi":"14-Period RSI (0–100)","obv_index":"OBV Accumulation Index (0–100)","close":"Closing Price","dma_50":"50-Period Moving Avg","dma_200":"200-Period Moving Avg","trailing_pe":"Trailing P/E (x)","peer_avg":"Peer Group Avg P/E (x)","oversold_30":"Oversold Threshold (30)","overbought_70":"Overbought Threshold (70)","obv_ma20":"20-Period OBV Moving Avg","ma_short":"Short-Term Moving Avg (50D Eq)","ma_long":"Long-Term Moving Avg (200D Eq)"};
 function humanSeriesLabel(k){ if (SERIES_LABELS[k]) return SERIES_LABELS[k]; return String(k).replace(/_/g," ").replace(/\bpct\b/gi,"%").replace(/\b\w/g,c=>c.toUpperCase()); }
 function esc(s) { if (s && typeof s === "object") { try { s = JSON.stringify(s); } catch (e) { s = String(s); } } return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 function money(cur, v) { if (v === null || v === undefined) return "—"; return `${cur || ""} ${num(v)}`.trim(); }
@@ -445,7 +445,8 @@ function renderChartCard(chart) {
   const series = chart.series || {};
   const type = chart.type;
   const seriesKeys = Object.keys(series);
-  const colors = seriesKeys.map((sk, i) => `hsl(${i * 90 + 200}, 60%, 55%)`);
+  const CHART_PALETTE = ["#0071e3", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#ef4444", "#84cc16", "#f97316", "#6366f1"];
+  const colors = seriesKeys.map((sk, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
   function tip(el, label, val) { el.setAttribute("data-tip", `${label}: ${fmt(val, 1)}`); }
 
   if (type === "pie" || type === "donut") {
@@ -460,7 +461,7 @@ function renderChartCard(chart) {
       const [x2, y2] = polar(cx, cy, r, ang + slice);
       const large = slice > 180 ? 1 : 0;
       path.setAttribute("d", `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`);
-      const col = `hsl(${(i * 360 / vals.length)}, 65%, 55%)`;
+      const col = CHART_PALETTE[i % CHART_PALETTE.length];
       path.setAttribute("fill", col); path.setAttribute("stroke", "var(--bg)"); path.setAttribute("stroke-width", "1");
       tip(path, labels[i] || ("Slice " + (i + 1)), v);
       svg.appendChild(path);
@@ -471,9 +472,12 @@ function renderChartCard(chart) {
     }
     labels.forEach((lab, i) => {
       const vals2 = series[seriesKeys[0]] || [];
+      const total2 = vals2.reduce((a, b) => a + (b || 0), 0) || 1;
+      const pct = (vals2[i] / total2) * 100;
+      const sw = svgEl("rect"); sw.setAttribute("x", 198); sw.setAttribute("y", 12 + i * 14); sw.setAttribute("width", 8); sw.setAttribute("height", 8); sw.setAttribute("fill", CHART_PALETTE[i % CHART_PALETTE.length]); sw.setAttribute("rx", "2"); svg.appendChild(sw);
       const t = svgEl("text"); t.setAttribute("x", 210); t.setAttribute("y", 20 + i * 14); t.setAttribute("font-size", "10"); t.setAttribute("fill", "var(--muted)");
-      t.textContent = `${lab}: ${fmt(vals2[i], 1)}`;
-      t.setAttribute("data-tip", `${lab}: ${fmt(vals2[i], 1)}`);
+      t.textContent = `${lab}: ${fmt(pct, 1)}%`;
+      t.setAttribute("data-tip", `${lab}: ${fmt(pct, 1)}%`);
       svg.appendChild(t);
     });
   } else if (type === "heatmap") {
@@ -611,7 +615,7 @@ function renderChartCard(chart) {
   } else {
     const isBar = type.includes("bar");
     const isLine = type.includes("line");
-    const allVals = seriesKeys.flatMap(k => series[k] || []).map(v => Math.abs(v || 0));
+    const allVals = seriesKeys.flatMap(k => (type === "bar_line" && String(k).endsWith("_pct")) ? [] : (series[k] || [])).map(v => Math.abs(v || 0));
     const max = Math.max(...allVals) || 1;
     const min = Math.min(...allVals) || 0;
     [0,0.5,1].forEach(f=>{
@@ -624,6 +628,7 @@ function renderChartCard(chart) {
       const groupW = 360 / labels.length;
       const barW = groupW / (nSeries + 1);
       seriesKeys.forEach((sk, si) => {
+        if (type === "bar_line" && String(sk).endsWith("_pct")) return;
         const vals = series[sk] || [];
         vals.forEach((v, i) => {
           const hBar = (Math.abs(v || 0) / max) * 150;
@@ -632,7 +637,7 @@ function renderChartCard(chart) {
           rect.setAttribute("y", 170 - hBar);
           rect.setAttribute("width", Math.max(2, barW - 2));
           rect.setAttribute("height", hBar);
-          rect.setAttribute("fill", colors[si]);
+          rect.setAttribute("fill", CHART_PALETTE[si % CHART_PALETTE.length]);
           rect.setAttribute("rx", "2");
           tip(rect, (labels[i] || "") + " • " + humanSeriesLabel(sk), v);
           svg.appendChild(rect);
@@ -640,31 +645,49 @@ function renderChartCard(chart) {
         });
       });
     }
-    if (isLine || type === "bar_line") {
-      seriesKeys.forEach((sk, si) => {
-        if (isBar && type !== "bar_line" && !type.includes("line")) return;
-        const vals = series[sk] || [];
-        const pts = vals.map((v, i) => {
-          const x = 20 + (i / (vals.length - 1 || 1)) * 360;
-          const y = 170 - ((v || 0) / max) * 150;
-          return [x, y];
-        });
-        if (pts.length > 1) {
-          const poly = svgEl("polyline");
-          poly.setAttribute("points", pts.map(p => p.join(",")).join(" "));
-          poly.setAttribute("fill", "none");
-          const col = `hsl(${si * 90 + 30}, 70%, 55%)`;
-          poly.setAttribute("stroke", col);
-          poly.setAttribute("stroke-width", "2");
-          svg.appendChild(poly);
-          pts.forEach((p, i) => {
-            const c = svgEl("circle"); c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("r", "3"); c.setAttribute("fill", col);
-            tip(c, (labels[i] || "") + " • " + humanSeriesLabel(sk), vals[i]);
-            svg.appendChild(c);
-          });
-        }
-      });
-    }
+         if (isLine || type === "bar_line") {
+       seriesKeys.forEach((sk, si) => {
+         if (isBar && type !== "bar_line" && !type.includes("line")) return;
+         const vals = series[sk] || [];
+         const isPct = (type === "bar_line" && String(sk).endsWith("_pct"));
+         let pctMin = 0, pctMax = 1;
+         if (isPct) {
+           const nums = vals.map(v => (v == null ? 0 : v));
+           pctMin = Math.min(...nums);
+           pctMax = Math.max(...nums);
+         }
+         const pts = vals.map((v, i) => {
+           const x = 20 + (i / (vals.length - 1 || 1)) * 360;
+           let y;
+           if (isPct) {
+             const range = Math.max(pctMax - pctMin, 1);
+             y = 30 + (1 - (((v == null ? 0 : v) - pctMin) / range)) * 130;
+           } else {
+             y = 170 - ((v || 0) / max) * 150;
+           }
+           return [x, y];
+         });
+         if (pts.length > 1) {
+           const poly = svgEl("polyline");
+           poly.setAttribute("points", pts.map(p => p.join(",")).join(" "));
+           poly.setAttribute("fill", "none");
+           const col = CHART_PALETTE[si % CHART_PALETTE.length];
+           poly.setAttribute("stroke", col);
+           poly.setAttribute("stroke-width", "2");
+           svg.appendChild(poly);
+           pts.forEach((p, i) => {
+             const c = svgEl("circle"); c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("r", "3"); c.setAttribute("fill", col);
+             tip(c, (labels[i] || "") + " • " + humanSeriesLabel(sk), vals[i]);
+             svg.appendChild(c);
+             if (isPct) {
+               const labt = svgEl("text"); labt.setAttribute("x", p[0]); labt.setAttribute("y", p[1] - 6); labt.setAttribute("text-anchor", "middle"); labt.setAttribute("font-size", "8"); labt.setAttribute("fill", "var(--text)");
+               labt.textContent = fmt(vals[i], 1) + "%";
+               svg.appendChild(labt);
+             }
+           });
+         }
+       });
+     }
     labels.forEach((lab, i) => {
       if (i % Math.ceil(labels.length / 6) !== 0) return;
       const t = svgEl("text"); t.setAttribute("x", 20 + (i / (labels.length - 1 || 1)) * 360);
@@ -676,16 +699,18 @@ function renderChartCard(chart) {
   }
 
   card.appendChild(svg);
-  const legend = document.createElement("div");
-  legend.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:10px;color:var(--muted);";
-  seriesKeys.forEach((sk, i) => {
-    const span = document.createElement("span");
-    span.className = "chart-legend-item";
-    const col = colors[i] || "#4da3ff";
-    span.innerHTML = `<i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${col};margin-right:4px"></i>${esc(humanSeriesLabel(sk))}`;
-    legend.appendChild(span);
-  });
-  card.appendChild(legend);
+  if (type !== "pie" && type !== "donut") {
+    const legend = document.createElement("div");
+    legend.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:10px;color:var(--muted);";
+    seriesKeys.forEach((sk, i) => {
+      const span = document.createElement("span");
+      span.className = "chart-legend-item";
+      const col = CHART_PALETTE[i % CHART_PALETTE.length];
+      span.innerHTML = `<i style="background:${col};margin-right:4px"></i>${esc(humanSeriesLabel(sk))}`;
+      legend.appendChild(span);
+    });
+    card.appendChild(legend);
+  }
   if (chart.note) {
     const note = document.createElement("div");
     note.className = "chart-note";
@@ -788,17 +813,21 @@ function renderOverview(d) {
   t("hvDcf", v.dcf && v.dcf.target_price);
   t("hvBlended", v.triangulated_target_price);
   t("hvUpside", (v.upside_pct !== undefined ? v.upside_pct : null) !== null ? `${Number(v.upside_pct).toFixed(2)}%` : "—");
-  t("hvWacc", v.dcf && v.dcf.wacc);
-  t("hvTg", v.dcf && v.dcf.terminal_growth_pct);
+   const dcf = v.dcf || {};
+   const set = (id, val) => { const e = $(id); if (e) e.textContent = val; };
+   set("hvWacc", dcf.wacc != null ? fmt(dcf.wacc, 2) + "%" : "—");
+   set("hvTg", dcf.terminal_growth_pct != null ? fmt(dcf.terminal_growth_pct, 1) + "%" : "—");
   const tri = v.triangulation || {};
   t("hvBv", tri.bv_intrinsic_value);
   t("hvEps", tri.eps_intrinsic_value);
   t("hvBond", tri.bond_intrinsic_value);
   // snapshot catalysts/risks
   const qual = (d.hev || {}).qualitative || {};
-  const cats = (qual.catalysts_drivers && qual.catalysts_drivers.catalysts) || [];
-  const cl = $("snapCatalysts"); if (cl) { cl.innerHTML = ""; (cats.length ? cats : ["—"]).slice(0, 3).forEach(c => { const li = document.createElement("li"); li.textContent = c; cl.appendChild(li); }); }
-  const es = (d.hev || {}).exec_summary || {};
+  const exec = (d.hev || {}).exec_summary || {};
+  const cd = qual.catalysts_drivers || {};
+  const cats = (exec.drivers_catalysts_box && exec.drivers_catalysts_box.length) ? exec.drivers_catalysts_box : [cd.primary_catalyst, cd.secondary_catalyst, cd.third_catalyst, cd.primary_driver, cd.secondary_driver].filter(Boolean);
+  set("snapCatalysts", cats.slice(0, 3).map(c => '<div class="cat-item">• ' + esc(c) + '</div>').join(""));
+  const es = exec;
   const risks = es.top_5_risks || [];
   const rl = $("snapRisks"); if (rl) { rl.innerHTML = ""; risks.slice(0, 5).forEach((r, i) => { const li = document.createElement("li"); li.textContent = r; rl.appendChild(li); }); }
   const fa = (d.hev || {}).forensic_audit || {};

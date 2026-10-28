@@ -510,13 +510,13 @@ body > * { position: relative; z-index: 1; }
   align-items: center;
   gap: 6px;
 }
-.chart-legend-item::before {
-  content: "";
+.chart-legend-item::before { display: none !important; }
+.chart-legend-item i {
+  display: inline-block;
   width: 10px;
   height: 10px;
-  border-radius: 2px;
-  background: var(--accent, #7dd3fc);
-  display: inline-block;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 .chart-note {
   font-size: 11px;
