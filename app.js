@@ -375,9 +375,9 @@ function updateScoreRing(earned) {
     else if (range === "17-23") active = earned >= 17;
     pill.classList.toggle("active", active);
   });
-  const band = earned >= 17 ? "High Historical Consistency (17–23)" : earned >= 12 ? "Moderate Historical Consistency (12–16)" : "Low Historical Consistency (0–11)";
+  const band = earned >= 17 ? "High Historical Consistency" : earned >= 12 ? "Moderate Historical Consistency" : "Developing Consistency";
   const sb = $("scoreBand"); if (sb) sb.textContent = band;
-  const se = $("scoreExplain"); if (se) se.textContent = earned >= 17 ? `This company passed ${earned} out of our 23 strict 10-year financial durability tests.` : earned >= 12 ? `A mixed record: strong in ${earned} of 23 years.` : `Fragile: only ${earned} strong years out of 23.`;
+  const se = $("scoreExplain"); if (se) se.textContent = isAdminUser() ? (earned >= 17 ? `This company passed ${earned} out of our 23 strict 10-year financial durability tests.` : earned >= 12 ? `A mixed record: strong in ${earned} of 23 years.` : `Fragile: only ${earned} strong years out of 23.`) : (earned >= 17 ? "Demonstrates elite multi-year earnings durability, capital efficiency, and balance-sheet resilience." : earned >= 12 ? "Demonstrates moderate multi-cycle consistency with selective operating variability." : "Exhibits elevated cyclicality or structural earnings variability across market cycles.");
 }
 
 const ZONES = [
@@ -491,11 +491,24 @@ function gfFormatDate(dstr, longSpan) {
 }
 
 function renderGfChartInto(svg, container, d, tf) {
+  const _gb = document.getElementById('gfReturnBadge'); if (_gb) _gb.textContent = '';
+
   tf = tf || "Max";
   if (!svg) return;
   container = container || svg.parentElement;
-  const ph = (d && d.hev && Array.isArray(d.hev.price_history)) ? d.hev.price_history
+  let ph = (d && d.hev && Array.isArray(d.hev.price_history)) ? d.hev.price_history
             : (Array.isArray(d) ? d : []);
+  if (!ph || ph.length < 2) {
+    const ps = (d && Array.isArray(d.price_series)) ? d.price_series : [];
+    if (ps && ps.length) {
+      const now = new Date();
+      ph = ps.map((v, i) => {
+        const dt = new Date(now.getFullYear(), now.getMonth() - (ps.length - 1 - i), 1);
+        const val = (typeof v === 'object' && v !== null) ? (v.value ?? v.close ?? v.price ?? 0) : v;
+        return { p: val, d: dt.toISOString().slice(0,10) };
+      });
+    }
+  }
   const series = slicePriceHistory(ph, tf);
   svg.innerHTML = "";
   if (!series || series.length < 2) return;
@@ -974,8 +987,9 @@ function renderHero(d) {
   const _earned = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
   const _total = (d.quality_score && d.quality_score.total) || 23;
   let _band = "Fair Value Band";
-  if (_earned >= 17) _band = "High Consistency • " + _earned + "/" + _total;
-  else if (_earned >= 12) _band = "Moderate Consistency • " + _earned + "/" + _total;
+  if (_earned >= 17) _band = isAdminUser() ? ("High Consistency • " + _earned + "/" + _total) : "High Consistency Tier";
+else if (_earned >= 12) _band = isAdminUser() ? ("Moderate Consistency • " + _earned + "/" + _total) : "Moderate Consistency Tier";
+else _band = isAdminUser() ? ("Developing Consistency • " + _earned + "/" + _total) : "Developing Consistency Tier"
   set("heroRating", _band);
   // range dot
   if (d.low_52w && d.high_52w && d.current_price) {
@@ -998,6 +1012,10 @@ function renderHero(d) {
 }
 
 function renderOverview(d) {
+  const th = (d.hev || {}).technicals_hev || {};
+  const ts = $('techStrip'); if (ts) { ts.textContent = isAdminUser() ? (th.summary_sentence || "") : ""; ts.style.display = isAdminUser() ? "" : "none"; }
+  const me = $('moodExplain'); if (me) me.style.display = isAdminUser() ? "" : "none";
+
   const earned = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
   updateScoreRing(earned);
   const fg = d.fear_greed || {};
@@ -1014,10 +1032,7 @@ function renderOverview(d) {
     }
     cb.textContent = `Company Type: ${ct}`;
   }
-  // tech strip
-  const th = (d.hev || {}).technicals_hev || {};
-  const ts = $("techStrip");
-  if (ts) ts.textContent = th.summary_sentence || "";
+  // tech strip (handled above)
   // HEV valuation card
   const v = (d.hev || {}).valuation || {};
   const t = (id, val) => { const e = $(id); if (e) e.textContent = (val !== undefined && val !== null) ? (typeof val === "number" ? money(d.currency, val) : val) : "—"; };
@@ -1039,7 +1054,7 @@ function renderOverview(d) {
   const exec = (d.hev || {}).exec_summary || {};
   const cd = qual.catalysts_drivers || {};
   const cats = (exec.drivers_catalysts_box && exec.drivers_catalysts_box.length) ? exec.drivers_catalysts_box : [cd.primary_catalyst, cd.secondary_catalyst, cd.third_catalyst, cd.primary_driver, cd.secondary_driver].filter(Boolean);
-  set("snapCatalysts", cats.slice(0, 3).map(c => '<div class="cat-item">• ' + esc(c) + '</div>').join(""));
+   const scEl = $("snapCatalysts"); if (scEl) scEl.innerHTML = cats.slice(0, 3).map(c => '<div class="cat-item">• ' + esc(c) + '</div>').join("");
   const es = exec;
   const risks = es.top_5_risks || [];
   const rl = $("snapRisks"); if (rl) { rl.innerHTML = ""; risks.slice(0, 5).forEach((r, i) => { const li = document.createElement("li"); li.textContent = r; rl.appendChild(li); }); }
