@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LojikGain — Apple-Grade Institutional Equity Research</title>
-  <link rel="stylesheet" href="./static/style.css?v=20261029_v10" />
+  <link rel="stylesheet" href="./static/style.css?v=20261029_v13" />
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <!-- Data bundles: Flask (/static/data/...) and GitHub Pages (./data/...) -->
   <script src="./static/data/public_index.js" onerror="this.remove()"></script>
@@ -151,19 +151,19 @@
       </section>
 
       <!-- LojikX™ Intrinsic Valuation Card -->
-      <section class="card glass" id="hevValuationCard">
+      <section class="card glass" id="lojikxValuationCard">
         <div class="card-title">LojikX™ Intrinsic Valuation Engine</div>
-        <div class="hev-val-grid">
-          <div class="hev-val-item"><span class="hv-label">P/E Target Price</span><span class="hv-val" id="hvPe">—</span></div>
-          <div class="hev-val-item"><span class="hv-label">P/R Target Price</span><span class="hv-val" id="hvPr">—</span></div>
-          <div class="hev-val-item"><span class="hv-label">DCF Target Price</span><span class="hv-val" id="hvDcf">—</span></div>
-          <div class="hev-val-item highlight"><span class="hv-label">Blended Target Price</span><span class="hv-val" id="hvBlended">—</span></div>
-          <div class="hev-val-item"><span class="hv-label">Upside %</span><span class="hv-val" id="hvUpside">—</span></div>
-          <div class="hev-val-item"><span class="hv-label">WACC %</span><span class="hv-val" id="hvWacc">—</span></div>
-          <div class="hev-val-item"><span class="hv-label">Terminal Growth %</span><span class="hv-val" id="hvTg">—</span></div>
-          <div class="hev-val-item"><span class="hv-label">Book Value Model</span><span class="hv-val" id="hvBv">—</span></div>
-          <div class="hev-val-item"><span class="hv-label">EPS Growth Model</span><span class="hv-val" id="hvEps">—</span></div>
-          <div class="hev-val-item"><span class="hv-label">Bond Coupon Model</span><span class="hv-val" id="hvBond">—</span></div>
+        <div class="lx-val-grid">
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Earnings Model</span><span class="hv-val" id="hvPe">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Revenue Scale Model</span><span class="hv-val" id="hvPr">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Cash Flow Model</span><span class="hv-val" id="hvDcf">—</span></div>
+          <div class="lx-val-item highlight"><span class="hv-label">Blended Target Price</span><span class="hv-val" id="hvBlended">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">Upside %</span><span class="hv-val" id="hvUpside">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">Hurdle Rate %</span><span class="hv-val" id="hvWacc">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">Perpetual Compounding %</span><span class="hv-val" id="hvTg">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Equity Compounding</span><span class="hv-val" id="hvBv">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Growth Trajectory</span><span class="hv-val" id="hvEps">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Yield Benchmark</span><span class="hv-val" id="hvBond">—</span></div>
         </div>
       </section>
 
@@ -210,7 +210,7 @@
       </div>
       <div class="charts-grid" id="chartsGrid"></div>
       <section class="card glass" style="margin-top:22px">
-        <div class="card-title">3×5 DCF WACC × Terminal Growth Sensitivity Matrix</div>
+        <div class="card-title">LojikX™ Multi-Scenario Valuation Matrix</div>
         <div id="sensMatrix"></div>
       </section>
       <section class="card glass" style="margin-top:22px">
@@ -243,7 +243,7 @@
       </section>
       <section class="card glass" style="margin-top:22px">
         <div class="card-title">Section B — LojikX™  Quality Architecture &amp; Sovereign Benchmark</div>
-        <div class="buffett-points" id="buffettPoints"></div>
+        <div class="lojikx-quality-box" id="lojikxQualityBox"></div>
         <div class="when-to-sell" id="whenToSell"></div>
       </section>
     </div>
@@ -268,7 +268,7 @@
         <button id="loginBtn">Log In</button>
         <button id="registerBtn">Sign Up</button>
       </div>
-      <button id="adminQuickLoginBtn">👑 Founder Admin Quick Login</button>
+      
       <div id="authMsg" class="msg"></div>
     </div>
   </div>
@@ -287,6 +287,6 @@
     </div>
   </div>
 
-  <script src="./static/app.js?v=20261029_v10"></script>
+  <script src="./static/app.js?v=20261029_v13"></script>
 </body>
 </html>

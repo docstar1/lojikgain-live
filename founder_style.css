@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LojikLab — Buffettology Investment Analysis Engine
+   LojikLab — Investment Analysis Engine
    Apple macOS Sequoia / Cupertino financial-app aesthetic.
    Apple Light first (canvas #F5F5F7), one-click Apple Dark (canvas #000).
    Custom properties only — no frameworks, no build step.
@@ -405,7 +405,7 @@ input, select, textarea, button { font: inherit; color: inherit; }
 .tool-btn:disabled { opacity: .4; cursor: default; }
 .tool-btn svg { color: var(--text-2); }
 
-/* T-Bond inline pill */
+/* inline pill */
 .tool-bond {
   border: 1px solid var(--border-2);
   background: var(--panel);

@@ -145,11 +145,11 @@ body > * { position: relative; z-index: 1; }
 /* Jewel ring */
 .ring-wrap { position: relative; width: 280px; height: 280px; margin: 0 auto; }
 .jewel-ring { width: 100%; height: 100%; display: block; }
-.jewel-seg {
-  fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 13; stroke-linecap: round;
+.jewel-seg { fill: none; stroke-width: 13; stroke-linecap: round;
   transition: stroke 0.6s ease, filter 0.6s ease, opacity 0.6s ease;
 }
-[data-theme="light"] .jewel-seg { stroke: rgba(15,23,42,0.08); }
+.jewel-seg:not(.lit) { stroke: rgba(255,255,255,0.06); }
+[data-theme="light"] .jewel-seg:not(.lit) { stroke: rgba(15,23,42,0.08); }
 .jewel-seg.lit { stroke-width: 13; }
 .ring-center {
   position: absolute; inset: 0; display: flex; flex-direction: column;
@@ -366,9 +366,9 @@ body > * { position: relative; z-index: 1; }
 
 .tech-strip { margin-top: 12px; font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-.hev-val-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-.hev-val-item { padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); text-align: center; }
-.hev-val-item.highlight { background: rgba(0,113,227,0.12); border-color: var(--accent); }
+.lx-val-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.lx-val-item { padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); text-align: center; }
+.lx-val-item.highlight { background: rgba(0,113,227,0.12); border-color: var(--accent); }
 .hv-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 600; }
 .hv-val { display: block; font-size: 16px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
 
@@ -442,7 +442,7 @@ body > * { position: relative; z-index: 1; }
 .fc-badge.PASS { background: rgba(48,209,88,0.15); color: #30d158; }
 .fc-badge.WATCH { background: rgba(255,159,10,0.15); color: #ff9f0a; }
 .fc-badge.FLAG { background: rgba(255,69,58,0.15); color: #ff453a; }
-.buffett-points .point-card { padding: 14px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 12px; }
+.lojikx-quality-box .point-card { padding: 14px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 12px; }
 .point-card .point-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .point-card .point-title { font-size: 14px; font-weight: 700; }
 .point-card .point-badge { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
@@ -462,7 +462,7 @@ body > * { position: relative; z-index: 1; }
   .snapshot-grid { grid-template-columns: 1fr; }
   .charts-grid { grid-template-columns: 1fr; }
   .report-layout { grid-template-columns: 1fr; }
-  .hev-val-grid { grid-template-columns: repeat(2, 1fr); }
+  .lx-val-grid { grid-template-columns: repeat(2, 1fr); }
   .exec-grid { grid-template-columns: 1fr; }
   .swot-grid, .bcg-grid { grid-template-columns: 1fr; }
 }
