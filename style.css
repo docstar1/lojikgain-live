@@ -560,3 +560,8 @@ body > * { position: relative; z-index: 1; }
 .pillar-summary-card .pillar-factors { font-size: 11px; color: var(--muted, #aaa); margin-bottom: 6px; }
 .pillar-summary-card .pillar-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
 .pillar-summary-card .pillar-bar-fill { height: 100%; background: linear-gradient(90deg, #34d399, #7dd3fc); }
+/* Google Finance style timeframe bar */
+.gf-timeframe-bar { display:flex; gap:6px; align-items:center; margin:8px 0; flex-wrap:wrap; }
+.gf-tf-btn { background:transparent; border:1px solid var(--border, #ddd); border-radius:6px; padding:4px 10px; cursor:pointer; font-size:12px; color:var(--text); }
+.gf-tf-btn.active { background:var(--accent, #0071e3); color:#fff; border-color:var(--accent, #0071e3); }
+.gf-return-badge { margin-left:auto; font-size:12px; color:var(--muted); }

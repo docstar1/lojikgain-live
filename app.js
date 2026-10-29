@@ -450,23 +450,148 @@ function updateSpeedo(score) {
   const me = $("moodExplain"); if (me) me.textContent = score <= 24 ? "Extreme fear." : score <= 44 ? "Fear dominates." : score <= 55 ? "Neutral." : score <= 75 ? "Greed creeping in." : "Extreme greed.";
 }
 
-function renderAreaChart(series) {
-  const svg = $("areaChart"); if (!svg) return;
+function slicePriceHistory(ph, tf) {
+  tf = tf || "Max";
+  if (!Array.isArray(ph) || ph.length === 0) return [];
+  const last = ph[ph.length - 1];
+  const lastDate = new Date(String(last.d).slice(0, 10) + "T00:00:00");
+  let cutoff = null;
+  if (tf === "1M") cutoff = new Date(lastDate.getTime() - 30 * 86400000);
+  else if (tf === "6M") cutoff = new Date(lastDate.getTime() - 183 * 86400000);
+  else if (tf === "YTD") cutoff = new Date(lastDate.getFullYear(), 0, 1);
+  else if (tf === "1Y") cutoff = new Date(lastDate.getTime() - 365 * 86400000);
+  else if (tf === "5Y") cutoff = new Date(lastDate.getTime() - 5 * 365 * 86400000);
+  else cutoff = null;
+  let out = ph;
+  if (cutoff) {
+    out = ph.filter(pt => {
+      const dt = new Date(String(pt.d).slice(0, 10) + "T00:00:00");
+      return !isNaN(dt.getTime()) && dt >= cutoff;
+    });
+  }
+  if (out.length < 2) {
+    // fallback to point counts
+    const n = ph.length;
+    let cnt = n;
+    if (tf === "1M") cnt = Math.min(n, 22);
+    else if (tf === "6M") cnt = Math.min(n, 126);
+    else if (tf === "1Y") cnt = Math.min(n, 252);
+    else if (tf === "5Y") cnt = Math.min(n, n);
+    out = ph.slice(n - cnt);
+  }
+  return out.slice();
+}
+
+function gfFormatDate(dstr, longSpan) {
+  const dt = new Date(String(dstr).slice(0, 10) + "T00:00:00");
+  if (isNaN(dt.getTime())) return String(dstr);
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  if (longSpan) return String(dt.getFullYear());
+  return months[dt.getMonth()] + " " + dt.getDate();
+}
+
+function renderGfChartInto(svg, container, d, tf) {
+  tf = tf || "Max";
+  if (!svg) return;
+  container = container || svg.parentElement;
+  const ph = (d && d.hev && Array.isArray(d.hev.price_history)) ? d.hev.price_history
+            : (Array.isArray(d) ? d : []);
+  const series = slicePriceHistory(ph, tf);
   svg.innerHTML = "";
   if (!series || series.length < 2) return;
-  const w = 720, h = 220, pad = 28;
-  const min = Math.min(...series), max = Math.max(...series);
-  const range = max - min || 1;
-  const pts = series.map((v, i) => ({ x: pad + (i / (series.length - 1)) * (w - 2 * pad), y: h - pad - ((v - min) / range) * (h - 2 * pad), v }));
+
+  const w = 720, h = 220, padL = 46, padR = 12, padT = 16, padB = 30;
+  const prices = series.map(p => Number(p.p));
+  const minP = Math.min(...prices), maxP = Math.max(...prices);
+  const spanP = (maxP - minP) || 1;
+  const n = series.length;
+  const first = prices[0], last = prices[prices.length - 1];
+  const up = last >= first;
+  const stroke = up ? "#16a34a" : "#dc2626";
+  const fillStart = up ? "rgba(22,163,74,0.22)" : "rgba(220,38,38,0.20)";
+  const fillEnd = up ? "rgba(22,163,74,0.0)" : "rgba(220,38,38,0.0)";
+  const gradId = "gfAreaGrad_" + (up ? "up" : "down");
+
+  const pts = series.map((pt, i) => ({
+    x: padL + (i / (n - 1)) * (w - padL - padR),
+    y: padT + (h - padT - padB) - ((Number(pt.p) - minP) / spanP) * (h - padT - padB),
+    p: Number(pt.p), d: pt.d
+  }));
+
+  // defs gradient
   const defs = svgEl("defs");
-  const grad = svgEl("linearGradient"); grad.id = "areaGrad"; grad.setAttribute("x1","0%"); grad.setAttribute("y1","0%"); grad.setAttribute("x2","0%"); grad.setAttribute("y2","100%");
-  const s1 = svgEl("stop"); s1.setAttribute("offset","0%"); s1.setAttribute("stop-color", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#4da3ff"); s1.setAttribute("stop-opacity","0.5");
-  const s2 = svgEl("stop"); s2.setAttribute("offset","100%"); s2.setAttribute("stop-color", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#4da3ff"); s2.setAttribute("stop-opacity","0.02");
+  const grad = svgEl("linearGradient"); grad.id = gradId; grad.setAttribute("x1","0%"); grad.setAttribute("y1","0%"); grad.setAttribute("x2","0%"); grad.setAttribute("y2","100%");
+  const s1 = svgEl("stop"); s1.setAttribute("offset","0%"); s1.setAttribute("stop-color", fillStart); s1.setAttribute("stop-opacity","1");
+  const s2 = svgEl("stop"); s2.setAttribute("offset","100%"); s2.setAttribute("stop-color", fillEnd); s2.setAttribute("stop-opacity","1");
   grad.appendChild(s1); grad.appendChild(s2); defs.appendChild(grad); svg.appendChild(defs);
+
+  // gridlines (4)
+  for (let i = 0; i < 4; i++) {
+    const frac = i / 3;
+    const y = padT + (h - padT - padB) * (1 - frac);
+    const val = minP + spanP * frac;
+    const line = svgEl("line"); line.setAttribute("x1", padL); line.setAttribute("x2", w - padR); line.setAttribute("y1", y.toFixed(1)); line.setAttribute("y2", y.toFixed(1));
+    line.setAttribute("stroke", "rgba(127,127,127,0.25)"); line.setAttribute("stroke-width", "1"); line.setAttribute("stroke-dasharray", "3 3");
+    svg.appendChild(line);
+    const lbl = svgEl("text"); lbl.setAttribute("x", 8); lbl.setAttribute("y", (y + 4).toFixed(1)); lbl.setAttribute("font-size", "10"); lbl.setAttribute("fill", "var(--muted)");
+    lbl.textContent = Number(val).toFixed(0);
+    svg.appendChild(lbl);
+  }
+
+  // area + line
   const lineD = pts.map((p, i) => (i ? "L" : "M") + p.x.toFixed(1) + "," + p.y.toFixed(1)).join(" ");
-  const areaD = `M ${pts[0].x.toFixed(1)},${(h - pad).toFixed(1)} ` + pts.map(p => `L ${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + ` L ${pts[pts.length-1].x.toFixed(1)},${(h-pad).toFixed(1)} Z`;
-  const areaPath = svgEl("path"); areaPath.setAttribute("d", areaD); areaPath.setAttribute("fill", "url(#areaGrad)"); svg.appendChild(areaPath);
-  const linePath = svgEl("path"); linePath.setAttribute("d", lineD); linePath.setAttribute("fill", "none"); linePath.setAttribute("stroke", "var(--accent)"); linePath.setAttribute("stroke-width", "2.4"); linePath.setAttribute("stroke-linecap", "round"); linePath.setAttribute("stroke-linejoin", "round"); svg.appendChild(linePath);
+  const areaD = `M ${pts[0].x.toFixed(1)},${(h - padB).toFixed(1)} ` + pts.map(p => `L ${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + ` L ${pts[pts.length-1].x.toFixed(1)},${(h-padB).toFixed(1)} Z`;
+  const areaPath = svgEl("path"); areaPath.setAttribute("d", areaD); areaPath.setAttribute("fill", "url(#" + gradId + ")"); svg.appendChild(areaPath);
+  const linePath = svgEl("path"); linePath.setAttribute("d", lineD); linePath.setAttribute("fill", "none"); linePath.setAttribute("stroke", stroke); linePath.setAttribute("stroke-width", "2.2"); linePath.setAttribute("stroke-linecap", "round"); linePath.setAttribute("stroke-linejoin", "round"); svg.appendChild(linePath);
+
+  // bottom date labels (4-5)
+  const longSpan = (new Date(String(series[series.length-1].d).slice(0,10)) - new Date(String(series[0].d).slice(0,10))) > 365*86400000;
+  const idxs = [0, Math.floor(n*0.25), Math.floor(n*0.5), Math.floor(n*0.75), n-1];
+  const seen = new Set();
+  idxs.forEach(i => {
+    if (i < 0 || i >= n || seen.has(i)) return; seen.add(i);
+    const p = pts[i];
+    const t = svgEl("text"); t.setAttribute("x", p.x.toFixed(1)); t.setAttribute("y", (h - 6).toFixed(1)); t.setAttribute("text-anchor", "middle"); t.setAttribute("font-size", "10"); t.setAttribute("fill", "var(--muted)");
+    t.textContent = gfFormatDate(series[i].d, longSpan);
+    svg.appendChild(t);
+  });
+
+  // crosshair elements
+  const cross = svgEl("line"); cross.setAttribute("class", "gf-crosshair"); cross.setAttribute("x1", "0"); cross.setAttribute("x2", "0"); cross.setAttribute("y1", String(padT)); cross.setAttribute("y2", String(h - padB)); cross.setAttribute("stroke", "rgba(127,127,127,0.6)"); cross.setAttribute("stroke-width", "1"); cross.setAttribute("stroke-dasharray", "4 3"); cross.style.display = "none"; svg.appendChild(cross);
+  const dot = svgEl("circle"); dot.setAttribute("class", "gf-dot"); dot.setAttribute("r", "4"); dot.setAttribute("fill", stroke); dot.style.display = "none"; svg.appendChild(dot);
+
+  // floating pill (div sibling)
+  if (!container) { /* noop */ }
+  let pill = container ? container.querySelector(".gf-pill") : null;
+  if (!pill && container) { pill = document.createElement("div"); pill.className = "gf-pill"; pill.style.cssText = "position:absolute;pointer-events:none;display:none;padding:4px 8px;border-radius:6px;background:rgba(20,24,36,0.92);color:#fff;font-size:11px;"; container.style.position = container.style.position || "relative"; container.appendChild(pill); }
+  const cur = d && d.currency ? d.currency : "INR";
+
+  function showAt(clientX) {
+    const rect = svg.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const rel = (x - padL) / (w - padL - padR);
+    const idx = Math.round(rel * (n - 1));
+    if (idx < 0 || idx >= n) { cross.style.display = "none"; dot.style.display = "none"; if (pill) pill.style.display = "none"; return; }
+    const p = pts[idx];
+    cross.setAttribute("x1", p.x.toFixed(1)); cross.setAttribute("x2", p.x.toFixed(1)); cross.style.display = "";
+    dot.setAttribute("cx", p.x.toFixed(1)); dot.setAttribute("cy", p.y.toFixed(1)); dot.style.display = "";
+    const retPct = ((prices[idx] - first) / first * 100).toFixed(1);
+    const sign = prices[idx] >= first ? "+" : "";
+    if (pill) {
+      pill.textContent = `${Number(prices[idx]).toFixed(2)} ${cur} • ${gfFormatDate(series[idx].d, false)}   ${sign}${retPct}% (${tf})`;
+      pill.style.display = "block";
+      pill.style.left = Math.min(rect.width - 120, Math.max(0, x + 10)) + "px";
+      pill.style.top = "4px";
+    }
+  }
+  svg.addEventListener("mousemove", (e) => showAt(e.clientX));
+  svg.addEventListener("mouseleave", () => { cross.style.display = "none"; dot.style.display = "none"; if (pill) pill.style.display = "none"; });
+
+  // return badge in header (stripPrice append)
+  const badge = document.getElementById("gfReturnBadge");
+  const retTotal = ((last - first) / first * 100).toFixed(1);
+  const signT = last >= first ? "+" : "";
+  if (badge) badge.textContent = `${signT}${retTotal}% (${tf})`;
 }
 
 // ---------- Chart renderer for 23 charts ----------
@@ -478,6 +603,35 @@ function renderChartCard(chart) {
   card.className = "chart-card glass";
   card.dataset.chartId = chart.id;
   card.innerHTML = `<h4>${esc(chart.title)}</h4>`;
+  if (chart.id === "c23_trailing_pe") {
+    card.classList.add("gf-chart-card");
+    const bar = document.createElement("div");
+    bar.className = "gf-timeframe-bar";
+    ["1M","6M","YTD","1Y","5Y","Max"].forEach((tf, i) => {
+      const b = document.createElement("button");
+      b.className = "gf-tf-btn timeframe-btn" + (tf === "Max" ? " active" : "");
+      b.setAttribute("data-tf", tf);
+      b.textContent = tf;
+      b.addEventListener("click", function() {
+        bar.querySelectorAll(".gf-tf-btn").forEach(x => x.classList.remove("active"));
+        b.classList.add("active");
+        if (state.currentData) renderGfChartInto(svg, card, state.currentData, tf);
+      });
+      bar.appendChild(b);
+    });
+    card.appendChild(bar);
+    const svg = makeSvg(720, 220);
+    svg.classList.add("gf-area");
+    svg.setAttribute("viewBox", "0 0 720 220");
+    card.appendChild(svg);
+    const pill = document.createElement("div");
+    pill.className = "gf-pill";
+    pill.style.cssText = "position:relative;";
+    card.appendChild(pill);
+    // initial
+    if (state.currentData) renderGfChartInto(svg, card, state.currentData, "Max");
+    return card;
+  }
   const svg = makeSvg(400, 200);
   const labels = chart.labels || [];
   const series = chart.series || {};
@@ -767,6 +921,27 @@ document.addEventListener("mouseover", function(e){ const el=e.target; const t=e
 document.addEventListener("mousemove", function(e){ const tip=document.getElementById("chartFloatingTip"); if(tip && tip.style.display==="block"){ tip.style.left=(e.clientX+12)+"px"; tip.style.top=(e.clientY+12)+"px"; } });
 document.addEventListener("mouseout", function(e){ const tip=document.getElementById("chartFloatingTip"); if(tip) tip.style.display="none"; });
 
+// Timeframe button delegation
+document.addEventListener("click", function(e) {
+  const btn = e.target && e.target.closest ? e.target.closest(".gf-tf-btn") : null;
+  if (!btn) return;
+  const tf = btn.getAttribute("data-tf");
+  if (!tf) return;
+  const bar = btn.parentElement;
+  if (bar) bar.querySelectorAll(".gf-tf-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  if (bar && bar.id === "overviewTimeframes") {
+    if (state.currentData) renderAreaChart(state.currentData, tf);
+  }
+  // c23 dashboard card buttons handle their own clicks via listeners
+});
+
+function renderAreaChart(d, tf) {
+  const svg = $("areaChart");
+  if (!svg) return;
+  renderGfChartInto(svg, svg.parentElement, d, tf || "Max");
+}
+
 // ---------- Render all ----------
 function renderAll(d) {
   state.selectedTicker = d.ticker || state.selectedTicker;
@@ -819,7 +994,7 @@ function renderHero(d) {
     const pos = (d.current_price - d.low_52w) / range;
     const rd = $("rangeDot"); if (rd) rd.style.left = `${Math.max(0, Math.min(100, pos * 100))}%`;
   }
-  renderAreaChart(d.price_series || []);
+  renderAreaChart(d, "Max");
 }
 
 function renderOverview(d) {

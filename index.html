@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LojikGain — Apple-Grade Institutional Equity Research</title>
-  <link rel="stylesheet" href="./static/style.css?v=20261029_v8" />
+  <link rel="stylesheet" href="./static/style.css?v=20261029_v9" />
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <!-- Data bundles: Flask (/static/data/...) and GitHub Pages (./data/...) -->
   <script src="./static/data/public_index.js" onerror="this.remove()"></script>
@@ -134,9 +134,19 @@
             <div class="range-caption">52-Week Range</div>
           </div>
         </div>
+        <div class="gf-timeframe-bar" id="overviewTimeframes">
+          <button class="gf-tf-btn timeframe-btn" data-tf="1M">1M</button>
+          <button class="gf-tf-btn timeframe-btn" data-tf="6M">6M</button>
+          <button class="gf-tf-btn timeframe-btn" data-tf="YTD">YTD</button>
+          <button class="gf-tf-btn timeframe-btn" data-tf="1Y">1Y</button>
+          <button class="gf-tf-btn timeframe-btn" data-tf="5Y">5Y</button>
+          <button class="gf-tf-btn timeframe-btn active" data-tf="Max">Max</button>
+          <span id="gfReturnBadge" class="gf-return-badge"></span>
+        </div>
         <div class="chart-wrap">
           <svg id="areaChart" class="area-chart" viewBox="0 0 720 220" preserveAspectRatio="none"></svg>
           <div class="chart-tooltip" id="chartTooltip"></div>
+          <div class="gf-pill" id="gfPill"></div>
         </div>
       </section>
 
@@ -277,6 +287,6 @@
     </div>
   </div>
 
-  <script src="./static/app.js?v=20261029_v8"></script>
+  <script src="./static/app.js?v=20261029_v9"></script>
 </body>
 </html>
