@@ -40,7 +40,7 @@ function _stocksKey(t) { return String(t || '').toUpperCase().replace(/\.(NS|BO)
     try {
       const url = typeof input === 'string' ? input : (input && input.url);
       if (!url) return orig(input, init);
-      const isApi = /^\/api\/(analyse|analyze|search|samples)(\?|#|$)/i.test(url) || /[?&](symbol|sym|ticker|q)=/i.test(url);
+      const isApi = /^\/api\/((personal\/)?(analyse|analyze)|search|samples)(\?|#|$)/i.test(url) || /[?&](symbol|sym|ticker|q)=/i.test(url);
       if (!isApi) return orig(input, init);
       return (async () => {
         let s = null;
