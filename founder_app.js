@@ -241,8 +241,9 @@
   // ---------- Render: Hero strip ----------
   function renderHero(d, currency) {
     var meta = d.meta || {};
+    var price = num(meta.current_price);
     set('stripTitle', (meta.company || d.company || '') + ' (' + (meta.ticker || d.ticker || '') + ')');
-    set('stripPrice', price !== null ? money(num(meta.current_price), currency) : '—');
+    set('stripPrice', price !== null ? money(price, currency) : '—');
   }
 
   // ---------- Top-level render ----------
