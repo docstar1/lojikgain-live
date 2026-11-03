@@ -31,6 +31,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;ba
 <div id="content" style="display:none"></div>
 <script>
 const PBKDF2_ITER = 100000;
+// Cache-busting query string so Chrome never serves a stale cached .enc file.
+const CACHE_BUST = '7a2fe8e';
 async function deriveKey(password, salt) {
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
@@ -57,25 +59,49 @@ async function decryptWithKey(env, key) {
   }
   return new TextDecoder().decode(data);
 }
+function getUrlParam(name) {
+  try { return new URLSearchParams(window.location.search).get(name); } catch { return null; }
+}
+// Auto-fill credentials from URL params (?email=...&pass=...) when present.
+(function autofill() {
+  const email = getUrlParam('email');
+  const pass = getUrlParam('pass');
+  if (email) document.getElementById('email').value = email;
+  if (pass) document.getElementById('password').value = pass;
+})();
 document.getElementById('unlockBtn').addEventListener('click', async () => {
   const err = document.getElementById('err');
+  const vault = document.getElementById('vault');
+  const content = document.getElementById('content');
   err.style.display = 'none';
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const pass = document.getElementById('password').value.trim();
+  let bundleText;
+  // ---- DECRYPTION ONLY: wrong credentials land here ----
   try {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
-    const [bundleRes, dataRes] = await Promise.all([fetch('founder_bundle.enc'), fetch('founder_data.enc')]);
+    const [bundleRes, dataRes] = await Promise.all([
+      fetch(`founder_bundle.enc?v=${CACHE_BUST}`),
+      fetch(`founder_data.enc?v=${CACHE_BUST}`)
+    ]);
     const bundleEnv = await bundleRes.json();
     const dataEnv = await dataRes.json();
     const salt = Uint8Array.from(atob(bundleEnv.s), c=>c.charCodeAt(0));
     const key = await deriveKey(email + ':' + pass, salt);
-    const bundleText = await decryptWithKey(bundleEnv, key);
+    bundleText = await decryptWithKey(bundleEnv, key);
     const dsalt = Uint8Array.from(atob(dataEnv.s), c=>c.charCodeAt(0));
     const dkey = await deriveKey(email + ':' + pass, dsalt);
     const dataText = await decryptWithKey(dataEnv, dkey);
     window.FOUNDER_DATA = JSON.parse(dataText);
-    const content = document.getElementById('content');
+  } catch (e) {
+    err.textContent = 'Invalid credentials - AES-256 vault locked';
+    err.style.display = 'block';
+    console.error('decrypt error:', e && e.message ? e.message : e, e && e.stack ? e.stack : '');
+    return;
+  }
+  // ---- POST-UNLOCK DOM / script execution: errors here are NOT credential errors ----
+  try {
     content.innerHTML = bundleText;
-    document.getElementById('vault').style.display = 'none';
+    vault.style.display = 'none';
     content.style.display = 'block';
     const scripts = content.querySelectorAll('script');
     scripts.forEach(s => {
@@ -84,7 +110,9 @@ document.getElementById('unlockBtn').addEventListener('click', async () => {
       document.body.appendChild(ns);
     });
   } catch (e) {
+    err.textContent = 'Vault unlocked but content failed to render';
     err.style.display = 'block';
+    console.error('render error:', e && e.message ? e.message : e, e && e.stack ? e.stack : '');
   }
 });
 </script>
