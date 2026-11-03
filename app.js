@@ -156,7 +156,7 @@ function isAdminEmail(email) {
 function isAdminUser() { return Boolean(state.user && (state.user.is_admin || isAdminEmail(state.user.email))); }
 
 // ---------- Founder data vault (AES-256-GCM, password = email:pass) ----------
-const FOUNDER_ENC_URL = './founder_data.enc?v=76feffe';
+const FOUNDER_ENC_URL = './founder_data.enc?v=20261103_v14';
 const FOUNDER_PASS_KEY = 'lojik_admin_pass';
 function _b64u(s){ return Uint8Array.from(atob(s), c=>c.charCodeAt(0)); }
 async function deriveFounderKey(password, saltB64){
