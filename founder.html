@@ -1,223 +1,392 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LojikGain Founder's Edition</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh}
-.vault{background:rgba(255,255,255,0.05);backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:48px;width:400px;text-align:center}
-.vault h1{font-size:28px;font-weight:600;margin-bottom:8px}
-.vault p{color:#888;font-size:14px;margin-bottom:32px}
-.vault input{width:100%;padding:14px 16px;margin-bottom:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:#fff;font-size:16px;outline:none}
-.vault input:focus{border-color:#0071e3}
-.vault button{width:100%;padding:14px;background:#0071e3;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px}
-.vault button:hover{background:#0077ed}
-.vault .err{color:#ff453a;font-size:13px;margin-top:12px;display:none}
-.vault .lock{font-size:48px;margin-bottom:16px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LojikGain — Founder's Edition (Institutional Research)</title>
+  <link rel="stylesheet" href="./static/style.css?v=20261029_v13" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <!-- Data bundles: GitHub Pages (./data/...) -->
+  <script src="./static/data/public_index.js" onerror="this.remove()"></script>
+  <script src="./data/public_index.js" onerror="this.remove()"></script>
+
+  <!--
+    Founder's Edition: pre-unlock as Admin (dr.timothysuraj@gmail.com / Loginme1),
+    decrypt founder_data.enc in-browser via WebCrypto (AES-256-GCM, PBKDF2,
+    password = email + ':' + pass), cache window.FOUNDER_DATA, then bootstrap
+    the modern LojikGain UI (index.html + static/style.css + static/app.js)
+    with admin rendering already active.
+  -->
+  <script>
+    (function founderUnlock() {
+      'use strict';
+      const EMAIL = 'dr.timothysuraj@gmail.com';
+      const PASS = 'Loginme1';
+      const FOUNDER_ENC_URL = './founder_data.enc?v=76feffe';
+      const PBKDF2_ITER = 100000;
+      const PASS_KEY = 'lojik_admin_pass';
+
+      // Mark admin session so app.js refreshAuth() / updateAuthUI() treat this as Admin.
+      try {
+        localStorage.setItem('lojik_public_user', JSON.stringify({
+          email: EMAIL, name: 'Founder Admin', is_admin: true, is_paid: true,
+          access_granted: true, auth_provider: 'email'
+        }));
+        sessionStorage.setItem(PASS_KEY, PASS);
+        localStorage.setItem(PASS_KEY, PASS);
+        sessionStorage.setItem('admin_email', EMAIL);
+        localStorage.setItem('admin_email', EMAIL);
+        localStorage.setItem('is_admin', 'true');
+      } catch (e) { console.warn('founder storage write failed', e); }
+
+      function b64u(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
+      function deriveKey(password, saltB64) {
+        const enc = new TextEncoder();
+        const salt = b64u(saltB64);
+        return crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey'])
+          .then(function (keyMaterial) {
+            return crypto.subtle.deriveKey(
+              { name: 'PBKDF2', salt: salt, iterations: PBKDF2_ITER, hash: 'SHA-256' },
+              keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+          });
+      }
+      function decryptEnvelope(env, key) {
+        const iv = b64u(env.iv);
+        const ct = b64u(env.ct);
+        return crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, ct).then(function (dec) {
+          var data = new Uint8Array(dec);
+          if (env.gz) {
+            return new Promise(function (resolve, reject) {
+              var ds = new DecompressionStream('gzip');
+              var writer = ds.writable.getWriter();
+              writer.write(data);
+              writer.close();
+              var reader = ds.readable.getReader();
+              var chunks = [];
+              function pump() {
+                return reader.read().then(function (r) {
+                  if (r.done) {
+                    var total = chunks.reduce(function (a, c) { return a + c.length; }, 0);
+                    var out = new Uint8Array(total);
+                    var off = 0;
+                    chunks.forEach(function (c) { out.set(c, off); off += c.length; });
+                    resolve(out);
+                  } else {
+                    chunks.push(r.value);
+                    return pump();
+                  }
+                });
+              }
+              return pump().then(resolve).catch(reject);
+            }).then(function (out) { return new TextDecoder().decode(out); });
+          }
+          return new TextDecoder().decode(data);
+        });
+      }
+
+      function loadFounderData() {
+        return fetch(FOUNDER_ENC_URL).then(function (res) {
+          if (!res.ok) throw new Error('founder_data.enc fetch failed (' + res.status + ')');
+          return res.json();
+        }).then(function (env) {
+          return deriveKey(EMAIL + ':' + PASS, env.s).then(function (key) {
+            return decryptEnvelope(env, key);
+          }).then(function (text) {
+            window.FOUNDER_DATA = JSON.parse(text);
+            console.log('Founder data loaded, tickers:', Object.keys(window.FOUNDER_DATA || {}).length);
+            // Re-render the current ticker with admin + founder data once app.js is up.
+            (function tryRender() {
+              if (window.loadTickerData) {
+                var t = (window.state && window.state.selectedTicker) || 'ITC';
+                window.loadTickerData(t);
+              } else {
+                setTimeout(tryRender, 50);
+              }
+            })();
+          });
+        }).catch(function (err) {
+          console.error('founder unlock failed:', err);
+        });
+      }
+
+      loadFounderData();
+    })();
+  </script>
+  <script src="./static/app.js?v=20261029_v13"></script>
 </head>
 <body>
-<div class="vault" id="vault">
-  <div class="lock">&#128274;</div>
-  <h1>LojikX Vault</h1>
-  <p>Founder's Edition - AES-256-GCM Encrypted</p>
-  <input type="email" id="email" placeholder="Email" autocomplete="username">
-  <input type="password" id="password" placeholder="Password" autocomplete="current-password">
-  <button id="unlockBtn">Unlock Vault</button>
-  <div class="err" id="err">Invalid credentials - AES-256 vault locked</div>
-</div>
-<div id="content" style="display:none"></div>
-<script>
-const PBKDF2_ITER = 100000;
-// Cache-busting query string so Chrome never serves a stale cached .enc file.
-const CACHE_BUST = '7a2fe8e';
-async function deriveKey(password, salt) {
-  const enc = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey({name:'PBKDF2', salt:salt, iterations:PBKDF2_ITER, hash:'SHA-256'}, keyMaterial, {name:'AES-GCM', length:256}, false, ['decrypt']);
-}
-async function decryptWithKey(env, key) {
-  const iv = Uint8Array.from(atob(env.iv), c=>c.charCodeAt(0));
-  const ct = Uint8Array.from(atob(env.ct), c=>c.charCodeAt(0));
-  const dec = await crypto.subtle.decrypt({name:'AES-GCM', iv:iv}, key, ct);
-  let data = new Uint8Array(dec);
-  if (env.gz) {
-    const ds = new DecompressionStream('gzip');
-    const writer = ds.writable.getWriter();
-    writer.write(data);
-    writer.close();
-    const reader = ds.readable.getReader();
-    const chunks = [];
-    while (true) { const r = await reader.read(); if (r.done) break; chunks.push(r.value); }
-    const total = chunks.reduce((a,c)=>a+c.length,0);
-    const out = new Uint8Array(total);
-    let off = 0;
-    for (const c of chunks) { out.set(c, off); off += c.length; }
-    data = out;
-  }
-  return new TextDecoder().decode(data);
-}
-function getUrlParam(name) {
-  try { return new URLSearchParams(window.location.search).get(name); } catch { return null; }
-}
-// Auto-fill credentials from URL params (?email=?e=&pass=?password=...) when present.
-(function autofill() {
-  const params = new URLSearchParams(window.location.search);
-  const email = params.get('e') || params.get('email');
-  const p = params.get('password') || params.get('pass');
-  if (email) document.getElementById('email').value = email;
-  if (p) document.getElementById('password').value = p;
-  if (email && p) {
-    setTimeout(() => document.getElementById('unlockBtn').click(), 0);
-  }
-})();
-document.getElementById('unlockBtn').addEventListener('click', async () => {
-  const err = document.getElementById('err');
-  const vault = document.getElementById('vault');
-  const content = document.getElementById('content');
-  err.style.display = 'none';
-  const email = document.getElementById('email').value.trim().toLowerCase();
-  const pass = document.getElementById('password').value.trim();
-  let bundleText;
-  // ---- DECRYPTION ONLY: wrong credentials land here ----
-  try {
-    const [bundleRes, dataRes] = await Promise.all([
-      fetch(`founder_bundle.enc?v=${CACHE_BUST}`),
-      fetch(`founder_data.enc?v=${CACHE_BUST}`)
-    ]);
-    const bundleEnv = await bundleRes.json();
-    const dataEnv = await dataRes.json();
-    const salt = Uint8Array.from(atob(bundleEnv.s), c=>c.charCodeAt(0));
-    const key = await deriveKey(email + ':' + pass, salt);
-    bundleText = await decryptWithKey(bundleEnv, key);
-    const dsalt = Uint8Array.from(atob(dataEnv.s), c=>c.charCodeAt(0));
-    const dkey = await deriveKey(email + ':' + pass, dsalt);
-    const dataText = await decryptWithKey(dataEnv, dkey);
-    window.FOUNDER_DATA = JSON.parse(dataText);
-  } catch (e) {
-    err.textContent = 'Invalid credentials - AES-256 vault locked';
-    err.style.display = 'block';
-    console.error('decrypt error:', e && e.message ? e.message : e, e && e.stack ? e.stack : '');
-    return;
-  }
-  // ---- POST-UNLOCK DOM / script execution: errors here are NOT credential errors ----
-  try {
-    // Build a scratch DOM so we can lift <style>/<link rel="stylesheet"> into
-    // document.head. Assigning bundleText to content.innerHTML drops <head>,
-    // <style> and <link rel="stylesheet">, which left the dashboard unstyled
-    // (black background, raw HTML buttons).
-    const scratch = document.createElement('div');
-    scratch.innerHTML = bundleText;
+  <div class="aurora" aria-hidden="true"></div>
 
-    // 1. Lift every <style> and <link rel="stylesheet"> into <head> so the
-    //    Founder Dashboard renders with full CSS styling.
-    scratch.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => {
-      document.head.appendChild(el);
-    });
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo">LojikGain</div>
+      <div class="nav-center">
+        <button class="market-pill" id="marketPill">🇮🇳 India NSE</button>
+      </div>
+      <div class="nav-right">
+        <div class="trial-badge" id="trialBadge">Founder Admin • Unlimited</div>
+        <button class="icon-btn" id="themeToggle" title="Theme">☀️</button>
+        <button class="signin-btn" id="signInBtn">👑 Admin (Sign Out)</button>
+        <div class="profile-pill" id="profilePill" style="display:inline-block">dr.timothysuraj@gmail.com</div>
+        <a id="founderBtn" style="display:inline-flex" class="founder-btn" href="./founder.html">👑 Founder 10Y</a>
+      </div>
+    </div>
+  </nav>
 
-    // 2. Inject the dashboard stylesheet (the bundle carries no <head>/<link>).
-    const styleLink = document.createElement('link');
-    styleLink.rel = 'stylesheet';
-    styleLink.href = './founder_style.css?v=12';
-    document.head.appendChild(styleLink);
+  <main class="main">
+    <section class="hero">
+      <h1 class="hero-title">Institutional-grade equity research, free during public access.</h1>
+      <p class="hero-sub">LojikGain gives you two honest numbers for any stock in India or the US: a proprietary LojikX™ Consistency Score (0 to 100), and whether the crowd is currently in Fear or Greed (0 to 100). Plus a complete Institutional Research Report.</p>
+      <div class="search-studio">
+        <input id="searchInput" type="text" placeholder="Search TCS, AAPL, NIFTY 50…" autocomplete="off" />
+        <div class="autocomplete" id="autocomplete"></div>
+        <div class="search-dropdown" id="searchDropdown" style="display:none"></div>
+      </div>
+      <div class="quick-chips" id="quickPicks" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center"></div>
+    </section>
 
-    // 3. Remove the redundant inner "Admin Login" modal — the user just unlocked
-    //    the AES-256 Vault with dr.timothysuraj@gmail.com / Loginme1, so no
-    //    second login is required.
-    const gate = scratch.querySelector('#adminGateOverlay');
-    if (gate) gate.remove();
+    <!-- Hero Stock Header Bar -->
+    <section class="hero-header glass" id="heroHeader">
+      <div class="hero-left">
+        <div class="hero-company" id="heroCompany">—</div>
+        <div class="hero-ticker-row">
+          <span class="hero-ticker" id="heroTicker">—</span>
+          <span class="hero-badge" id="heroBadge">—</span>
+          <span class="hero-quarter" id="heroQuarter">2026-Q4</span>
+        </div>
+      </div>
+      <div class="hero-mid">
+        <div class="hero-price" id="heroPrice">—</div>
+        <div class="hero-range">
+          <div class="range-labels"><span id="heroLow">—</span><span id="heroHigh">—</span></div>
+          <div class="range-bar"><div class="range-fill"></div><div class="range-dot" id="heroRangeDot"></div></div>
+          <div class="range-caption">52-Week Range</div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-target-block">
+          <div class="hero-label">LojikX™ Intrinsic Valuation Engine</div>
+          <div class="hero-target" id="heroTarget">—</div>
+          <div class="hero-upside" id="heroUpside">—</div>
+        </div>
+        <div class="hero-rating" id="heroRating">—</div>
+        <button class="print-btn" id="printBtn">🖨️ Print / Export PDF</button>
+      </div>
+    </section>
 
-    // 4. Mark admin as unlocked in localStorage so any admin gate is satisfied
-    //    without a second login.
-    localStorage.setItem('lojikgain_admin', '1');
-    localStorage.setItem('is_admin', 'true');
-    localStorage.setItem('admin_email', email);
-    localStorage.setItem('admin_unlocked_at', String(Date.now()));
-    try {
-      localStorage.setItem('lojik_user', JSON.stringify({ is_admin: true, email }));
-    } catch (e) { /* ignore */ }
+    <!-- Workspace Tabs -->
+    <div class="workspace-tabs" id="workspaceTabs">
+      <button class="ws-tab active" data-view="overview">Overview &amp; Pulse</button>
+      <button class="ws-tab" data-view="exec-summary">Executive Summary</button>
+      <button class="ws-tab" data-view="dashboard">Visual Analytics</button>
+      <button class="ws-tab" data-view="report">Institutional Research Report</button>
+      <button class="ws-tab" data-view="forensic">Forensic &amp; LojikX™ Quality Audit</button>
+    </div>
 
-    // 5. Extract <script> tags before rendering (innerHTML never executes them).
-    const externalScripts = scratch.querySelectorAll('script[src]');
-    const inlineScripts = scratch.querySelectorAll('script:not([src])');
-    scratch.querySelectorAll('script').forEach(s => s.remove());
+    <!-- Tab 1: Overview -->
+    <div class="view" id="view-overview">
+      <section class="bento-dual">
+        <div class="card glass score-card">
+          <div class="card-title">LojikX™ Consistency Score</div>
+          <div class="ring-wrap">
+            <svg id="scoreRingSvg" class="jewel-ring" viewBox="0 0 280 280" aria-label="23-segment consistency ring"></svg>
+            <div class="ring-center">
+              <div class="ring-score" id="scoreValue">— / 23</div>
+              <div class="ring-badge" id="scoreBand">—</div>
+            </div>
+          </div>
+          <div class="pill-strip" id="scorePills">
+            <span class="tier-pill tier-coral" data-range="0-11">Fragile Tier</span>
+            <span class="tier-pill tier-amber" data-range="12-16">Moderate / Cyclical</span>
+            <span class="tier-pill tier-emerald" data-range="17-23">High Consistency</span>
+          </div>
+          <div class="explain-box" id="scoreExplain">Analyze a stock to see how strong the business proved to be.</div>
+          <div class="company-type-badge" id="companyTypeBadge">—</div>
+        </div>
+        <div class="card glass mood-card">
+          <div class="card-title">Market Mood &amp; Technical Speedometer</div>
+          <div class="speedo-wrap">
+            <svg id="speedoSvg" class="speedo" viewBox="0 0 360 215" aria-label="5-zone mood dial"></svg>
+          </div>
+          <div class="speedo-readout">
+            <span class="speedo-score" id="moodValue">—</span>
+            <span class="speedo-denom">/ 100</span>
+          </div>
+          <div class="speedo-zone" id="moodZone">—</div>
+          <div class="zone-pills" id="zonePills">
+            <span class="zone-pill z-extreme-fear" data-zone="Extreme Fear">Extreme Fear</span>
+            <span class="zone-pill z-fear" data-zone="Fear">Fear</span>
+            <span class="zone-pill z-neutral" data-zone="Neutral">Neutral</span>
+            <span class="zone-pill z-greed" data-zone="Greed">Greed</span>
+            <span class="zone-pill z-extreme-greed" data-zone="Extreme Greed">Extreme Greed</span>
+          </div>
+          <div class="explain-box" id="moodExplain">Analyze a stock to see where the crowd stands.</div>
+          <div class="tech-strip" id="techStrip"></div>
+        </div>
+      </section>
 
-    // 6. Render the cleaned bundle (styles are now in <head>; gate is gone).
-    content.innerHTML = scratch.innerHTML;
-    vault.style.display = 'none';
-    content.style.display = 'block';
+      <section class="card glass strip-card">
+        <div class="strip-top">
+          <div>
+            <div class="strip-title" id="stripTitle">Price Trend</div>
+            <div class="strip-price" id="stripPrice">—</div>
+          </div>
+          <div class="range-bar-wrap">
+            <div class="range-labels"><span id="low52">—</span><span id="high52">—</span></div>
+            <div class="range-bar"><div class="range-fill"></div><div class="range-dot" id="rangeDot"></div></div>
+            <div class="range-caption">52-Week Range</div>
+          </div>
+        </div>
+        <div class="gf-timeframe-bar" id="overviewTimeframes">
+          <button class="gf-tf-btn timeframe-btn" data-tf="1M">1M</button>
+          <button class="gf-tf-btn timeframe-btn" data-tf="6M">6M</button>
+          <button class="gf-tf-btn timeframe-btn" data-tf="YTD">YTD</button>
+          <button class="gf-tf-btn timeframe-btn" data-tf="1Y">1Y</button>
+          <button class="gf-tf-btn timeframe-btn" data-tf="5Y">5Y</button>
+          <button class="gf-tf-btn timeframe-btn active" data-tf="Max">Max</button>
+          <span id="gfReturnBadge" class="gf-return-badge"></span>
+        </div>
+        <div class="chart-wrap">
+          <svg id="areaChart" class="area-chart" viewBox="0 0 720 220" preserveAspectRatio="none"></svg>
+          <div class="chart-tooltip" id="chartTooltip"></div>
+          <div class="gf-pill" id="gfPill"></div>
+        </div>
+      </section>
 
-    // 7. Load external scripts (chart.js CDN, founder_app.js) FIRST — await each onload
-    //    BEFORE executing inline overrides, so founder_app.js / fetch interceptor are ready.
-    for (const s of externalScripts) {
-      await new Promise((resolve, reject) => {
-        const ns = document.createElement('script');
-        ns.src = s.src;
-        ns.onload = resolve;
-        ns.onerror = reject;
-        document.head.appendChild(ns);
-      });
-    }
+      <!-- LojikX™ Intrinsic Valuation Card -->
+      <section class="card glass" id="lojikxValuationCard">
+        <div class="card-title">LojikX™ Intrinsic Valuation Engine</div>
+        <div class="lx-val-grid">
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Earnings Model</span><span class="hv-val" id="hvPe">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Revenue Scale Model</span><span class="hv-val" id="hvPr">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Cash Flow Model</span><span class="hv-val" id="hvDcf">—</span></div>
+          <div class="lx-val-item highlight"><span class="hv-label">Blended Target Price</span><span class="hv-val" id="hvBlended">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">Upside %</span><span class="hv-val" id="hvUpside">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">Hurdle Rate %</span><span class="hv-val" id="hvWacc">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">Perpetual Compounding %</span><span class="hv-val" id="hvTg">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Equity Compounding</span><span class="hv-val" id="hvBv">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Growth Trajectory</span><span class="hv-val" id="hvEps">—</span></div>
+          <div class="lx-val-item"><span class="hv-label">LojikX™ Yield Benchmark</span><span class="hv-val" id="hvBond">—</span></div>
+        </div>
+      </section>
 
-    // 8. Re-execute inline scripts now that the DOM is rendered and external scripts are loaded.
-    for (const s of inlineScripts) {
-      const ns = document.createElement('script');
-      ns.textContent = s.textContent;
-      document.body.appendChild(ns);
-    }
+      <!-- Quick Snapshot Cards -->
+      <section class="snapshot-grid">
+        <div class="card glass"><div class="card-title">Top 3 Catalysts</div><ul class="snap-list" id="snapCatalysts"></ul></div>
+        <div class="card glass"><div class="card-title">Top 5 Risks (preview)</div><ol class="snap-list" id="snapRisks"></ol></div>
+        <div class="card glass"><div class="card-title">17-Point Forensic Cleanliness</div><div class="forensic-summary" id="forensicSummary">—</div></div>
+      </section>
+    </div>
 
-    // 9. Re-install the rock-solid fetch interceptor LAST, so any inline-script
-    //    override of window.fetch (e.g. the old bundle interceptor that fetched
-    //    ./founder_data.json which 404s on GitHub Pages) is replaced by this one.
-    (function installFounderFetchInterceptor() {
-      const orig = window.fetch.bind(window);
-      window.fetch = function (input, init) {
-        try {
-          const url = typeof input === 'string' ? input : (input && input.url);
-          if (!url) return orig(input, init);
-          const isApi = /(\/api\/((personal\/)?(analyse|analyze)|search|samples))(\?|#|$)/i.test(url) || /[?&](symbol|sym|ticker|q)=/i.test(url);
-          if (!isApi) return orig(input, init);
-          let s = null;
-          try {
-            const u = new URL(url, location.href);
-            s = u.searchParams.get('symbol') || u.searchParams.get('sym') || u.searchParams.get('ticker') || u.searchParams.get('q');
-            if (!s) {
-              const parts = u.pathname.split('/').filter(Boolean);
-              const last = parts[parts.length - 1];
-              if (last && !['analyse', 'analyze', 'search', 'samples', 'companies', 'personal'].includes(last)) s = last;
-            }
-          } catch (e) {}
-          if (!s && init && init.body) {
-            try { const j = JSON.parse(init.body); s = j.symbol || j.sym || j.ticker || j.q; } catch (e) {}
-          }
-          const key = s ? String(s).toUpperCase().replace(/\.(NS|BO)$/i, '') : null;
-          const data = window.FOUNDER_DATA || {};
-          if (key && data[key]) {
-            return Promise.resolve(new Response(JSON.stringify(data[key]), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-          }
-          // /api/samples with no q: return all tickers
-          if (url.indexOf('/api/samples') !== -1 && !s) {
-            const list = Object.keys(data || {}).map(k => ({ symbol: k, name: (data || {})[k].name || k }));
-            return Promise.resolve(new Response(JSON.stringify(list), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-          }
-          // /api/search: return matching results
-          if (url.indexOf('/api/search') !== -1 && s) {
-            const q = s.toLowerCase();
-            const res = Object.keys(data || {}).filter(k => k.toLowerCase().includes(q) || (((data || {})[k] || {}).name || '').toLowerCase().includes(q)).map(k => ({ symbol: k, name: (data || {})[k].name || k }));
-            return Promise.resolve(new Response(JSON.stringify({ query: s, results: res }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-          }
-        } catch (e) {}
-        return orig(input, init);
-      };
-    })();
-  } catch (e) {
-    err.textContent = 'Vault unlocked but content failed to render';
-    err.style.display = 'block';
-    console.error('render error:', e && e.message ? e.message : e, e && e.stack ? e.stack : '');
-  }
-});
-</script>
+    <!-- Tab 2: Executive Summary -->
+    <div class="view" id="view-exec-summary" style="display:none">
+      <div class="exec-sheet glass" id="execSheet">
+        <div class="exec-banner" id="execTitleBanner">—</div>
+        <div class="exec-strip" id="execMarketStrip">—</div>
+        <div class="exec-strip" id="execGuidanceStrip">—</div>
+        <div class="exec-grid">
+          <div class="exec-col">
+            <div class="exec-box"><div class="exec-box-title">Drivers &amp; Catalysts</div><div id="execDrivers"></div></div>
+            <div class="exec-box"><div class="exec-box-title">Core Financials</div><div id="execFinancials"></div></div>
+          </div>
+          <div class="exec-col">
+            <div class="exec-box"><div class="exec-box-title">Competition, Distribution &amp; Production</div><div id="execComp"></div><div id="execCompetitors"></div></div>
+            <div class="exec-box"><div class="exec-box-title">Management Assessment</div><div id="execManagement"></div></div>
+            <div class="exec-box"><div class="exec-box-title">TAM Sizing &amp; Growth</div><div id="execTam"></div></div>
+          </div>
+        </div>
+        <div class="exec-risks"><div class="exec-box-title">Top 5 Institutional Risks</div><div id="execRisks"></div></div>
+        <div class="exec-callout" id="execBottomFund">—</div>
+        <div class="exec-section"><div class="exec-box-title">Valuation vs. 10 Competitors</div><div id="execPeParagraph"></div><div id="execPeersSentence"></div><div id="execPeerMini"></div><div class="exec-callout" id="execBottomVal">—</div></div>
+        <div class="exec-section"><div class="exec-box-title">Technicals &amp; Stop-Loss</div><div id="execTechnicals"></div><div class="exec-callout" id="execBottomTech">—</div></div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Dashboard -->
+    <div class="view" id="view-dashboard" style="display:none">
+      <div class="chart-filters" id="chartFilters">
+        <button class="filter-pill active" data-filter="all">All 23 Charts</button>
+        <button class="filter-pill" data-filter="market">Market &amp; Macro (8)</button>
+        <button class="filter-pill" data-filter="financials">Financials &amp; 10Y Forecast (6)</button>
+        <button class="filter-pill" data-filter="valuation">Valuation &amp; Peers (5)</button>
+        <button class="filter-pill" data-filter="forensic">Forensic &amp; Technicals (4)</button>
+      </div>
+      <div class="charts-grid" id="chartsGrid"></div>
+      <section class="card glass" style="margin-top:22px">
+        <div class="card-title">LojikX™ Multi-Scenario Valuation Matrix</div>
+        <div id="sensMatrix"></div>
+      </section>
+      <section class="card glass" style="margin-top:22px">
+        <div class="card-title">Peer Benchmarking Table</div>
+        <div id="peerTable"></div>
+      </section>
+    </div>
+
+    <!-- Tab 4: Report -->
+    <div class="view" id="view-report" style="display:none">
+      <div class="report-layout">
+        <aside class="report-sidebar glass">
+          <input class="report-search" id="reportSearch" placeholder="Search chapters…" />
+          <div id="chapterList"></div>
+          <div class="report-actions">
+            <button id="expandAllChapters">Expand All Chapters</button>
+            <button id="printFullReport">Print Full Report</button>
+          </div>
+        </aside>
+        <main class="report-canvas" id="reportCanvas"></main>
+      </div>
+    </div>
+
+    <!-- Tab 5: Forensic -->
+    <div class="view" id="view-forensic" style="display:none">
+      <section class="card glass">
+        <div class="card-title">Section A — LojikX™ 17-Point Forensic Accounting &amp; Red Flag Audit</div>
+        <div class="forensic-banner" id="forensicBanner">—</div>
+        <div id="forensicChecks"></div>
+      </section>
+      <section class="card glass" style="margin-top:22px">
+        <div class="card-title">Section B — LojikX™ Quality Architecture &amp; Sovereign Benchmark</div>
+        <div class="lojikx-quality-box" id="lojikxQualityBox"></div>
+        <div class="when-to-sell" id="whenToSell"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Disclaimer: LojikGain provides statistical, historical research for educational purposes only. Not investment advice. Markets carry risk.</p>
+  </footer>
+
+  <!-- Auth Modal (kept for Sign Out / re-sign-in) -->
+  <div class="modal" id="authModal">
+    <div class="modal-card glass">
+      <button class="modal-close" data-close="authModal">✕</button>
+      <h2>Welcome to LojikGain</h2>
+      <p class="auth-subtitle">You are signed in as Founder Admin. Sign out to return to public access.</p>
+      <button id="googleBtn" style="display:none">Continue with Google</button>
+      <div class="divider" style="display:none">or</div>
+      <input id="authEmail" type="email" placeholder="Email" value="dr.timothysuraj@gmail.com" />
+      <input id="authName" type="text" placeholder="Name (for sign up)" value="Founder Admin" />
+      <input id="authPassword" type="password" placeholder="Password" value="Loginme1" />
+      <div class="auth-actions">
+        <button id="loginBtn">Log In</button>
+        <button id="registerBtn">Sign Up</button>
+      </div>
+      <div id="authMsg" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- UPI Modal (hidden) -->
+  <div class="modal" id="upiModal" style="display:none">
+    <div class="modal-card glass">
+      <button class="modal-close" data-close="upiModal">✕</button>
+      <h2>Unlock Full Access</h2>
+      <div id="qrCode" class="qr"></div>
+      <p class="upi-id">UPI ID: <strong id="upiIdText"></strong></p>
+      <a id="upiPayBtn" class="upi-pay-btn" href="#">Pay via UPI</a>
+      <input id="utrInput" type="text" placeholder="UTR" maxlength="12" />
+      <button id="verifyUtrBtn">Verify</button>
+      <div id="upiMsg" class="msg"></div>
+    </div>
+  </div>
 </body>
 </html>

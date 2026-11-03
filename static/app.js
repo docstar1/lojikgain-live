@@ -95,9 +95,79 @@ async function ensureIndex() {
 
 // Auth
 function isAdminEmail(email) {
-  return [null, null].includes(String(email).toLowerCase());
+  return ["dr.timothysuraj@gmail.com", "admin@lojikgain.com"].includes(String(email).toLowerCase());
 }
 function isAdminUser() { return Boolean(state.user && (state.user.is_admin || isAdminEmail(state.user.email))); }
+
+// ---------- Founder data vault (AES-256-GCM, password = email:pass) ----------
+const FOUNDER_ENC_URL = './founder_data.enc?v=76feffe';
+const FOUNDER_PASS_KEY = 'lojik_admin_pass';
+function _b64u(s){ return Uint8Array.from(atob(s), c=>c.charCodeAt(0)); }
+async function deriveFounderKey(password, saltB64){
+  const enc = new TextEncoder();
+  const salt = _b64u(saltB64);
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt:salt, iterations:100000, hash:'SHA-256'}, keyMaterial, {name:'AES-GCM', length:256}, false, ['decrypt']);
+}
+async function decryptFounderEnvelope(env, key){
+  const iv = _b64u(env.iv);
+  const ct = _b64u(env.ct);
+  const dec = await crypto.subtle.decrypt({name:'AES-GCM', iv:iv}, key, ct);
+  let data = new Uint8Array(dec);
+  if (env.gz) {
+    const ds = new DecompressionStream('gzip');
+    const w = ds.writable.getWriter(); w.write(data); w.close();
+    const r = ds.readable.getReader(); const chunks=[];
+    while(true){ const x = await r.read(); if(x.done) break; chunks.push(x.value); }
+    const total = chunks.reduce((a,c)=>a+c.length,0);
+    const out = new Uint8Array(total); let off=0;
+    for(const c of chunks){ out.set(c, off); off += c.length; }
+    data = out;
+  }
+  return new TextDecoder().decode(data);
+}
+async function loadFounderData(email, pass){
+  const res = await fetch(FOUNDER_ENC_URL);
+  if (!res.ok) throw new Error('founder_data.enc fetch failed (' + res.status + ')');
+  const env = await res.json();
+  const key = await deriveFounderKey(String(email).trim().toLowerCase() + ':' + String(pass).trim(), env.s);
+  const text = await decryptFounderEnvelope(env, key);
+  window.FOUNDER_DATA = JSON.parse(text);
+  return window.FOUNDER_DATA;
+}
+function mergeFounderDataIntoTicker(d){
+  if (!d || !d.ticker) return d;
+  const fd = window.FOUNDER_DATA;
+  if (!fd) return d;
+  const key = String(d.ticker).toUpperCase().replace(/\.(NS|BO)$/i,'');
+  const e = fd[key];
+  if (!e) return d;
+  if (e.points) d.points = e.points;
+  if (e.score) d.score = e.score;
+  if (e.quality_score) d.quality_score = e.quality_score;
+  if (e.when_to_sell) { d.when_to_sell = e.when_to_sell; d.sovereign_bench = e.when_to_sell; }
+  if (e.statement) d.statement = e.statement;
+  if (e.classifications) d.classifications = e.classifications;
+  if (e.meta) d.meta = Object.assign({}, d.meta || {}, e.meta);
+  if (e.fear_greed) d.fear_greed = e.fear_greed;
+  if (e.price_series) d.price_series = e.price_series;
+  if (e.company) d.company = e.company;
+  if (e.market) d.market = e.market;
+  if (e.currency) d.currency = e.currency;
+  if (e.current_price !== undefined) d.current_price = e.current_price;
+  if (e.years) d.years = e.years;
+  return d;
+}
+async function ensureFounderData(){
+  if (window.FOUNDER_DATA) return;
+  if (!isAdminUser()) return;
+  const email = state.user && state.user.email;
+  let pass = null;
+  try { pass = sessionStorage.getItem(FOUNDER_PASS_KEY) || localStorage.getItem(FOUNDER_PASS_KEY); } catch(e){}
+  if (email && pass) {
+    try { await loadFounderData(email, pass); } catch (err) { console.error('founder data restore failed:', err); }
+  }
+}
 async function refreshAuth() {
   // Try Flask
   try {
@@ -117,6 +187,9 @@ async function refreshAuth() {
   } catch (e) { state.user = null; }
   updateAuthUI();
   updateFounderBtn();
+  if (state.user && state.user.is_admin) {
+    ensureFounderData().then(() => { if (state.currentData) renderAll(state.currentData); });
+  }
 }
 function updateAuthUI() {
   const btn = $("signInBtn") || $("navAuthBtn");
@@ -181,6 +254,10 @@ async function postAuth(path, body) {
     }
   } catch (e) {}
   if (_isAdmin) {
+    try {
+      await loadFounderData(emailClean, passClean);
+      try { sessionStorage.setItem(FOUNDER_PASS_KEY, passClean); localStorage.setItem(FOUNDER_PASS_KEY, passClean); } catch(e){}
+    } catch (err) { console.error('founder data load failed:', err); }
     const adminUser = { email: body.email, name: "Founder Admin", is_admin: true, access_granted: true };
     saveUser(adminUser);
     closeModal("authModal");
@@ -964,6 +1041,9 @@ function renderAreaChart(d, tf) {
 // ---------- Render all ----------
 function renderAll(d) {
   state.selectedTicker = d.ticker || state.selectedTicker;
+  if (isAdminUser() && window.FOUNDER_DATA) {
+    d = mergeFounderDataIntoTicker(d);
+  }
   state.currentData = d;
   renderHero(d);
   renderOverview(d);
@@ -1244,6 +1324,13 @@ function renderReport(d) {
               s.table.rows.forEach(row => { html += "<tr>" + row.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>"; });
               html += "</tbody></table>";
             }
+          } else if (isCh10 && admin && d.points && d.points.length) {
+            html += "<table class='report-table'><thead><tr><th>Point</th><th>Title</th><th>Passed</th></tr></thead><tbody>";
+            d.points.forEach(function(p){
+              var passed = (p && (p.verdict === "YES" || p.score === 1)) ? "YES" : "NO";
+              html += "<tr><td>" + esc(p && p.num) + "</td><td>" + esc(p && p.title) + "</td><td>" + esc(passed) + "</td></tr>";
+            });
+            html += "</tbody></table>";
           } else if (isCh10) {
             // Render compact risk register as cards (no <tr>) to keep ch10 focused on the quality audit.
             html += "<div class='risk-register'>";
@@ -1568,6 +1655,7 @@ async function init() {
   const showcase = state.market === "INDIA" ? "ITC" : "AAPL";
   loadTickerData(showcase);
   refreshAuth();
+  ensureFounderData().then(() => { if (state.currentData) renderAll(state.currentData); });
 }
 document.addEventListener("DOMContentLoaded", init);
 
@@ -1585,4 +1673,5 @@ setInterval(() => {
 
 // Expose
 window.loadTickerData = loadTickerData;
+window.renderAll = renderAll;
 window.state = state;
