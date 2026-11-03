@@ -14,7 +14,63 @@ const state = {
   currentView: "overview",
   chartFilter: "all",
   currentData: null,
+  stocksData: null,
 };
+
+// Stocks data fallback for GitHub Pages (no Flask /api/analyze endpoint)
+// Lazy-loads stocks_data.json once and serves /api/analyse, /api/analyze, /api/search, /api/samples
+// from it so any ticker (vogl, itchotels, itc, ...) works instantly on static hosting.
+let _stocksDataLoaded = false;
+async function _loadStocksData() {
+  if (_stocksDataLoaded) return state.stocksData;
+  _stocksDataLoaded = true;
+  try {
+    const r = await fetch('./stocks_data.json');
+    if (r.ok) state.stocksData = await r.json();
+  } catch (e) { /* ignore — static host may not have stocks_data.json */ }
+  return state.stocksData;
+}
+function _stocksKey(t) { return String(t || '').toUpperCase().replace(/\.(NS|BO)$/i, ''); }
+
+// Rock-solid fetch interceptor: serve /api/analyse, /api/analyze, /api/search, /api/samples
+// from stocks_data.json so any ticker works on GitHub Pages without a backend.
+(function installStocksFetchInterceptor() {
+  const orig = window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    try {
+      const url = typeof input === 'string' ? input : (input && input.url);
+      if (!url) return orig(input, init);
+      const isApi = /^\/api\/(analyse|analyze|search|samples)(\?|#|$)/i.test(url) || /[?&](symbol|sym|ticker|q)=/i.test(url);
+      if (!isApi) return orig(input, init);
+      return (async () => {
+        let s = null;
+        try {
+          const u = new URL(url, location.href);
+          s = u.searchParams.get('symbol') || u.searchParams.get('sym') || u.searchParams.get('ticker') || u.searchParams.get('q');
+          if (!s) {
+            const parts = url.split('/').filter(Boolean);
+            const last = parts[parts.length - 1];
+            if (last && !['analyse', 'analyze', 'search', 'samples', 'companies', 'personal'].includes(last)) s = last;
+          }
+        } catch (e) {}
+        if (!s && init && init.body) {
+          try { const j = JSON.parse(init.body); s = j.symbol || j.sym || j.ticker || j.q; } catch (e) {}
+        }
+        const data = await _loadStocksData();
+        const key = s ? _stocksKey(s) : null;
+        if (key && data && data[key]) {
+          return new Response(JSON.stringify(data[key]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+        if (url.indexOf('/api/search') !== -1 && data && s) {
+          const q = s.toLowerCase();
+          const res = Object.keys(data || {}).filter(k => k.toLowerCase().includes(q) || (((data || {})[k] || {}).name || '').toLowerCase().includes(q)).map(k => ({ symbol: k, name: (data || {})[k].name || k }));
+          return new Response(JSON.stringify({ query: s, results: res }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+      })();
+    } catch (e) {}
+    return orig(input, init);
+  };
+})();
 
 const $ = (id) => document.getElementById(id);
 function svgEl(tag) { return document.createElementNS("http://www.w3.org/2000/svg", tag); }
@@ -1562,6 +1618,7 @@ function renderQuickPicks() {
 // Init
 async function init() {
   await ensureIndex();
+  await _loadStocksData();
   initScoreRing();
   initSpeedo();
   renderQuickPicks();
