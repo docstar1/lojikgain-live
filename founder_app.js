@@ -59,6 +59,7 @@
     set('scCompany', meta.company || d.company || '—');
     set('scTicker', meta.ticker || d.ticker || '—');
     set('scMarket', meta.market || d.market || '—');
+    try { console.log('[FOUNDER_APP] renderScorecard: scCompany=' + (meta.company || d.company || '—') + ' scTicker=' + (meta.ticker || d.ticker || '—') + ' meta.company=' + meta.company + ' d.company=' + d.company); } catch (e) {}
     var sectorBits = [];
     if (meta.sector) sectorBits.push(meta.sector);
     if (meta.industry) sectorBits.push(meta.industry);
@@ -283,6 +284,7 @@
       alert('No data for ticker: ' + ticker);
       return;
     }
+    try { console.log('[FOUNDER_APP] analyse: ticker=' + ticker + ' entry.company=' + (entry && entry.company) + ' entry.meta=' + !!(entry && entry.meta)); } catch (e) {}
     window.render(entry);
   };
 
