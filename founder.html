@@ -96,43 +96,6 @@ document.getElementById('unlockBtn').addEventListener('click', async () => {
     const dkey = await deriveKey(email + ':' + pass, dsalt);
     const dataText = await decryptWithKey(dataEnv, dkey);
     window.FOUNDER_DATA = JSON.parse(dataText);
-    // ---- Rock-solid fetch interceptor: serve /api/analyse, /api/analyze, /api/search, /api/samples
-    // ---- from window.FOUNDER_DATA so the founder dashboard never hits the network (GitHub Pages has no Flask).
-    (function installFounderFetchInterceptor() {
-      const orig = window.fetch.bind(window);
-      window.fetch = function (input, init) {
-        try {
-          const url = typeof input === 'string' ? input : (input && input.url);
-          if (!url) return orig(input, init);
-          const isApi = /(\/api\/((personal\/)?(analyse|analyze)|search|samples))(\?|#|$)/i.test(url) || /[?&](symbol|sym|ticker|q)=/i.test(url);
-          if (!isApi) return orig(input, init);
-          let s = null;
-          try {
-            const u = new URL(url, location.href);
-            s = u.searchParams.get('symbol') || u.searchParams.get('sym') || u.searchParams.get('ticker') || u.searchParams.get('q');
-            if (!s) {
-              const parts = u.pathname.split('/').filter(Boolean);
-              const last = parts[parts.length - 1];
-              if (last && !['analyse', 'analyze', 'search', 'samples', 'companies', 'personal'].includes(last)) s = last;
-            }
-          } catch (e) {}
-          if (!s && init && init.body) {
-            try { const j = JSON.parse(init.body); s = j.symbol || j.sym || j.ticker || j.q; } catch (e) {}
-          }
-          const key = s ? String(s).toUpperCase().replace(/\.(NS|BO)$/i, '') : null;
-          const data = window.FOUNDER_DATA || {};
-          if (key && data[key]) {
-            return Promise.resolve(new Response(JSON.stringify(data[key]), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-          }
-          if (url.indexOf('/api/search') !== -1 && s) {
-            const q = s.toLowerCase();
-            const res = Object.keys(data || {}).filter(k => k.toLowerCase().includes(q) || (((data || {})[k] || {}).name || '').toLowerCase().includes(q)).map(k => ({ symbol: k, name: (data || {})[k].name || k }));
-            return Promise.resolve(new Response(JSON.stringify({ query: s, results: res }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-          }
-        } catch (e) {}
-        return orig(input, init);
-      };
-    })();
   } catch (e) {
     err.textContent = 'Invalid credentials - AES-256 vault locked';
     err.style.display = 'block';
@@ -204,6 +167,51 @@ document.getElementById('unlockBtn').addEventListener('click', async () => {
       ns.textContent = s.textContent;
       document.body.appendChild(ns);
     }
+
+    // 9. Re-install the rock-solid fetch interceptor LAST, so any inline-script
+    //    override of window.fetch (e.g. the old bundle interceptor that fetched
+    //    ./founder_data.json which 404s on GitHub Pages) is replaced by this one.
+    (function installFounderFetchInterceptor() {
+      const orig = window.fetch.bind(window);
+      window.fetch = function (input, init) {
+        try {
+          const url = typeof input === 'string' ? input : (input && input.url);
+          if (!url) return orig(input, init);
+          const isApi = /(\/api\/((personal\/)?(analyse|analyze)|search|samples))(\?|#|$)/i.test(url) || /[?&](symbol|sym|ticker|q)=/i.test(url);
+          if (!isApi) return orig(input, init);
+          let s = null;
+          try {
+            const u = new URL(url, location.href);
+            s = u.searchParams.get('symbol') || u.searchParams.get('sym') || u.searchParams.get('ticker') || u.searchParams.get('q');
+            if (!s) {
+              const parts = u.pathname.split('/').filter(Boolean);
+              const last = parts[parts.length - 1];
+              if (last && !['analyse', 'analyze', 'search', 'samples', 'companies', 'personal'].includes(last)) s = last;
+            }
+          } catch (e) {}
+          if (!s && init && init.body) {
+            try { const j = JSON.parse(init.body); s = j.symbol || j.sym || j.ticker || j.q; } catch (e) {}
+          }
+          const key = s ? String(s).toUpperCase().replace(/\.(NS|BO)$/i, '') : null;
+          const data = window.FOUNDER_DATA || {};
+          if (key && data[key]) {
+            return Promise.resolve(new Response(JSON.stringify(data[key]), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+          }
+          // /api/samples with no q: return all tickers
+          if (url.indexOf('/api/samples') !== -1 && !s) {
+            const list = Object.keys(data || {}).map(k => ({ symbol: k, name: (data || {})[k].name || k }));
+            return Promise.resolve(new Response(JSON.stringify(list), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+          }
+          // /api/search: return matching results
+          if (url.indexOf('/api/search') !== -1 && s) {
+            const q = s.toLowerCase();
+            const res = Object.keys(data || {}).filter(k => k.toLowerCase().includes(q) || (((data || {})[k] || {}).name || '').toLowerCase().includes(q)).map(k => ({ symbol: k, name: (data || {})[k].name || k }));
+            return Promise.resolve(new Response(JSON.stringify({ query: s, results: res }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+          }
+        } catch (e) {}
+        return orig(input, init);
+      };
+    })();
   } catch (e) {
     err.textContent = 'Vault unlocked but content failed to render';
     err.style.display = 'block';
