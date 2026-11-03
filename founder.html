@@ -62,12 +62,16 @@ async function decryptWithKey(env, key) {
 function getUrlParam(name) {
   try { return new URLSearchParams(window.location.search).get(name); } catch { return null; }
 }
-// Auto-fill credentials from URL params (?email=...&pass=...) when present.
+// Auto-fill credentials from URL params (?email=?e=&pass=?password=...) when present.
 (function autofill() {
-  const email = getUrlParam('email');
-  const pass = getUrlParam('pass');
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get('e') || params.get('email');
+  const p = params.get('password') || params.get('pass');
   if (email) document.getElementById('email').value = email;
-  if (pass) document.getElementById('password').value = pass;
+  if (p) document.getElementById('password').value = p;
+  if (email && p) {
+    setTimeout(() => document.getElementById('unlockBtn').click(), 0);
+  }
 })();
 document.getElementById('unlockBtn').addEventListener('click', async () => {
   const err = document.getElementById('err');
