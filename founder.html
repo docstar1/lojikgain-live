@@ -104,11 +104,60 @@ document.getElementById('unlockBtn').addEventListener('click', async () => {
   }
   // ---- POST-UNLOCK DOM / script execution: errors here are NOT credential errors ----
   try {
-    content.innerHTML = bundleText;
+    // Build a scratch DOM so we can lift <style>/<link rel="stylesheet"> into
+    // document.head. Assigning bundleText to content.innerHTML drops <head>,
+    // <style> and <link rel="stylesheet">, which left the dashboard unstyled
+    // (black background, raw HTML buttons).
+    const scratch = document.createElement('div');
+    scratch.innerHTML = bundleText;
+
+    // 1. Lift every <style> and <link rel="stylesheet"> into <head> so the
+    //    Founder Dashboard renders with full CSS styling.
+    scratch.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => {
+      document.head.appendChild(el);
+    });
+
+    // 2. Inject the dashboard stylesheet (the bundle carries no <head>/<link>).
+    const styleLink = document.createElement('link');
+    styleLink.rel = 'stylesheet';
+    styleLink.href = './founder_style.css?v=12';
+    document.head.appendChild(styleLink);
+
+    // 3. Remove the redundant inner "Admin Login" modal — the user just unlocked
+    //    the AES-256 Vault with dr.timothysuraj@gmail.com / Loginme1, so no
+    //    second login is required.
+    const gate = scratch.querySelector('#adminGateOverlay');
+    if (gate) gate.remove();
+
+    // 4. Mark admin as unlocked in localStorage so any admin gate is satisfied
+    //    without a second login.
+    localStorage.setItem('lojikgain_admin', '1');
+    localStorage.setItem('is_admin', 'true');
+    localStorage.setItem('admin_email', email);
+    localStorage.setItem('admin_unlocked_at', String(Date.now()));
+    try {
+      localStorage.setItem('lojik_user', JSON.stringify({ is_admin: true, email }));
+    } catch (e) { /* ignore */ }
+
+    // 5. Extract <script> tags before rendering (innerHTML never executes them).
+    const externalScripts = scratch.querySelectorAll('script[src]');
+    const inlineScripts = scratch.querySelectorAll('script:not([src])');
+    scratch.querySelectorAll('script').forEach(s => s.remove());
+
+    // 6. Render the cleaned bundle (styles are now in <head>; gate is gone).
+    content.innerHTML = scratch.innerHTML;
     vault.style.display = 'none';
     content.style.display = 'block';
-    const scripts = content.querySelectorAll('script');
-    scripts.forEach(s => {
+
+    // 7. Load external scripts (chart.js CDN, founder_app.js).
+    externalScripts.forEach(s => {
+      const ns = document.createElement('script');
+      ns.src = s.src;
+      document.head.appendChild(ns);
+    });
+
+    // 8. Re-execute inline scripts now that the DOM is rendered.
+    inlineScripts.forEach(s => {
       const ns = document.createElement('script');
       ns.textContent = s.textContent;
       document.body.appendChild(ns);
