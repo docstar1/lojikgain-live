@@ -75,3 +75,21 @@
    - Sentences computed from the stored data are prefixed "Read on this company's series:" so book wording and site computation never blur. Computed tables and all values are unchanged. The FA scissors-effect pages are image-only in the PDF, so that section cites the section title (FA p.2) instead of quoting body text.
    - Cache bumped to v=20261107.
 3. Verified in-browser (headless Chromium, admin session): TCS and HDFCBANK render 23 point cards + scorecard + computation with zero page errors; normal-user mode shows none of the new material; all 13 verbatim quote tokens render in Analysis Notes.
+
+## Update 4 - Where everything lives + vault-only admin + statement charts (2026-11-05)
+
+### Where each addition sits in the app
+1. Fraud analytics: "Fraud Radar" sub-tab inside the Financial Statements view (Update 2). Ten fraud-pattern readings computed from the loaded statements, each with its explanation line. Visible to admin; the page as shipped shows it inside the admin-gated area.
+2. Extra book points (Buffettology): the admin "Forensic & Points" panel. The 23-point scorecard card and the Computation card render above the point cards, verbatim from the founder vault, labelled with your realm/classification words. Nothing was reworded.
+3. Financial Analysis presentation: "Analysis Notes" panel inside Financial Statements. Verbatim quotes from Financial Analysis and Bertoneche/Knight with page cites (FA p.27, 28, 29, 35, 51, 71-72; BK p.100, 102-103, 138), and any sentence computed on the company's series is prefixed "Read on this company's series:" so book text and computed text never blur. The scissors pages in the PDF are image-only, so they are cited by section title only.
+4. NEW: Visual Analytics now ends with four statement-analysis charts built from the stored series, each followed by a legend card quoting the book line it reads through:
+   - Scissors effect (revenue growth vs net margin vs EPS growth)
+   - Working capital reading (current and quick ratio)
+   - Capital expenditure intensity (capex % of revenue)
+   - Leverage read (ROE vs ROCE, FA pp.71-72 group framework)
+   They render with the same card style as the 23 charts and are grouped under the Financials filter.
+
+### Vault-only change (important)
+- data/founder_points.json (plaintext admin points on the server) is REMOVED. That was a leak risk on a public repo and it is gone from the tree and history path forward.
+- The admin panel reads only the encrypted founder vault again, exactly as you originally set up: unlock with your passphrase, decryption happens in the browser, points/score/computation merge into the view. Nothing proprietary sits unencrypted on the server. Tested: admin unlock renders all 23 points + scorecard + computation; user mode still shows nothing.
+- Cache version bumped to v=20261109.
