@@ -263,7 +263,10 @@ function purgeStaleAuthStorage() {
 function isAdminEmail(email) {
   return ["dr.timothysuraj@gmail.com", "admin@lojikgain.com"].includes(String(email).toLowerCase());
 }
-function isAdminUser() { return Boolean(state.user && (state.user.is_admin || isAdminEmail(state.user.email))); }
+// Admin gate: requires an authenticated user object flagged is_admin === true.
+// refreshAuth() already purges any stored session lacking auth_v === AUTH_VERSION,
+// so an email match alone is never sufficient here.
+function isAdminUser() { return Boolean(state.user && state.user.is_admin === true); }
 
 // ---------- Founder data vault (AES-256-GCM, password = email:pass) ----------
 const FOUNDER_ENC_URL = './founder_data.enc?v=20261104_v15';
@@ -1354,9 +1357,11 @@ function renderOverview(d) {
   const fs = $("forensicSummary"); if (fs) fs.textContent = `${fa.clean_count || 0} / ${fa.total || 17} PASS · ${fa.watch_count || 0} WATCH · ${fa.flag_count || 0} FLAG — ${fa.verdict_label || ""}`;
   const _e2 = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
   const _t2 = (d.quality_score && d.quality_score.total) || 23;
+  const _adm2 = isAdminUser();
   let _b2 = "Fair Value Band";
-  if (_e2 >= 17) _b2 = "High Consistency • " + _e2 + "/" + _t2;
-  else if (_e2 >= 12) _b2 = "Moderate Consistency • " + _e2 + "/" + _t2;
+  if (_e2 >= 17) _b2 = _adm2 ? ("High Consistency • " + _e2 + "/" + _t2) : "High Consistency Tier";
+  else if (_e2 >= 12) _b2 = _adm2 ? ("Moderate Consistency • " + _e2 + "/" + _t2) : "Moderate Consistency Tier";
+  else _b2 = _adm2 ? ("Developing Consistency • " + _e2 + "/" + _t2) : "Developing Consistency Tier";
   const _hvv = $("hvVerdict"); if (_hvv) _hvv.textContent = _b2;
 }
 
