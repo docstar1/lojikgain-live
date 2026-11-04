@@ -315,6 +315,7 @@ function mergeFounderDataIntoTicker(d){
   if (e.quality_score) clone.quality_score = e.quality_score;
   if (e.when_to_sell) { clone.when_to_sell = e.when_to_sell; clone.sovereign_bench = e.when_to_sell; }
   if (e.statement) clone.statement = e.statement;
+  if (e.computation) clone.computation = e.computation;
   if (e.classifications) clone.classifications = e.classifications;
   if (e.meta) clone.meta = Object.assign({}, clone.meta || {}, e.meta);
   if (e.fear_greed) clone.fear_greed = e.fear_greed;
@@ -1663,34 +1664,14 @@ function renderForensic(d) {
       container.appendChild(div);
     });
   }
-  // LojikX points
-  let pts = d.points || [];
-  if (!pts.length && isAdminUser()) {
-    const fp = window.__FOUNDER_POINTS || null;
-    if (!fp && !window.__FOUNDER_POINTS_FETCHING) {
-      window.__FOUNDER_POINTS_FETCHING = true;
-      fetch("data/founder_points.json").then(r => r.ok ? r.json() : null).then(j => {
-        window.__FOUNDER_POINTS = j || {};
-        window.__FOUNDER_POINTS_FETCHING = false;
-        if (j && j[String(d.ticker || "").toUpperCase()]) renderForensic(d);
-      }).catch(() => { window.__FOUNDER_POINTS_FETCHING = false; });
-    } else if (fp) {
-      const fe = fp[String(d.ticker || "").toUpperCase()];
-      if (fe) {
-        d.points = fe.points || [];
-        d.founder_score = fe.score || null;
-        d.founder_computation = fe.computation || null;
-        d.founder_classifications = fe.classifications || null;
-        pts = d.points;
-      }
-    }
-  }
+  // LojikX points (from the founder vault after admin unlock)
+  const pts = d.points || [];
   const bp = $("lojikxQualityBox");
   if (bp) {
     bp.innerHTML = "";
     const admin = isAdminUser();
     if (admin) {
-      const fsc = d.founder_score;
+      const fsc = d.score;
       if (fsc) {
         const head = document.createElement("div");
         head.className = "point-card";
@@ -1702,7 +1683,7 @@ function renderForensic(d) {
           <div class="point-calc" style="white-space:normal">${esc((bd.passed && bd.passed.length) ? "passed: " + bd.passed.join(", ") : "")}${(bd.failed && bd.failed.length) ? " · failed: " + esc(bd.failed.join(", ")) : ""}</div>`;
         bp.appendChild(head);
       }
-      const fcomp = d.founder_computation;
+      const fcomp = d.computation;
       if (fcomp) {
         const cc = document.createElement("div");
         cc.className = "point-card";
