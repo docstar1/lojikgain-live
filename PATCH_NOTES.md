@@ -102,3 +102,11 @@
 - admin_module.js (the plaintext source of the module) is NOT part of the public repo; it lives in the private repo.
 - Public repo gets a clean copy: no build scripts, no tools, no PATCH_NOTES, no audit file, and the vault comment no longer hints at the passphrase format.
 - Homepage quick picks now include NIFTY 50 (first) and S&P 500 (last); both verified loading.
+## Update 6 (2026-11-05): Full Statements view (screener.in format)
+
+- New tool `tools/build_statement_full.py TICKER...`: fetches the screener.in consolidated page and stores a `statement_full` block (Profit & Loss, Quarters, Balance Sheet, Cash Flow, Ratios, Shareholding with period labels) in `data/tickers/<T>.json`.
+- Generated for ITC and HDFCBANK; static/data synced; ITC payload in public_index.json refreshed (the app reads the embedded payload first).
+- Financials tab: new first sub-tab "Full Statements" (`fsPanelSV`) renders the screener-style tables verbatim (periods as columns, TTM included); becomes the default sub-tab when a ticker has `statement_full`.
+- Tickertape reference recorded (Income / Balance Sheet / Cash Flow tabs, quarterly dropdown, rows Total Revenue, EBITDA, PBDT, PBT, Net Income, EPS); screener format chosen as primary because it matches the founder's xlsx template exactly.
+- Browser re-verification could not run this session (sandbox missing libatk, no root); verify locally: open a ticker, Financials tab, "Full Statements".
+- Cache bumped to `app.js?v=20261105_sv1`. Commit `1e3dfdb`.

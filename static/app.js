@@ -1939,7 +1939,7 @@ try{if(typeof window!==undefined&&typeof openModal!==undefined){window.openModal
 // ================= Financial Statements view (screener-style) =================
 // Two-layer: top-level tab + sub-tabs (P&L, Balance Sheet, Cash Flows, Analysis, Competitors, Sector KPIs).
 // Data comes entirely from each ticker's JSON (hev.forecasts, balance_sheet_summary, settings.competitors).
-let FS_STATE = { sub: "pl" };
+let FS_STATE = { sub: "" };
 
 function fsCAGR(a) {
   if (!a || !a.length) return null;
@@ -1973,6 +1973,59 @@ function fsStrip(cells) {
   let html = `<div class="fs-strip">`;
   cells.forEach(c => { html += `<div class="cell"><div class="fs-cell-label">${esc(c[0])}</div><div class="fs-cell-val">${c[1]}</div></div>`; });
   html += `</div>`;
+  return html;
+}
+
+function fsCleanLabel(s) {
+  return String(s || "").replace(/\u00a0\+/g, "").replace(/\s+/g, " ").trim();
+}
+
+function fsScreenerTable(title, block, opts) {
+  opts = opts || {};
+  if (!block) return "";
+  const keys = Object.keys(block);
+  if (!keys.length) return "";
+  const periods = (block[keys[0]] && block[keys[0]].periods) || [];
+  let html = `<div class="fs-sv-block"><div class="lojikx-prose-title">${esc(title)}</div>`;
+  html += `<table class="report-table fs-table"><thead><tr><th>Line item</th>`;
+  periods.forEach(p => { html += `<th>${esc(p || "")}</th>`; });
+  html += `</tr></thead><tbody>`;
+  keys.forEach(k => {
+    const row = block[k] || {};
+    const vals = row.values || [];
+    html += `<tr><td class="fs-row-label">${esc(fsCleanLabel(k))}</td>`;
+    for (let i = 0; i < periods.length; i++) {
+      const raw = vals[i];
+      const txt = (raw === null || raw === undefined) ? "" : fsNum(raw, opts.dec !== undefined ? opts.dec : (/%$/.test(fsCleanLabel(k)) ? 1 : (/\d+\.\d+/.test(String(raw)) ? 2 : 0)));
+      html += `<td>${txt}</td>`;
+    }
+    html += `</tr>`;
+  });
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+function fsPanelSV(d) {
+  const sf = d.statement_full;
+  if (!sf) return `<div class="fs-note">Full screener-style statements are not stored for this company yet. Run <code>tools/build_statement_full.py TICKER</code> to add them.</div>`;
+  const pl = sf["profit-loss"] || {}, q = sf["quarters"] || {}, bs = sf["balance-sheet"] || {},
+        cf = sf["cash-flow"] || {}, ra = sf["ratios"] || {}, sh = sf["shareholding"] || {};
+  let html = `<div class="fs-note">Full statements as published on screener.in${sf.consolidated ? " (consolidated)" : " (standalone)"}, fetched ${esc(sf.fetched_at || d.statement_full_generated_at || "")}. Figures in ${esc(d.currency || "")} crore unless marked %.</div>`;
+  html += fsScreenerTable("Profit &amp; Loss", pl);
+  html += fsScreenerTable("Quarters", q);
+  html += fsScreenerTable("Balance Sheet", bs);
+  html += fsScreenerTable("Cash Flow", cf);
+  html += fsScreenerTable("Ratios", ra);
+  if (sh.yearly && sh.yearly.rows) {
+    const blk = {};
+    (sh.yearly.rows || []).forEach(r => { blk[r.label] = { periods: sh.yearly.periods || [], values: r.values }; });
+    html += fsScreenerTable("Shareholding (yearly %)", blk, { dec: 2 });
+  }
+  if (sh.quarterly_pattern && sh.quarterly_pattern.rows) {
+    const blk = {};
+    (sh.quarterly_pattern.rows || []).forEach(r => { blk[r.label] = { periods: sh.quarterly_pattern.periods || [], values: r.values }; });
+    html += fsScreenerTable("Shareholding (quarterly %)", blk, { dec: 2 });
+  }
   return html;
 }
 
@@ -2258,6 +2311,7 @@ function fsPanelKPI(d) {
 }
 
 function fsPanel(sub, d) {
+  if (sub === "sv") return fsPanelSV(d);
   if (sub === "pl") return fsPanelPL(d);
   if (sub === "bs") return fsPanelBS(d);
   if (sub === "cf") return fsPanelCF(d);
@@ -2272,7 +2326,8 @@ function renderFinancials(d) {
   const box = $("view-financials");
   if (!box) return;
   const hev = d.hev || {}, set = hev.settings || {};
-  const subs = [["pl", "Profit & Loss"], ["bs", "Balance Sheet"], ["cf", "Cash Flows"], ["an", "Analysis Notes"], ["pe", "Competitors"], ["fr", "Fraud Radar"], ["kpi", "Sector KPIs"]];
+  if (!FS_STATE.sub) FS_STATE.sub = d.statement_full ? "sv" : "pl";
+  const subs = [["sv", "Full Statements"], ["pl", "Profit & Loss"], ["bs", "Balance Sheet"], ["cf", "Cash Flows"], ["an", "Analysis Notes"], ["pe", "Competitors"], ["fr", "Fraud Radar"], ["kpi", "Sector KPIs"]];
   box.innerHTML = "";
   const wrap = document.createElement("div");
   wrap.className = "card glass";
