@@ -93,3 +93,12 @@
 - data/founder_points.json (plaintext admin points on the server) is REMOVED. That was a leak risk on a public repo and it is gone from the tree and history path forward.
 - The admin panel reads only the encrypted founder vault again, exactly as you originally set up: unlock with your passphrase, decryption happens in the browser, points/score/computation merge into the view. Nothing proprietary sits unencrypted on the server. Tested: admin unlock renders all 23 points + scorecard + computation; user mode still shows nothing.
 - Cache version bumped to v=20261109.
+
+## Update 5 - Computation moved behind the founder vault + two-repo split (2026-11-05)
+
+- Fraud Radar (Beneish M-Score components + Benford digit audit) and the four statement-analysis charts with their book-grounded legends now live ONLY in the encrypted admin module (admin_code.enc). The public bundle ships none of that computation.
+- After founder unlock, the module is decrypted in the browser and the panels render as before. Public visitors see an "available to authorised accounts" note in place of the Fraud Radar, and the standard 23 charts without the derived ones.
+- The score, quality band and rating stay public, as agreed.
+- admin_module.js (the plaintext source of the module) is NOT part of the public repo; it lives in the private repo.
+- Public repo gets a clean copy: no build scripts, no tools, no PATCH_NOTES, no audit file, and the vault comment no longer hints at the passphrase format.
+- Homepage quick picks now include NIFTY 50 (first) and S&P 500 (last); both verified loading.
