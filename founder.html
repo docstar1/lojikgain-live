@@ -4,42 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LojikGain — Founder's Edition (Institutional Research)</title>
-  <link rel="stylesheet" href="./static/style.css?v=20261103_v14" />
+  <link rel="stylesheet" href="./static/style.css?v=20261104_v15" />
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <!-- Data bundles: GitHub Pages (./data/...) -->
   <script src="./static/data/public_index.js" onerror="this.remove()"></script>
   <script src="./data/public_index.js" onerror="this.remove()"></script>
 
-  <!--
-    Founder's Edition: pre-unlock as Admin (dr.timothysuraj@gmail.com / Loginme1),
-    decrypt founder_data.enc in-browser via WebCrypto (AES-256-GCM, PBKDF2,
-    password = email + ':' + pass), cache window.FOUNDER_DATA, then bootstrap
-    the modern LojikGain UI (index.html + static/style.css + static/app.js)
-    with admin rendering already active.
-  -->
   <script>
     (function founderUnlock() {
       'use strict';
-      const EMAIL = 'dr.timothysuraj@gmail.com';
-      const PASS = 'Loginme1';
-      const FOUNDER_ENC_URL = './founder_data.enc?v=20261103_v14';
+      const FOUNDER_ENC_URL = './founder_data.enc?v=20261104_v15';
       const PBKDF2_ITER = 100000;
       const PASS_KEY = 'lojik_admin_pass';
-
-      // Mark admin session so app.js refreshAuth() / updateAuthUI() treat this as Admin.
-      try {
-        localStorage.setItem('lojik_public_user', JSON.stringify({
-          email: EMAIL, name: 'Founder Admin', is_admin: true, is_paid: true,
-          access_granted: true, auth_provider: 'email'
-        }));
-        sessionStorage.setItem(PASS_KEY, PASS);
-        localStorage.setItem(PASS_KEY, PASS);
-        sessionStorage.setItem('admin_email', EMAIL);
-        localStorage.setItem('admin_email', EMAIL);
-        localStorage.setItem('is_admin', 'true');
-      } catch (e) { console.warn('founder storage write failed', e); }
+      const AUTH_VERSION = '20261104_v15';
+      const STALE_AUTH_KEYS = ['lojik_public_user', PASS_KEY, 'admin_email', 'is_admin', 'lojikgain_admin', 'lojik_user'];
+      const ADMIN_DIGEST = "55ee36c32e73eab55b966e6879a07eae45962a44547fe5ae73a844680ac102ff";
 
       function b64u(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
+      async function sha256Hex(msg){
+        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
+        return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+      }
       function deriveKey(password, saltB64) {
         const enc = new TextEncoder();
         const salt = b64u(saltB64);
@@ -84,37 +69,105 @@
         });
       }
 
-      function loadFounderData() {
-        return fetch(FOUNDER_ENC_URL).then(function (res) {
-          if (!res.ok) throw new Error('founder_data.enc fetch failed (' + res.status + ')');
-          return res.json();
-        }).then(function (env) {
-          return deriveKey(EMAIL + ':' + PASS, env.s).then(function (key) {
-            return decryptEnvelope(env, key);
-          }).then(function (text) {
-            window.FOUNDER_DATA = JSON.parse(text);
-            console.log('Founder data loaded, tickers:', Object.keys(window.FOUNDER_DATA || {}).length);
-            // Re-render the current ticker with admin + founder data once app.js is up.
-            (function tryRender() {
-              if (window.loadTickerData) {
-                var t = (window.state && window.state.selectedTicker) || 'ITC';
-                window.loadTickerData(t);
-              } else {
-                setTimeout(tryRender, 50);
-              }
-            })();
+      function clearFounderState() {
+        try {
+          STALE_AUTH_KEYS.forEach(function (k) {
+            try { localStorage.removeItem(k); } catch (e) {}
+            try { sessionStorage.removeItem(k); } catch (e) {}
           });
-        }).catch(function (err) {
-          console.error('founder unlock failed:', err);
-        });
+        } catch(e){}
+        try { delete window.FOUNDER_DATA; window.FOUNDER_DATA = null; } catch(e){}
       }
 
-      loadFounderData();
+      async function tryUnlockFromUrlOrSession() {
+        const params = new URLSearchParams(window.location.search);
+        const qEmail = params.get('email') || params.get('e');
+        const qPass = params.get('password') || params.get('pass');
+        if (qEmail && qPass) {
+          const emailClean = String(qEmail).trim().toLowerCase();
+          const passClean = String(qPass).trim();
+          try {
+            const d = await sha256Hex("lojikx_v1:" + emailClean + ":" + passClean);
+            if (d === ADMIN_DIGEST) {
+              try {
+                const res = await fetch(FOUNDER_ENC_URL);
+                if (res.ok) {
+                  const env = await res.json();
+                  const key = await deriveKey(emailClean + ':' + passClean, env.s);
+                  const text = await decryptEnvelope(env, key);
+                  window.FOUNDER_DATA = JSON.parse(text);
+                  try {
+                    localStorage.setItem('lojik_public_user', JSON.stringify({ email: qEmail, name: 'Founder Admin', is_admin: true, is_paid: true, access_granted: true, auth_provider: 'email', auth_v: AUTH_VERSION }));
+                    sessionStorage.setItem(PASS_KEY, passClean);
+                    localStorage.setItem(PASS_KEY, passClean);
+                    localStorage.setItem('admin_email', qEmail);
+                    localStorage.setItem('is_admin', 'true');
+                  } catch(e){}
+                  if (window.loadTickerData) { try { window.loadTickerData((window.state && window.state.selectedTicker) || 'ITC'); } catch(e){} }
+                  return true;
+                }
+              } catch(err) { console.error('founder url unlock failed', err); }
+            }
+          } catch(err) {}
+        }
+        try {
+          const stored = localStorage.getItem('lojik_public_user');
+          let u = null;
+          try { u = stored ? JSON.parse(stored) : null; } catch(e) { u = null; }
+          // Auto-purge stale v14 sessions (no/invalid auth_v): wipe everything and
+          // force a cleanly signed-out start.
+          if (!u || u.auth_v !== AUTH_VERSION) {
+            clearFounderState();
+            return false;
+          }
+          if (u.is_admin) {
+            const pass = sessionStorage.getItem(PASS_KEY) || localStorage.getItem(PASS_KEY);
+            if (pass) {
+              try {
+                const res = await fetch(FOUNDER_ENC_URL);
+                if (res.ok) {
+                  const env = await res.json();
+                  const key = await deriveKey(String(u.email).trim().toLowerCase() + ':' + String(pass).trim(), env.s);
+                  const text = await decryptEnvelope(env, key);
+                  window.FOUNDER_DATA = JSON.parse(text);
+                  if (window.loadTickerData) { try { window.loadTickerData((window.state && window.state.selectedTicker) || 'ITC'); } catch(e){} }
+                  return true;
+                }
+              } catch(err) {}
+            }
+          }
+        } catch(e){}
+        return false;
+      }
+
+      function startSignedOut() {
+        clearFounderState();
+        try {
+          if (typeof document !== 'undefined') {
+            var badge = document.getElementById('trialBadge');
+            if (badge) badge.textContent = 'Public Access';
+            var sb = document.getElementById('signInBtn');
+            if (sb) { sb.textContent = 'Sign In'; }
+            var pp = document.getElementById('profilePill');
+            if (pp) { pp.style.display = 'none'; }
+            var fb = document.getElementById('founderBtn');
+            if (fb) { fb.style.display = 'none'; }
+          }
+        } catch(e){}
+        try { if (typeof openModal === 'function') { openModal('authModal'); } else if (window.openModal) { window.openModal('authModal'); } } catch(e){}
+      }
+
+      tryUnlockFromUrlOrSession().then(function(ok){
+        if (!ok) {
+          startSignedOut();
+        }
+      });
     })();
   </script>
-  <script src="./static/app.js?v=20261103_v14"></script>
+<script>try{if(typeof openModal!==undefined)window.openModal=openModal;}catch(e){}</script>
 </head>
 <body>
+  
   <div class="aurora" aria-hidden="true"></div>
 
   <nav class="nav">
@@ -191,7 +244,7 @@
           <div class="ring-wrap">
             <svg id="scoreRingSvg" class="jewel-ring" viewBox="0 0 280 280" aria-label="23-segment consistency ring"></svg>
             <div class="ring-center">
-              <div class="ring-score" id="scoreValue">— / 23</div>
+              <div class="ring-score" id="scoreValue">— / 100</div>
               <div class="ring-badge" id="scoreBand">—</div>
             </div>
           </div>
@@ -305,7 +358,7 @@
     <!-- Tab 3: Dashboard -->
     <div class="view" id="view-dashboard" style="display:none">
       <div class="chart-filters" id="chartFilters">
-        <button class="filter-pill active" data-filter="all">All 23 Charts</button>
+        <button class="filter-pill active" data-filter="all">All Charts</button>
         <button class="filter-pill" data-filter="market">Market &amp; Macro (8)</button>
         <button class="filter-pill" data-filter="financials">Financials &amp; 10Y Forecast (6)</button>
         <button class="filter-pill" data-filter="valuation">Valuation &amp; Peers (5)</button>
@@ -361,12 +414,12 @@
     <div class="modal-card glass">
       <button class="modal-close" data-close="authModal">✕</button>
       <h2>Welcome to LojikGain</h2>
-      <p class="auth-subtitle">You are signed in as Founder Admin. Sign out to return to public access.</p>
+      <p class="auth-subtitle">Sign in with your Institutional or Founder Admin credentials.</p>
       <button id="googleBtn" style="display:none">Continue with Google</button>
       <div class="divider" style="display:none">or</div>
-      <input id="authEmail" type="email" placeholder="Email" value="dr.timothysuraj@gmail.com" />
-      <input id="authName" type="text" placeholder="Name (for sign up)" value="Founder Admin" />
-      <input id="authPassword" type="password" placeholder="Password" value="Loginme1" />
+      <input id="authEmail" type="email" placeholder="Email"  />
+      <input id="authName" type="text" placeholder="Name (for sign up)"  />
+      <input id="authPassword" type="password" placeholder="Password"  />
       <div class="auth-actions">
         <button id="loginBtn">Log In</button>
         <button id="registerBtn">Sign Up</button>
@@ -388,5 +441,6 @@
       <div id="upiMsg" class="msg"></div>
     </div>
   </div>
+<script src="./static/app.js?v=20261104_v15"></script>
 </body>
 </html>

@@ -14,7 +14,68 @@ const state = {
   currentView: "overview",
   chartFilter: "all",
   currentData: null,
+  stocksData: null,
+  rawPublicData: null,
 };
+
+// Stocks data fallback for GitHub Pages (no Flask /api/analyze endpoint)
+// Lazy-loads stocks_data.json once and serves /api/analyse, /api/analyze, /api/search, /api/samples
+// from it so any ticker (vogl, itchotels, itc, ...) works instantly on static hosting.
+let _stocksDataLoaded = false;
+async function _loadStocksData() {
+  if (_stocksDataLoaded) return state.stocksData;
+  _stocksDataLoaded = true;
+  try {
+    const r = await fetch('./stocks_data.json');
+    if (r.ok) state.stocksData = await r.json();
+  } catch (e) { /* ignore — static host may not have stocks_data.json */ }
+  return state.stocksData;
+}
+function _stocksKey(t) { return String(t || '').toUpperCase().replace(/\.(NS|BO)$/i, ''); }
+
+// Rock-solid fetch interceptor: serve /api/analyse, /api/analyze, /api/search, /api/samples
+// from stocks_data.json so any ticker works on GitHub Pages without a backend.
+(function installStocksFetchInterceptor() {
+  try {
+    if (typeof window === 'undefined') return;
+    const origFetch = (typeof window.fetch === 'function') ? window.fetch.bind(window) : (typeof fetch === 'function' ? fetch.bind(typeof globalThis !== 'undefined' ? globalThis : {}) : null);
+    if (!origFetch) return;
+    window.fetch = function (input, init) {
+    try {
+      const url = typeof input === 'string' ? input : (input && input.url);
+      if (!url) return orig(input, init);
+      const isApi = /^\/api\/((personal\/)?(analyse|analyze)|search|samples)(\?|#|$)/i.test(url) || /[?&](symbol|sym|ticker|q)=/i.test(url);
+      if (!isApi) return orig(input, init);
+      return (async () => {
+        let s = null;
+        try {
+          const u = new URL(url, location.href);
+          s = u.searchParams.get('symbol') || u.searchParams.get('sym') || u.searchParams.get('ticker') || u.searchParams.get('q');
+          if (!s) {
+            const parts = url.split('/').filter(Boolean);
+            const last = parts[parts.length - 1];
+            if (last && !['analyse', 'analyze', 'search', 'samples', 'companies', 'personal'].includes(last)) s = last;
+          }
+        } catch (e) {}
+        if (!s && init && init.body) {
+          try { const j = JSON.parse(init.body); s = j.symbol || j.sym || j.ticker || j.q; } catch (e) {}
+        }
+        const data = await _loadStocksData();
+        const key = s ? _stocksKey(s) : null;
+        if (key && data && data[key]) {
+          return new Response(JSON.stringify(data[key]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+        if (url.indexOf('/api/search') !== -1 && data && s) {
+          const q = s.toLowerCase();
+          const res = Object.keys(data || {}).filter(k => k.toLowerCase().includes(q) || (((data || {})[k] || {}).name || '').toLowerCase().includes(q)).map(k => ({ symbol: k, name: (data || {})[k].name || k }));
+          return new Response(JSON.stringify({ query: s, results: res }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+      })();
+    } catch (e) {}
+    return origFetch ? origFetch(input, init) : Promise.reject(new Error('fetch unavailable'));
+  };
+  } catch (e) {}
+})();
 
 const $ = (id) => document.getElementById(id);
 function svgEl(tag) { return document.createElementNS("http://www.w3.org/2000/svg", tag); }
@@ -39,30 +100,123 @@ function setTheme(theme) {
   const t = $("themeToggle"); if (t) t.textContent = theme === "dark" ? "☀️" : "🌙";
 }
 setTheme(localStorage.getItem("theme") || "dark");
-const tt = $("themeToggle"); if (tt) tt.addEventListener("click", () => {
-  const cur = document.documentElement.getAttribute("data-theme");
-  setTheme(cur === "dark" ? "light" : "dark");
-});
 
 // Market toggle
-const mp = $("marketPill");
-if (mp) mp.addEventListener("click", () => {
-  state.market = state.market === "INDIA" ? "USA" : "INDIA";
-  mp.textContent = state.market === "INDIA" ? "🇮🇳 India NSE" : "🇺🇸 US Market";
-  const showcase = state.market === "INDIA" ? "ITC" : "AAPL";
-  if (!state.user) { loadTickerData(showcase); }
-  else { /* keep current unless none */ if (!state.selectedTicker) loadTickerData(showcase); }
-});
+function wireEventListeners() {
+  const tt = $("themeToggle");
+  if (tt && !tt.dataset.wired) {
+    tt.dataset.wired = "1";
+    tt.addEventListener("click", () => {
+      const cur = document.documentElement.getAttribute("data-theme");
+      setTheme(cur === "dark" ? "light" : "dark");
+    });
+  }
+
+  const mp = $("marketPill");
+  if (mp && !mp.dataset.wired) {
+    mp.dataset.wired = "1";
+    mp.addEventListener("click", () => {
+      state.market = state.market === "INDIA" ? "USA" : "INDIA";
+      mp.textContent = state.market === "INDIA" ? "🇮🇳 India NSE" : "🇺🇸 US Market";
+      const showcase = state.market === "INDIA" ? "ITC" : "AAPL";
+      if (!state.user) { loadTickerData(showcase); }
+      else { if (!state.selectedTicker) loadTickerData(showcase); }
+    });
+  }
+
+  document.querySelectorAll("#workspaceTabs .ws-tab").forEach(btn => {
+    if (btn.dataset.wired) return;
+    btn.dataset.wired = "1";
+    btn.addEventListener("click", () => switchView(btn.dataset.view));
+  });
+
+  const signInBtn = $("signInBtn") || $("navAuthBtn");
+  if (signInBtn && !signInBtn.dataset.wired) {
+    signInBtn.dataset.wired = "1";
+    signInBtn.addEventListener("click", () => {
+      if (state.user) { signOutUser(); if (state.currentData) renderAll(state.currentData); }
+      else { openModal("authModal"); }
+    });
+  }
+
+  const navAuthBtn2 = $("navAuthBtn");
+  if (navAuthBtn2 && navAuthBtn2 !== signInBtn && !navAuthBtn2.dataset.wired) {
+    navAuthBtn2.dataset.wired = "1";
+    navAuthBtn2.addEventListener("click", () => {
+      if (state.user) { signOutUser(); if (state.currentData) renderAll(state.currentData); }
+      else { openModal("authModal"); }
+    });
+  }
+
+  const loginBtn = $("loginBtn");
+  if (loginBtn && !loginBtn.dataset.wired) {
+    loginBtn.dataset.wired = "1";
+    loginBtn.addEventListener("click", async () => {
+      try {
+        await postAuth("/api/auth/login", { email: $("authEmail") ? $("authEmail").value : "", password: $("authPassword") ? $("authPassword").value : "" });
+        const m = $("authMsg"); if (m) m.textContent = "";
+      } catch (e) { const m = $("authMsg"); if (m) m.textContent = e && e.message ? e.message : e; }
+    });
+  }
+  const registerBtn = $("registerBtn");
+  if (registerBtn && !registerBtn.dataset.wired) {
+    registerBtn.dataset.wired = "1";
+    registerBtn.addEventListener("click", async () => {
+      try {
+        await postAuth("/api/auth/register", { email: $("authEmail") ? $("authEmail").value : "", name: $("authName") ? $("authName").value : "", password: $("authPassword") ? $("authPassword").value : "" });
+        const m = $("authMsg"); if (m) m.textContent = "";
+      } catch (e) { const m = $("authMsg"); if (m) m.textContent = e && e.message ? e.message : e; }
+    });
+  }
+  const googleBtn = $("googleBtn");
+  if (googleBtn && !googleBtn.dataset.wired) {
+    googleBtn.dataset.wired = "1";
+    googleBtn.addEventListener("click", async () => {
+      const email = prompt("Enter your Google email:");
+      if (!email) return;
+      const name = prompt("Enter your name:") || email.split("@")[0];
+      try {
+        await postAuth("/api/auth/google", { email, name });
+        const m = $("authMsg"); if (m) m.textContent = "";
+      } catch (e) { const m = $("authMsg"); if (m) m.textContent = e && e.message ? e.message : e; }
+    });
+  }
+  const authSubmitBtn = $("authSubmitBtn");
+  if (authSubmitBtn && !authSubmitBtn.dataset.wired) {
+    authSubmitBtn.dataset.wired = "1";
+    authSubmitBtn.addEventListener("click", async () => {
+      const email = $("authEmail") ? $("authEmail").value : "";
+      const name = $("authName") ? $("authName").value : "";
+      const password = $("authPassword") ? $("authPassword").value : "";
+      const mode = (authSubmitBtn.dataset && authSubmitBtn.dataset.mode) ? authSubmitBtn.dataset.mode : "login";
+      try {
+        await postAuth(mode === "register" ? "/api/auth/register" : "/api/auth/login", { email, name, password });
+      } catch (e) { const m = $("authMsg"); if (m) m.textContent = e && e.message ? e.message : e; }
+    });
+  }
+
+  const printBtn = $("printBtn");
+  if (printBtn && !printBtn.dataset.wired) {
+    printBtn.dataset.wired = "1";
+    printBtn.addEventListener("click", () => window.print());
+  }
+
+  document.querySelectorAll(".modal-close").forEach(b => {
+    if (b.dataset.wired) return;
+    b.dataset.wired = "1";
+    b.addEventListener("click", () => closeModal(b.dataset.close));
+  });
+  document.querySelectorAll(".modal").forEach(m => {
+    if (m.dataset.wired) return;
+    m.dataset.wired = "1";
+    m.addEventListener("click", (e) => { if (e.target === m) closeModal(m.id); });
+  });
+}
 
 // Modal helpers
 function openModal(id) { const m = $(id); if (m) m.classList.add("open"); }
 function closeModal(id) { const m = $(id); if (m) m.classList.remove("open"); }
-document.querySelectorAll(".modal-close").forEach(b => {
-  b.addEventListener("click", () => closeModal(b.dataset.close));
-});
-document.querySelectorAll(".modal").forEach(m => {
-  m.addEventListener("click", (e) => { if (e.target === m) closeModal(m.id); });
-});
+wireEventListeners();
 
 // Data paths
 function dataBases() {
@@ -94,13 +248,25 @@ async function ensureIndex() {
 }
 
 // Auth
+// Session schema version. Any `lojik_public_user` written by an older build
+// (auth_v missing / different) is purged automatically on load.
+const AUTH_VERSION = "20261104_v15";
+const STALE_AUTH_KEYS = ["lojik_public_user", "lojik_admin_pass", "admin_email", "is_admin", "lojikgain_admin", "lojik_user"];
+function purgeStaleAuthStorage() {
+  try {
+    STALE_AUTH_KEYS.forEach(function (k) {
+      try { localStorage.removeItem(k); } catch (e) {}
+      try { sessionStorage.removeItem(k); } catch (e) {}
+    });
+  } catch (e) {}
+}
 function isAdminEmail(email) {
   return ["dr.timothysuraj@gmail.com", "admin@lojikgain.com"].includes(String(email).toLowerCase());
 }
 function isAdminUser() { return Boolean(state.user && (state.user.is_admin || isAdminEmail(state.user.email))); }
 
 // ---------- Founder data vault (AES-256-GCM, password = email:pass) ----------
-const FOUNDER_ENC_URL = './founder_data.enc?v=20261103_v14';
+const FOUNDER_ENC_URL = './founder_data.enc?v=20261104_v15';
 const FOUNDER_PASS_KEY = 'lojik_admin_pass';
 function _b64u(s){ return Uint8Array.from(atob(s), c=>c.charCodeAt(0)); }
 async function deriveFounderKey(password, saltB64){
@@ -139,24 +305,25 @@ function mergeFounderDataIntoTicker(d){
   if (!d || !d.ticker) return d;
   const fd = window.FOUNDER_DATA;
   if (!fd) return d;
-  const key = String(d.ticker).toUpperCase().replace(/\.(NS|BO)$/i,'');
+  const clone = JSON.parse(JSON.stringify(d));
+  const key = String(clone.ticker).toUpperCase().replace(/\.(NS|BO)$/i,'');
   const e = fd[key];
-  if (!e) return d;
-  if (e.points) d.points = e.points;
-  if (e.score) d.score = e.score;
-  if (e.quality_score) d.quality_score = e.quality_score;
-  if (e.when_to_sell) { d.when_to_sell = e.when_to_sell; d.sovereign_bench = e.when_to_sell; }
-  if (e.statement) d.statement = e.statement;
-  if (e.classifications) d.classifications = e.classifications;
-  if (e.meta) d.meta = Object.assign({}, d.meta || {}, e.meta);
-  if (e.fear_greed) d.fear_greed = e.fear_greed;
-  if (e.price_series) d.price_series = e.price_series;
-  if (e.company) d.company = e.company;
-  if (e.market) d.market = e.market;
-  if (e.currency) d.currency = e.currency;
-  if (e.current_price !== undefined) d.current_price = e.current_price;
-  if (e.years) d.years = e.years;
-  return d;
+  if (!e) return clone;
+  if (e.points) clone.points = e.points;
+  if (e.score) clone.score = e.score;
+  if (e.quality_score) clone.quality_score = e.quality_score;
+  if (e.when_to_sell) { clone.when_to_sell = e.when_to_sell; clone.sovereign_bench = e.when_to_sell; }
+  if (e.statement) clone.statement = e.statement;
+  if (e.classifications) clone.classifications = e.classifications;
+  if (e.meta) clone.meta = Object.assign({}, clone.meta || {}, e.meta);
+  if (e.fear_greed) clone.fear_greed = e.fear_greed;
+  if (e.price_series) clone.price_series = e.price_series;
+  if (e.company) clone.company = e.company;
+  if (e.market) clone.market = e.market;
+  if (e.currency) clone.currency = e.currency;
+  if (e.current_price !== undefined) clone.current_price = e.current_price;
+  if (e.years) clone.years = e.years;
+  return clone;
 }
 async function ensureFounderData(){
   if (window.FOUNDER_DATA) return;
@@ -177,17 +344,32 @@ async function refreshAuth() {
       state.user = d.authenticated ? d.user : null;
       updateAuthUI();
       updateFounderBtn();
+      if (state.user && state.user.is_admin) {
+        const pass = (() => { try { return sessionStorage.getItem(FOUNDER_PASS_KEY) || localStorage.getItem(FOUNDER_PASS_KEY); } catch(e){ return null; } })();
+        if (!pass) { saveUser(null); if (state.currentData) renderAll(state.currentData); return; }
+      }
       return;
     }
   } catch (e) {}
   // Static fallback
   try {
-    const u = JSON.parse(localStorage.getItem("lojik_public_user") || "null");
+    const _raw = localStorage.getItem("lojik_public_user");
+    let u = null;
+    try { u = _raw ? JSON.parse(_raw) : null; } catch (e) { u = null; }
+    // Auto-purge stale v14 sessions: anything without the current auth_v marker
+    // (including malformed JSON) is wiped so the browser starts cleanly signed out.
+    if (!u || u.auth_v !== AUTH_VERSION) {
+      purgeStaleAuthStorage();
+      signOutUser();
+      return;
+    }
     state.user = u;
   } catch (e) { state.user = null; }
   updateAuthUI();
   updateFounderBtn();
   if (state.user && state.user.is_admin) {
+    const pass = (() => { try { return sessionStorage.getItem(FOUNDER_PASS_KEY) || localStorage.getItem(FOUNDER_PASS_KEY); } catch(e){ return null; } })();
+    if (!pass) { saveUser(null); if (state.currentData) renderAll(state.currentData); return; }
     ensureFounderData().then(() => { if (state.currentData) renderAll(state.currentData); });
   }
 }
@@ -233,10 +415,51 @@ if (authSubmitBtn) authSubmitBtn.addEventListener("click", async () => {
   } catch (e) { const m = $("authMsg"); if (m) m.textContent = e && e.message ? e.message : e; }
 });
 
+function signOutUser() {
+  try {
+    state.user = null;
+    localStorage.removeItem("lojik_public_user");
+    localStorage.removeItem(FOUNDER_PASS_KEY);
+    sessionStorage.removeItem(FOUNDER_PASS_KEY);
+    localStorage.removeItem("admin_email");
+    sessionStorage.removeItem("admin_email");
+    localStorage.removeItem("is_admin");
+    sessionStorage.removeItem("is_admin");
+    localStorage.removeItem("lojikgain_admin");
+    localStorage.removeItem("lojik_user");
+  } catch(e){}
+  try { delete window.FOUNDER_DATA; window.FOUNDER_DATA = null; } catch(e){}
+  updateAuthUI();
+  updateFounderBtn();
+  try {
+    if (state.rawPublicData) {
+      renderAll(JSON.parse(JSON.stringify(state.rawPublicData)));
+    } else if (state.currentData) {
+      const clone = JSON.parse(JSON.stringify(state.currentData));
+      delete clone.points; delete clone.when_to_sell; delete clone.sovereign_bench;
+      renderAll(clone);
+    }
+  } catch(e){}
+}
+
 function saveUser(u) {
   state.user = u;
+  if (u && typeof u === "object") { try { u.auth_v = AUTH_VERSION; } catch (e) {} }
   if (u) localStorage.setItem("lojik_public_user", JSON.stringify(u));
-  else localStorage.removeItem("lojik_public_user");
+  else {
+    try {
+      localStorage.removeItem("lojik_public_user");
+      localStorage.removeItem(FOUNDER_PASS_KEY);
+      sessionStorage.removeItem(FOUNDER_PASS_KEY);
+      localStorage.removeItem("admin_email");
+      sessionStorage.removeItem("admin_email");
+      localStorage.removeItem("is_admin");
+      sessionStorage.removeItem("is_admin");
+      localStorage.removeItem("lojikgain_admin");
+      localStorage.removeItem("lojik_user");
+    } catch(e){}
+    try { delete window.FOUNDER_DATA; window.FOUNDER_DATA = null; } catch(e){}
+  }
   updateAuthUI();
   updateFounderBtn();
 }
@@ -258,11 +481,11 @@ async function postAuth(path, body) {
       await loadFounderData(emailClean, passClean);
       try { sessionStorage.setItem(FOUNDER_PASS_KEY, passClean); localStorage.setItem(FOUNDER_PASS_KEY, passClean); } catch(e){}
     } catch (err) { console.error('founder data load failed:', err); }
-    const adminUser = { email: body.email, name: "Founder Admin", is_admin: true, access_granted: true };
+    const adminUser = { email: body.email, name: "Founder Admin", is_admin: true, access_granted: true, auth_v: AUTH_VERSION };
     saveUser(adminUser);
-    closeModal("authModal");
+    try { var m2 = document.getElementById("authModal"); if(m2) m2.classList.remove("open"); } catch(e){}
     if (state.currentData) renderAll(state.currentData);
-    if (state.pendingTicker) { const t = state.pendingTicker; state.pendingTicker = null; loadTickerData(t); }
+    if (state.pendingTicker) { const t = state.pendingTicker; state.pendingTicker = null; try { loadTickerData(t); } catch(e){} }
     return adminUser;
   }
   // Try Flask
@@ -272,6 +495,7 @@ async function postAuth(path, body) {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || d.message || "Auth failed");
       state.user = d.user || d;
+      if (state.user && typeof state.user === "object") state.user.auth_v = AUTH_VERSION;
       localStorage.setItem("lojik_public_user", JSON.stringify(state.user));
       refreshAuth();
       if (state.currentData) { renderAll(state.currentData); }
@@ -287,13 +511,19 @@ async function postAuth(path, body) {
   }
   // Static fallback
   const email = body.email;
+  if (isAdminEmail(email)) {
+    if (!_isAdmin) {
+      throw new Error('Invalid admin credentials');
+    }
+  }
   const user = {
     email,
     name: body.name || (email ? email.split("@")[0] : "User"),
-    is_admin: isAdminEmail(email),
-    is_paid: isAdminEmail(email),
+    is_admin: _isAdmin || false,
+    is_paid: false,
     access_granted: true,
     auth_provider: path.includes("google") ? "google" : "email",
+    auth_v: AUTH_VERSION,
   };
   state.user = user;
   localStorage.setItem("lojik_public_user", JSON.stringify(user));
@@ -305,30 +535,6 @@ async function postAuth(path, body) {
 }
 
 // Auth modal handlers
-const loginBtn = $("loginBtn");
-if (loginBtn) loginBtn.addEventListener("click", async () => {
-  try {
-    await postAuth("/api/auth/login", { email: $("authEmail").value, password: $("authPassword").value });
-    const m = $("authMsg"); if (m) m.textContent = "";
-  } catch (e) { const m = $("authMsg"); if (m) m.textContent = e.message; }
-});
-const registerBtn = $("registerBtn");
-if (registerBtn) registerBtn.addEventListener("click", async () => {
-  try {
-    await postAuth("/api/auth/register", { email: $("authEmail").value, name: $("authName").value, password: $("authPassword").value });
-    const m = $("authMsg"); if (m) m.textContent = "";
-  } catch (e) { const m = $("authMsg"); if (m) m.textContent = e.message; }
-});
-const googleBtn = $("googleBtn");
-if (googleBtn) googleBtn.addEventListener("click", async () => {
-  const email = prompt("Enter your Google email:");
-  if (!email) return;
-  const name = prompt("Enter your name:") || email.split("@")[0];
-  try {
-    await postAuth("/api/auth/google", { email, name });
-    const m = $("authMsg"); if (m) m.textContent = "";
-  } catch (e) { const m = $("authMsg"); if (m) m.textContent = e.message; }
-});
 const adminQuick = $("removedAdminBtn");
 if (adminQuick) adminQuick.addEventListener("click", async () => {
   const em = $("authEmail"); if (em) em.value = null;
@@ -363,10 +569,15 @@ async function loadTickerData(ticker) {
     openModal("authModal");
     return;
   }
-  if (state.cache[resolved]) { renderAll(state.cache[resolved]); return; }
+  if (state.cache[resolved]) { 
+    try { if (!state.rawPublicData) state.rawPublicData = JSON.parse(JSON.stringify(state.cache[resolved])); } catch(e){}
+    renderAll(state.cache[resolved]); 
+    return; 
+  }
   // embedded payload
   if (idx && idx.payloads && idx.payloads[resolved]) {
     state.cache[resolved] = idx.payloads[resolved];
+    try { if (!state.rawPublicData) state.rawPublicData = JSON.parse(JSON.stringify(idx.payloads[resolved])); } catch(e){}
     renderAll(state.cache[resolved]);
     return;
   }
@@ -378,6 +589,7 @@ async function loadTickerData(ticker) {
       if (r.ok) {
         const d = await r.json();
         state.cache[resolved] = d;
+        try { if (!state.rawPublicData) state.rawPublicData = JSON.parse(JSON.stringify(d)); } catch(e){}
         renderAll(d);
         return;
       }
@@ -390,6 +602,7 @@ async function loadTickerData(ticker) {
     if (r.ok) {
       const d = await r.json();
       state.cache[resolved] = d;
+      try { if (!state.rawPublicData) state.rawPublicData = JSON.parse(JSON.stringify(d)); } catch(e){}
       renderAll(d);
       return;
     }
@@ -1318,7 +1531,7 @@ function renderReport(d) {
             if (!admin) {
               const pts = (typeof d.points !== "undefined") ? (d.points || []) : [];
               const earned = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
-              html += "<div class='lojikx-prose-card'><div class='lojikx-prose-title'>LojikX™ Proprietary Quality Synthesis</div><p class='lojikx-prose-body'>" + esc(d.company || "") + " posts a LojikX™ consistency score of " + (Math.round(earned / 23 * 100) / 100) + " (" + earned + " of 23 institutional checkpoints), reflecting multi-year earnings and margin durability, ROE/ROCE capital-allocation efficiency, free-cash-flow conversion, and balance-sheet resilience. The full 23 individual checkpoints, formulas and calculated values are available to authorised institutional users.</p></div>";
+              html += "<div class='lojikx-prose-card'><div class='lojikx-prose-title'>LojikX™ Proprietary Quality Synthesis</div><p class='lojikx-prose-body'>" + esc(d.company || "") + " posts a LojikX™ consistency score of " + (Math.round((earned / 23) * 100) / 100) + " / 100, reflecting multi-year earnings and margin durability, ROE/ROCE capital-allocation efficiency, free-cash-flow conversion, and balance-sheet resilience. Detailed proprietary quality checkpoints and valuation models are restricted to authorised institutional accounts.</p></div>";
             } else {
               html += "<table class='report-table'><thead><tr>" + s.table.columns.map(c => `<th>${esc(c)}</th>`).join("") + "</tr></thead><tbody>";
               s.table.rows.forEach(row => { html += "<tr>" + row.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>"; });
@@ -1493,7 +1706,7 @@ function renderForensic(d) {
       const earned = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
       const card = document.createElement("div");
       card.className = "lojikx-prose-card";
-      card.innerHTML = `<div class="lojikx-prose-title">LojikX™ Proprietary Quality Synthesis</div><p class="lojikx-prose-body">${esc(d.company || "")} posts a LojikX™ consistency score of ${Math.round(earned / 23 * 100) / 100} (${earned} of 23 institutional checkpoints), reflecting multi-year earnings and margin durability, ROE/ROCE capital-allocation efficiency, free-cash-flow conversion, and balance-sheet resilience. The full 23 individual checkpoints, formulas and calculated values are available to authorised institutional users.</p>`;
+      card.innerHTML = `<div class="lojikx-prose-title">LojikX™ Proprietary Quality Synthesis</div><p class="lojikx-prose-body">${esc(d.company || "")} posts a LojikX™ consistency score of ${Math.round((earned / 23) * 100) / 100} / 100, reflecting multi-year earnings and margin durability, ROE/ROCE capital-allocation efficiency, free-cash-flow conversion, and balance-sheet resilience. Detailed proprietary quality checkpoints and valuation models are restricted to authorised institutional accounts.</p>`;
       bp.appendChild(card);
     }
   }
@@ -1649,6 +1862,7 @@ function renderQuickPicks() {
 // Init
 async function init() {
   await ensureIndex();
+  await _loadStocksData();
   initScoreRing();
   initSpeedo();
   renderQuickPicks();
@@ -1675,3 +1889,4 @@ setInterval(() => {
 window.loadTickerData = loadTickerData;
 window.renderAll = renderAll;
 window.state = state;
+try{if(typeof window!==undefined&&typeof openModal!==undefined){window.openModal=openModal;}}catch(e){}
