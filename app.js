@@ -1921,7 +1921,7 @@ function handleTickerSelection(ticker) {
 function renderQuickPicks() {
   const wrap = $("quickPicks"); if (!wrap) return;
   const idx = getIndex();
-  const picks = ["ITC", "TCS", "PERSISTENT", "HDFCBANK", "TITAN", "BHEL", "AAPL", "MSFT", "NVDA", "GOOGL"];
+  const picks = ["NIFTY 50", "ITC", "TCS", "PERSISTENT", "HDFCBANK", "TITAN", "BHEL", "AAPL", "MSFT", "NVDA", "GOOGL", "S&P 500"];
   wrap.innerHTML = "";
   picks.forEach(sym => {
     const btn = document.createElement("button");
