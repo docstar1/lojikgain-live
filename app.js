@@ -1429,6 +1429,51 @@ function renderDashboard(d) {
       grid.appendChild(card);
     });
   }
+
+  // Derived statement-analysis charts, built from the stored series; legends quote the source books verbatim.
+  const hevF = hev.forecasts || {};
+  const fser = hevF.series || {};
+  const trend2 = ((hevF.balance_sheet_summary || {}).trend) || [];
+  const histYears = (hevF.hist_years || hevF.all_10_years || []).slice(0, (hevF.hist_years || hevF.all_10_years || []).length);
+  const histN = (hevF.hist_years || hevF.all_10_years || []).length;
+  if (grid && histN >= 2) {
+    const sec = document.createElement("div");
+    sec.style.cssText = "grid-column:1/-1;margin-top:8px";
+    sec.innerHTML = `<h4 style="margin:4px 0 2px">Statement analysis charts — from the books you shared</h4>`;
+    grid.appendChild(sec);
+    const specs = [];
+    const yearsH = histYears;
+    specs.push({ id: "d1_scissors", title: "Scissors effect: revenue growth vs net margin vs EPS growth (historical years)", type: "line", labels: yearsH,
+      series: { "Revenue growth %": (fser.revenue_growth_pct || []).slice(0, histN), "Net margin %": (fser.net_margin_pct || []).slice(0, histN), "EPS growth %": (fser.eps_growth_pct || []).slice(0, histN) } });
+    if (trend2.length >= 2) {
+      specs.push({ id: "d2_working_capital", title: "Working capital reading: current and quick ratio by year", type: "line", labels: trend2.map(t => t.year),
+        series: { "Current ratio": trend2.map(t => t.current_ratio), "Quick ratio": trend2.map(t => t.quick_ratio) } });
+    }
+    const revS = fser.revenue || [], capS = fser.capex || [];
+    if (capS && capS.length) {
+      specs.push({ id: "d3_capex", title: "Capital expenditure intensity: capex as % of revenue (historical years)", type: "bar", labels: yearsH,
+        series: { "Capex % of revenue": yearsH.map((y, i) => (revS[i] > 0 && capS[i] != null) ? (capS[i] / revS[i]) * 100 : null) } });
+    }
+    if ((fser.roe_pct || []).length >= 2 && (fser.roce_pct || []).length >= 2) {
+      specs.push({ id: "d4_leverage", title: "Leverage read: ROE vs ROCE (historical years)", type: "line", labels: yearsH,
+        series: { "ROE %": (fser.roe_pct || []).slice(0, histN), "ROCE %": (fser.roce_pct || []).slice(0, histN) } });
+    }
+    const legends = {
+      d1_scissors: `Legend: blue = revenue growth %, green = net margin %, amber = EPS growth %. Framework: FA p.2, section "THE SCISSORS EFFECT" (those source pages are image-only in the PDF, so cited, not quoted). When the cost line grows faster than sales, margins compress.`,
+      d2_working_capital: `Legend: blue = current ratio, green = quick ratio. "Working capital is two-sided. From the point of view of balance sheet value, it is liquid. From a going-concern point of view, it is permanent." (FA p.28) "Analyzing how the requirement has changed from year end to year end can shed light on whether the company's operations are improving or deteriorating." (FA p.29)`,
+      d3_capex: `Legend: blue bars = capex as % of revenue each year. "By comparing capital expenditure with depreciation charges, you can determine whether the company is: Expanding its industrial base by increasing production capacity... Maintaining its industrial base, replacing production capacity as necessary... Underinvesting or divesting (capital expenditure below depreciation). This situation can only be temporary or the company's future will be in danger, unless the objective is to liquidate the company." (FA p.35)`,
+      d4_leverage: `Legend: blue = ROE %, green = ROCE %. Judge the group from FA pp.71-72: Group 1 ROE up / ROCE down; Group 2 stable ROE with ROCE equal to ROE (no debt); Group 3 ROE slightly down with ROCE up and above ROE; Group 4 stable high ROE with much lower ROCE (massive debt). "First, look at where the performance is coming from, operations or finance or both. Second, the risk return trade off. Thirdly, flexibility- keep flexibility for the future. Finally, understand the relationship b/w profitability and growth i.e. SSG" (FA p.72)`,
+    };
+    specs.forEach(sp => {
+      const card = renderChartCard(sp);
+      grid.appendChild(card);
+      const lg = document.createElement("div");
+      lg.className = "chart-card glass";
+      lg.style.cssText = "font-size:12px;color:var(--muted);line-height:1.45";
+      lg.innerHTML = esc(legends[sp.id] || "");
+      grid.appendChild(lg);
+    });
+  }
   // sensitivity matrix
   const sens = (hev.valuation || {}).sensitivity || {};
   const sm = $("sensMatrix");
@@ -1462,7 +1507,7 @@ function renderDashboard(d) {
   }
   const CHART_GROUPS = {
     market: new Set(["c1_market_share","c13_tam_bar","c14_geo_donut","c15_sector_treemap","c16_cost_waterfall","c17_customer_concentration","c18_shareholder_mix","c19_unit_economics"]),
-    financials: new Set(["c2_revenue_trend","c3_margin_trend","c4_eps_trend","c5_roe_roce","c6_fcf_trend","c10_dcf_bridge"]),
+    financials: new Set(["c2_revenue_trend","c3_margin_trend","c4_eps_trend","c5_roe_roce","c6_fcf_trend","c10_dcf_bridge","d1_scissors","d2_working_capital","d3_capex","d4_leverage"]),
     valuation: new Set(["c7_pe_band","c8_peer_pe_bar","c9_peer_margin_bar","c11_sensitivity_heatmap","c12_target_price_bar"]),
     forensic: new Set(["c20_forensic_radar","c21_rsi_obv","c22_price_vs_dma","c23_trailing_pe"]),
   };
