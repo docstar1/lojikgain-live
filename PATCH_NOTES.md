@@ -61,3 +61,17 @@
 - Real-browser end-to-end (headless Chromium): landing, ticker load, all six top-level views, all seven Financial Statements sub-tabs as public and admin, Analysis Notes locked for public / full for admin, rapid sub-tab switching with zero page errors. Only failed request in the log is the known harmless /api/auth/me backend ping.
 
 **Files changed**: index.html, static/index.html, static/app.js, app.js, PATCH_NOTES.md
+
+## Update 3 - Admin Buffettology surfacing + verbatim Analysis Notes (2026-11-05)
+
+1. Admin Forensic & LojikX Quality Audit view now shows everything from the Founder vault, verbatim:
+   - Buffettology Scorecard card (earned/total, verdict, realm-of-confidence line, passed/failed point IDs).
+   - Computation card (retained earnings/TREGIP, initial return, book value model, EPS growth model, bond coupon model, growth CAGRs, quality snapshot - every stored value).
+   - All 23 points with their stored question/principle, calc values, YES/NO verdict and note, rendered through the existing LojikX point-card layout.
+   - Source: data/founder_points.json (generated from founder_data.enc, plaintext copy on the server; the encrypted vault file is unchanged and stays the system of record). Loaded only when isAdminUser() is true; normal users see nothing new. Note: the admin gate is client-side, so a determined visitor who knows the site could fetch founder_points.json - keep the local server private.
+2. Analysis Notes (Financial Statements > Analysis Notes, admin) rewritten so every explanation quotes the source texts verbatim with page cites:
+   - Financial Analysis.pdf: working capital (FA pp.27-29), capex expansion/maintenance/underinvestment test (FA p.35), financing questions (FA p.51), the four leverage groups and conclusion verbatim (FA pp.71-72).
+   - Bertoneche & Knight, Financial Performance: duPont chart (BK p.100), sustainable growth = ROE x rr (BK pp.102-103), EVA spread (BK p.138).
+   - Sentences computed from the stored data are prefixed "Read on this company's series:" so book wording and site computation never blur. Computed tables and all values are unchanged. The FA scissors-effect pages are image-only in the PDF, so that section cites the section title (FA p.2) instead of quoting body text.
+   - Cache bumped to v=20261107.
+3. Verified in-browser (headless Chromium, admin session): TCS and HDFCBANK render 23 point cards + scorecard + computation with zero page errors; normal-user mode shows none of the new material; all 13 verbatim quote tokens render in Analysis Notes.

@@ -1664,12 +1664,61 @@ function renderForensic(d) {
     });
   }
   // LojikX points
-  const pts = d.points || [];
+  let pts = d.points || [];
+  if (!pts.length && isAdminUser()) {
+    const fp = window.__FOUNDER_POINTS || null;
+    if (!fp && !window.__FOUNDER_POINTS_FETCHING) {
+      window.__FOUNDER_POINTS_FETCHING = true;
+      fetch("data/founder_points.json").then(r => r.ok ? r.json() : null).then(j => {
+        window.__FOUNDER_POINTS = j || {};
+        window.__FOUNDER_POINTS_FETCHING = false;
+        if (j && j[String(d.ticker || "").toUpperCase()]) renderForensic(d);
+      }).catch(() => { window.__FOUNDER_POINTS_FETCHING = false; });
+    } else if (fp) {
+      const fe = fp[String(d.ticker || "").toUpperCase()];
+      if (fe) {
+        d.points = fe.points || [];
+        d.founder_score = fe.score || null;
+        d.founder_computation = fe.computation || null;
+        d.founder_classifications = fe.classifications || null;
+        pts = d.points;
+      }
+    }
+  }
   const bp = $("lojikxQualityBox");
   if (bp) {
     bp.innerHTML = "";
     const admin = isAdminUser();
     if (admin) {
+      const fsc = d.founder_score;
+      if (fsc) {
+        const head = document.createElement("div");
+        head.className = "point-card";
+        const bd = fsc.breakdown || {};
+        const realm = fsc.realm_of_confidence ? "Realm of Confidence" : "Not yet in the Realm of Confidence";
+        head.innerHTML = `<div class="point-head"><div class="point-title">Buffettology Scorecard</div><div class="point-badge ${(Number(fsc.earned) || 0) / (Number(fsc.total) || 23) >= 0.7 ? "YES" : "NO"}">${(fsc.earned != null ? fsc.earned : "?")} / ${fsc.total || 23}</div></div>
+          <div class="point-q">${esc(fsc.verdict || "")}</div>
+          <div class="point-value" style="white-space:normal">${esc(realm)}</div>
+          <div class="point-calc" style="white-space:normal">${esc((bd.passed && bd.passed.length) ? "passed: " + bd.passed.join(", ") : "")}${(bd.failed && bd.failed.length) ? " · failed: " + esc(bd.failed.join(", ")) : ""}</div>`;
+        bp.appendChild(head);
+      }
+      const fcomp = d.founder_computation;
+      if (fcomp) {
+        const cc = document.createElement("div");
+        cc.className = "point-card";
+        let ch = `<div class="point-head"><div class="point-title">Computation</div></div>`;
+        Object.keys(fcomp).forEach(mk => {
+          const mv = fcomp[mk];
+          if (mv && typeof mv === "object") {
+            ch += `<div class="point-q" style="margin-top:6px">${esc(mk.replace(/_/g, " "))}</div>`;
+            Object.keys(mv).forEach(k => { const v2 = mv[k]; if (v2 != null) ch += `<div class="point-calc">${esc(k.replace(/_/g, " "))}: ${esc(String(v2))}</div>`; });
+          } else if (mv != null) {
+            ch += `<div class="point-calc">${esc(mk.replace(/_/g, " "))}: ${esc(String(mv))}</div>`;
+          }
+        });
+        cc.innerHTML = ch;
+        bp.appendChild(cc);
+      }
       if (pts.length) {
         pts.forEach(p => {
           const badge = (p.verdict === "YES" || p.score === 1) ? "YES" : "NO";
@@ -2207,7 +2256,7 @@ function fsPanelAN(d) {
   if (!isAdminUser()) {
     return `<div class="lojikx-prose-card"><div class="lojikx-prose-title">Analysis Notes</div><p class="lojikx-prose-body">Derived statement analysis (scissors effect, working capital reading, capex and financing analysis, leverage classification) is available to authorised accounts. The statement tables themselves are open.</p></div>`;
   }
-  let html = `<div class="fs-note">Method notes adapted from the Financial Analysis framework: margin analysis and the scissors effect, working capital turnover and reading, capex analysis, dynamic and static financing analysis, financial leverage groups.</div>`;
+  let html = `<div class="fs-note">Method notes quote the source texts verbatim. Sources: Financial Analysis.pdf (FIRST FINANCE INSTITUTE), cited "FA p.N"; Marc Bertoneche &amp; Rory Knight, Financial Performance, cited "BK p.N". Page numbers are PDF pages. Sentences introduced with "Read on this company's series:" are computed from the stored data, not from the books.</div>`;
   // 1. Margin structure
   const cw = (hev.charts_23 || {}).c16_cost_waterfall;
   if (cw) {
@@ -2225,8 +2274,8 @@ function fsPanelAN(d) {
   let verdict = "";
   if (rgA != null && ngA != null) {
     verdict = (ngA < rgA - 2)
-      ? `Net profit has grown slower than revenue on average (${fsNum(ngA,1)}% vs ${fsNum(rgA,1)}%). Per the scissors effect, check which line is opening: rising input costs, margins compressing, or heavier interest and tax.`
-      : `Profit growth has kept pace with or beaten revenue growth (${fsNum(ngA,1)}% vs ${fsNum(rgA,1)}%), so no scissors gap is visible in the stored series.`;
+      ? `Read on this company's series: net profit has grown slower than revenue on average (${fsNum(ngA,1)}% vs ${fsNum(rgA,1)}%); the scissors are opening.`
+      : `Read on this company's series: profit growth has kept pace with or beaten revenue growth (${fsNum(ngA,1)}% vs ${fsNum(rgA,1)}%); no scissors gap is visible in the stored series.`;
   }
   html += `<h4>The scissors effect — do costs grow faster than sales?</h4>`;
   html += `<table class="report-table"><thead><tr><th>Year</th><th>Revenue growth %</th><th>Net margin %</th><th>EPS growth %</th></tr></thead><tbody>`;
@@ -2235,23 +2284,26 @@ function fsPanelAN(d) {
     html += `<tr><td>${esc(y)}</td><td>${fsNum((S.revenue_growth_pct || [])[i], 1)}</td><td>${fsNum(nm[i], 1)}</td><td>${fsNum((S.eps_growth_pct || [])[i], 1)}</td></tr>`;
   });
   html += `</tbody></table><p class="fs-note">${esc(verdict)} Historical net margin floor: ${fsNum(Math.min.apply(null, nm.filter(v => typeof v === "number")), 1)}%.</p>`;
+  html += `<p class="fs-note">Framework reference: FA p.2, section "THE SCISSORS EFFECT". The source's scissors pages are image-only in the PDF, so the framework is cited by section, not quoted.</p>`;
   // 3. Working capital reading
   const bss = f.balance_sheet_summary || {}, trend = bss.trend || [];
   if (trend.length) {
     html += `<h4>Reading working capital between the lines</h4>`;
+    html += `<p class="fs-note">"In finance, investment means creating either new fixed assets or working capital." (FA p.27) "The ratio: Operating working capital / Annual Sales reflects the fact that the operating cycle generates an operating working capital that includes: Capital 'frozen' in the form of inventories, representing procurement and production costs that have not yet resulted in the sale of the company's products; Funds 'frozen' in customer receivables, representing sales that customers have not yet paid for; Accounts payable that the company owes to suppliers." (FA p.27) "Working capital is two-sided. From the point of view of balance sheet value, it is liquid. From a going-concern point of view, it is permanent." (FA p.28) "Analyzing how the requirement has changed from year end to year end can shed light on whether the company's operations are improving or deteriorating." (FA p.29)</p>`;
     html += `<table class="report-table"><thead><tr><th>Year</th><th>Current ratio</th><th>Quick ratio</th><th>Receivables % of assets</th><th>Inventory % of assets</th></tr></thead><tbody>`;
     trend.forEach(t => { html += `<tr><td>${esc(t.year)}</td><td>${fsNum(t.current_ratio, 2)}</td><td>${fsNum(t.quick_ratio, 2)}</td><td>${fsNum(t.receivables_pct, 1)}</td><td>${fsNum(t.inventory_pct, 1)}</td></tr>`; });
     html += `</tbody></table>`;
     const crTrend = trend.map(t => t.current_ratio).filter(v => typeof v === "number");
     if (crTrend.length >= 2) {
       const dCR = crTrend[crTrend.length - 1] - crTrend[0];
-      html += `<p class="fs-note">${dCR >= 0 ? "Current ratio has held or improved over the stored years, so working capital is not quietly absorbing cash as the business grows." : "Current ratio has slipped over the stored years: worth checking whether receivables or inventory are growing faster than sales, the classic sign of growth eating working capital."}</p>`;
+      html += `<p class="fs-note">Read on this company's series: the current ratio moved from ${fsNum(crTrend[0], 2)} to ${fsNum(crTrend[crTrend.length - 1], 2)} over the stored years (${dCR >= 0 ? "+" : ""}${fsNum(dCR, 2)}).</p>`;
     }
   }
   // 4. Capex analysis
   if (S.capex) {
     const rev = S.revenue || [], capex = S.capex || [];
     html += `<h4>Capital expenditure analysis</h4>`;
+    html += `<p class="fs-note">"Through the production process, fixed assets are used up. The annual depreciation charge is supposed to reflect this wearing out. By comparing capital expenditure with depreciation charges, you can determine whether the company is: Expanding its industrial base by increasing production capacity. In this case, capital expenditure is higher than depreciation as the company invests more than simply to compensate for the annual wearing out of fixed assets; Maintaining its industrial base, replacing production capacity as necessary. In this case, capital expenditure approximately equals depreciation as the company invests just to compensate for the annual wearing out of fixed assets; Underinvesting or divesting (capital expenditure below depreciation). This situation can only be temporary or the company's future will be in danger, unless the objective is to liquidate the company." (FA p.35) "Any investment strategy must, sooner or later, result in an increase in cash flow from operating activities. If it doesn't, then the investments are not profitable enough. The company is heading for trouble or, more likely, is already in trouble." (FA p.35)</p>`;
     html += `<table class="report-table"><thead><tr><th>Year</th><th>Capex</th><th>Capex / revenue %</th><th>Net PPE % of assets</th></tr></thead><tbody>`;
     years.forEach((y, i) => {
       if (i >= nHist) return;
@@ -2260,12 +2312,13 @@ function fsPanelAN(d) {
       html += `<tr><td>${esc(y)}</td><td>${fsNum(capex[i], 0)}</td><td>${fsNum(cxR, 1)}</td><td>${fsNum(ppe, 1)}</td></tr>`;
     });
     html += `</tbody></table>`;
-    html += `<p class="fs-note">The data does not split expansion capex from replacement capex, so judge investment policy from capex intensity against revenue and the fixed-asset share of the balance sheet.</p>`;
+    html += `<p class="fs-note">Read on this company's series: the stored cash flow data does not split expansion capex from replacement capex, and no depreciation series is stored, so the FA expansion/maintenance/underinvestment test above cannot be run here; judge investment policy from capex intensity against revenue and the fixed-asset share of the balance sheet.</p>`;
   }
   // 5. Financing and leverage
   const dcf = (hev.valuation || {}).dcf || {};
   const deTrend = trend.map(t => t.debt_to_equity).filter(v => typeof v === "number");
   html += `<h4>How the company is financed, and the leverage group</h4>`;
+  html += `<p class="fs-note">"As an analyst, you must understand how the company finances its growth over the period in question. New equity capital? New debt? Reinvesting cash flow from operating activities? Asset disposals can contribute additional financial resources." (FA p.51) "You should focus on three items for this analysis: equity capital issues, debt policy and dividend policy." (FA p.51)</p>`;
   if (deTrend.length) {
     html += `<table class="report-table"><thead><tr><th>Year</th><th>Debt / equity</th></tr></thead><tbody>`;
     trend.forEach(t => { html += `<tr><td>${esc(t.year)}</td><td>${fsNum(t.debt_to_equity, 2)}</td></tr>`; });
@@ -2273,36 +2326,48 @@ function fsPanelAN(d) {
   }
   const nd = (S.net_debt || [])[0], roceH = fsAvg((S.roce_pct || []).slice(0, nHist)), kd = dcf.kd_after_tax;
   let lev = "Leverage group could not be classified from the stored data.";
-  if (nd != null && !isNaN(nd) && nd <= 0) lev = "Net cash position (more cash than debt): the company funds itself internally, the healthiest financing posture.";
+  if (nd != null && !isNaN(nd) && nd <= 0) lev = "Read on this company's series: net cash position (more cash than debt); the company funds itself internally.";
   else if (roceH != null && kd != null) lev = (kd > roceH)
-    ? `Negative leverage: after-tax cost of debt (${fsNum(kd,2)}%) exceeds average ROCE (${fsNum(roceH,1)}%), so borrowing destroys shareholder returns.`
-    : `Positive leverage: after-tax cost of debt (${fsNum(kd,2)}%) sits below average ROCE (${fsNum(roceH,1)}%), so debt is adding to shareholder returns.`;
+    ? `Read on this company's series: after-tax cost of debt (${fsNum(kd,2)}%) exceeds average ROCE (${fsNum(roceH,1)}%).`
+    : `Read on this company's series: after-tax cost of debt (${fsNum(kd,2)}%) sits below average ROCE (${fsNum(roceH,1)}%).`;
   html += `<p class="fs-note">${esc(lev)} WACC ${fsNum(dcf.wacc,2)}%, beta ${fsNum(dcf.beta,2)}, tax rate ${fsNum(dcf.tax_rate,1)}% (from the DCF block).</p>`;
+  const roeS = (S.roe_pct || []).slice(0, nHist).filter(v => typeof v === "number");
+  const rocS = (S.roce_pct || []).slice(0, nHist).filter(v => typeof v === "number");
+  if (roeS.length >= 2 && rocS.length >= 2) {
+    html += `<p class="fs-note">The source's four leverage groups, verbatim (FA pp.71-72):</p>`;
+    html += `<p class="fs-note">"Group1: Has an ROE which is increasing. But ROCE is going down meaning its doing badly but doing something like an old woman using artificial make up (increasing debt) to cover the wrinkles to fool their friends. Look at ROE and ROCE at any time."</p>`;
+    html += `<p class="fs-note">"Group 2: It shows a very stable ROE which is very satisfactory. ROCE is stable to0 and equal to ROE. This means there's no debt, everything is coming from operations. Not only the company is very safe but also it has a great flexibility for the future. The company can us its debt potential to face some of its temporary problems."</p>`;
+    html += `<p class="fs-note">"Group 3: ROE is slightly going down. 15% to 13%, not a dramatic decrease. Look at ROCE, we notice a small increase from 20% to 21% and higher than ROE, whats going on? –Two possibilities theoretically, 1. A negative leverage. The company is borrowing at a rate higher than ROCE (or) 2. The company has a negative net financial debt i.e. more cash than debt. May be the company is investing part of its cash at other projects which gets a lower return, so the ROE is going down. This is a strong signal to the share holders who should push the management of the company either to find good investment opportunities to invest this cash or give it back to them through dividends etc,"</p>`;
+    html += `<p class="fs-note">"Group 4: ROE is extremely stable and high at 40%. ROCE is good and stable at 15%. Its massively playing with debt. May be a typical LBO as we call it – Leverage Buy Out – A company with a lot of debt. In fact, 1/3 of the performance of this company is coming from operations and 2/3 from finance- the leverage. Great but risky. Group 4 is very vulnerable. Try to imagine the impact of an economic downturn."</p>`;
+    html += `<p class="fs-note">Read on this company's series: ROE ${fsNum(roeS[0],1)}% to ${fsNum(roeS[roeS.length-1],1)}%, ROCE ${fsNum(rocS[0],1)}% to ${fsNum(rocS[rocS.length-1],1)}% over the stored years; judge the group from the four descriptions above.</p>`;
+    html += `<p class="fs-note">"Conclusion: First, look at where the performance is coming from, operations or finance or both. Second, the risk return trade off. Thirdly, flexibility- keep flexibility for the future. Finally, understand the relationship b/w profitability and growth i.e. SSG" (FA p.72)</p>`;
+  }
   // 6. Frameworks from the Financial Performance book (Bertoneche & Knight)
-  html += `<h4>Frameworks from the Financial Performance book (Bertoneche & Knight)</h4>`;
+  html += `<h4>Frameworks from the Financial Performance book (Bertoneche &amp; Knight)</h4>`;
   const niL = (S.net_profit || [])[nHist - 1], revL = (S.revenue || [])[nHist - 1], eqL = (S.equity || [])[nHist - 1];
   if (typeof niL === "number" && typeof revL === "number" && revL > 0 && typeof eqL === "number" && eqL > 0) {
     const npm = (niL / revL) * 100, et = revL / eqL, roeD = (niL / eqL) * 100;
     const pay = (S.payout_ratio_pct || [])[nHist - 1];
     const sg = (roeD >= 0 && typeof pay === "number") ? roeD * (1 - pay / 100) : null;
-    html += `<table class="report-table"><thead><tr><th>Driver</th><th>Value</th><th>Reads as</th></tr></thead><tbody>`;
-    html += `<tr><td>Net profit margin</td><td>${fsNum(npm, 2)}%</td><td>profit kept from each unit of sales</td></tr>`;
-    html += `<tr><td>Equity turnover</td><td>${fsNum(et, 2)}x</td><td>sales generated per unit of shareholder capital</td></tr>`;
-    html += `<tr><td>ROE (margin x turnover)</td><td>${fsNum(roeD, 2)}%</td><td>the DuPont decomposition: ROE is margin times capital productivity</td></tr>`;
-    if (sg != null) html += `<tr><td>Sustainable growth rate</td><td>${fsNum(sg, 2)}%</td><td>growth fundable from own earnings at a ${fsNum(pay, 0)}% payout, without new debt or dilution</td></tr>`;
+    html += `<p class="fs-note">"Figure 3.3 illustrates the critical drivers of return on equity. This format, known as the duPont chart, provides a coherent framework to illustrate the interconnection among three dimensions of financial health." (BK p.100) "Thus ROI is jointly effected by both profitability (net profit %) and by efficiency (asset turnover)." (BK p.100)</p>`;
+    html += `<table class="report-table"><thead><tr><th>Driver</th><th>Value</th><th>Source wording</th></tr></thead><tbody>`;
+    html += `<tr><td>Net profit margin</td><td>${fsNum(npm, 2)}%</td><td>"net profit % as the proportion of profit to sales which entirely reflects the profitability of the business" (BK p.100)</td></tr>`;
+    html += `<tr><td>Equity turnover</td><td>${fsNum(et, 2)}x</td><td>"Asset turnover reveals how efficiently the asset base has been worked to generate business as measured by sales. This measure is quite independent of profitability." (BK p.100)</td></tr>`;
+    html += `<tr><td>ROE (margin x turnover)</td><td>${fsNum(roeD, 2)}%</td><td>the duPont chart, computed here as net profit margin x equity turnover</td></tr>`;
+    if (sg != null) html += `<tr><td>Sustainable growth rate</td><td>${fsNum(sg, 2)}%</td><td>"Sustainable growth rate (sgr) = ROE × rr" (BK p.103), with rr = 1 - payout ratio (${fsNum(pay, 0)}% payout)</td></tr>`;
     html += `</tbody></table>`;
-    html += `<p class="fs-note">If ROE looks high while the margin is thin, the return is carried by turnover or leverage rather than pricing power; fix the driver rather than admire the result. Growth funded above the sustainable rate must come from debt, dilution, or stretched working capital.</p>`;
+    html += `<p class="fs-note">"The mid- to long-term funding requirements of a business are fundamentally driven by the sustainable growth of the business." (BK p.102) "Clearly a business that pays out all of its earnings as dividends will not be able to sustain any growth without resorting to further financing in the form of debt or equity capital." (BK p.103)</p>`;
   }
   const roceL = (S.roce_pct || [])[nHist - 1], waccV = (dcf || {}).wacc;
   if (typeof roceL === "number" && typeof waccV === "number") {
     const spread = roceL - waccV;
     html += `<h4>Value creation - the EVA spread</h4>`;
-    html += `<p class="fs-note">ROCE ${fsNum(roceL, 1)}% against WACC ${fsNum(waccV, 2)}% gives a spread of <strong>${fsNum(spread, 1)}%</strong>. ${spread > 0 ? "Positive spread: each unit of capital employed earns more than it costs, so growth adds value." : "Negative spread: the business earns less than its cost of capital, so growth destroys value until the spread turns."} The book treats this spread, not accounting profit, as the real test of performance.</p>`;
+    html += `<p class="fs-note">"EVA measures the spread between return on capital employed and cost of capital." (BK p.138) "In other words, ROCE has to be higher than cost of capital." (BK p.138)</p>`;
+    html += `<p class="fs-note">Read on this company's series: ROCE ${fsNum(roceL, 1)}% against WACC ${fsNum(waccV, 2)}% gives a spread of <strong>${fsNum(spread, 1)}%</strong>.</p>`;
   }
   html += `<p class="fs-note">Cross-references: the Forensic tab holds the 17-point accounting audit; the Fraud Radar sub-tab adds the Beneish M-Score components and a Benford's Law digit audit on top.</p>`;
   return html;
 }
-
 function fsPanelPE(d) {
   const hev = d.hev || {}, set = hev.settings || {};
   const peers = set.competitors || [];
