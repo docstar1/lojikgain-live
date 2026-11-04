@@ -18,13 +18,8 @@
       const PASS_KEY = 'lojik_admin_pass';
       const AUTH_VERSION = '20261104_v15';
       const STALE_AUTH_KEYS = ['lojik_public_user', PASS_KEY, 'admin_email', 'is_admin', 'lojikgain_admin', 'lojik_user'];
-      const ADMIN_DIGEST = "55ee36c32e73eab55b966e6879a07eae45962a44547fe5ae73a844680ac102ff";
 
       function b64u(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
-      async function sha256Hex(msg){
-        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
-        return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-      }
       function deriveKey(password, saltB64) {
         const enc = new TextEncoder();
         const salt = b64u(saltB64);
@@ -79,37 +74,7 @@
         try { delete window.FOUNDER_DATA; window.FOUNDER_DATA = null; } catch(e){}
       }
 
-      async function tryUnlockFromUrlOrSession() {
-        const params = new URLSearchParams(window.location.search);
-        const qEmail = params.get('email') || params.get('e');
-        const qPass = params.get('password') || params.get('pass');
-        if (qEmail && qPass) {
-          const emailClean = String(qEmail).trim().toLowerCase();
-          const passClean = String(qPass).trim();
-          try {
-            const d = await sha256Hex("lojikx_v1:" + emailClean + ":" + passClean);
-            if (d === ADMIN_DIGEST) {
-              try {
-                const res = await fetch(FOUNDER_ENC_URL);
-                if (res.ok) {
-                  const env = await res.json();
-                  const key = await deriveKey(emailClean + ':' + passClean, env.s);
-                  const text = await decryptEnvelope(env, key);
-                  window.FOUNDER_DATA = JSON.parse(text);
-                  try {
-                    localStorage.setItem('lojik_public_user', JSON.stringify({ email: qEmail, name: 'Founder Admin', is_admin: true, is_paid: true, access_granted: true, auth_provider: 'email', auth_v: AUTH_VERSION }));
-                    sessionStorage.setItem(PASS_KEY, passClean);
-                    localStorage.setItem(PASS_KEY, passClean);
-                    localStorage.setItem('admin_email', qEmail);
-                    localStorage.setItem('is_admin', 'true');
-                  } catch(e){}
-                  if (window.loadTickerData) { try { window.loadTickerData((window.state && window.state.selectedTicker) || 'ITC'); } catch(e){} }
-                  return true;
-                }
-              } catch(err) { console.error('founder url unlock failed', err); }
-            }
-          } catch(err) {}
-        }
+      async function tryUnlockFromSession() {
         try {
           const stored = localStorage.getItem('lojik_public_user');
           let u = null;
@@ -157,7 +122,7 @@
         try { if (typeof openModal === 'function') { openModal('authModal'); } else if (window.openModal) { window.openModal('authModal'); } } catch(e){}
       }
 
-      tryUnlockFromUrlOrSession().then(function(ok){
+      tryUnlockFromSession().then(function(ok){
         if (!ok) {
           startSignedOut();
         }

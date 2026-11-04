@@ -1,0 +1,6 @@
+# Secrets, encrypted Founder payloads, and local artifacts must never ship publicly
+*.enc
+audit_live.js
+decrypt_out.txt
+node_modules/
+.pytest_tmp/

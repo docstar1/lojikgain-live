@@ -1,10 +1,8 @@
 
-const ADMIN_DIGEST = "55ee36c32e73eab55b966e6879a07eae45962a44547fe5ae73a844680ac102ff";
-async function sha256Hex(msg){const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(msg));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");}
 // Phase 2 Apple-Grade Public Frontend
 const state = {
   market: "INDIA",
-  user: null /*sha256 check: await sha256Hex("lojikx_v1:"+emailClean+":"+passClean)===ADMIN_DIGEST*/,
+  user: null,
   config: {},
   selectedTicker: null,
   cache: {},
@@ -471,19 +469,17 @@ async function postAuth(path, body) {
   body = body || {};
   const emailClean = String((body && body.email) || "").trim().toLowerCase();
   const passClean = String((body && body.password) || "").trim();
-  // Admin gate verified via one-way digest; no credentials stored in bundle.
+  // Admin gate: proof is the Founder vault decrypting (AES-GCM auth tag),
+  // so no credential digest ships in the bundle.
   let _isAdmin = false;
-  try {
-    if (emailClean && passClean) {
-      const _d = await sha256Hex("lojikx_v1:" + emailClean + ":" + passClean);
-      if (_d === ADMIN_DIGEST) _isAdmin = true;
-    }
-  } catch (e) {}
-  if (_isAdmin) {
+  if (emailClean && passClean) {
     try {
       await loadFounderData(emailClean, passClean);
       try { sessionStorage.setItem(FOUNDER_PASS_KEY, passClean); localStorage.setItem(FOUNDER_PASS_KEY, passClean); } catch(e){}
-    } catch (err) { console.error('founder data load failed:', err); }
+      _isAdmin = true;
+    } catch (e) { _isAdmin = false; }
+  }
+  if (_isAdmin) {
     const adminUser = { email: body.email, name: "Founder Admin", is_admin: true, access_granted: true, auth_v: AUTH_VERSION };
     saveUser(adminUser);
     try { var m2 = document.getElementById("authModal"); if(m2) m2.classList.remove("open"); } catch(e){}
@@ -1267,6 +1263,7 @@ function renderAll(d) {
   renderDashboard(d);
   renderReport(d);
   renderForensic(d);
+  renderFinancials(d);
 }
 
 function renderHero(d) {
@@ -1895,3 +1892,517 @@ window.loadTickerData = loadTickerData;
 window.renderAll = renderAll;
 window.state = state;
 try{if(typeof window!==undefined&&typeof openModal!==undefined){window.openModal=openModal;}}catch(e){}
+// ================= Financial Statements view (screener-style) =================
+// Two-layer: top-level tab + sub-tabs (P&L, Balance Sheet, Cash Flows, Analysis, Competitors, Sector KPIs).
+// Data comes entirely from each ticker's JSON (hev.forecasts, balance_sheet_summary, settings.competitors).
+let FS_STATE = { sub: "pl" };
+
+function fsCAGR(a) {
+  if (!a || !a.length) return null;
+  const s = a.filter(v => typeof v === "number" && !isNaN(v) && v > 0);
+  if (s.length < 2 || s[0] <= 0) return null;
+  return (Math.pow(s[s.length - 1] / s[0], 1 / (s.length - 1)) - 1) * 100;
+}
+function fsAvg(a) {
+  if (!a || !a.length) return null;
+  const s = a.filter(v => typeof v === "number" && !isNaN(v));
+  if (!s.length) return null;
+  return s.reduce((x, y) => x + y, 0) / s.length;
+}
+function fsNum(v, d) {
+  d = (d == null) ? 1 : d;
+  if (v == null || isNaN(v)) return "—";
+  return Number(v).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d });
+}
+function fsResolve(obj, path) {
+  if (!path) return null;
+  let o = obj;
+  const parts = path.split(".");
+  for (let i = 0; i < parts.length; i++) {
+    if (o == null) return null;
+    o = o[parts[i]];
+  }
+  return (o == null || o === "") ? null : o;
+}
+
+// ---- Fraud Radar helpers (Beneish M-Score + Benford digit audit) ----
+function fsFirstDigit(v) {
+  if (typeof v !== "number" || !isFinite(v) || v === 0) return null;
+  const s = String(Math.abs(v)).replace(/^[0.\-]+/, "").replace(/^0+/, "");
+  const c = s.charAt(0);
+  return (c >= "1" && c <= "9") ? Number(c) : null;
+}
+function fsBenford(vals) {
+  const obs = [0,0,0,0,0,0,0,0,0], exp = [0,0,0,0,0,0,0,0,0];
+  let n = 0;
+  (vals || []).forEach(v => { const dg = fsFirstDigit(v); if (dg) { obs[dg-1]++; n++; } });
+  if (!n) return null;
+  let mad = 0, chi2 = 0;
+  for (let d = 1; d <= 9; d++) {
+    exp[d-1] = Math.log10(1 + 1/d) * 100;
+    const op = obs[d-1] / n * 100;
+    mad += Math.abs(op - exp[d-1]);
+    if (exp[d-1] > 0) chi2 += Math.pow(obs[d-1] - Math.log10(1+1/d)*n, 2) / (Math.log10(1+1/d)*n);
+  }
+  mad /= 9;
+  const band = mad < 0.006 ? "Close conformity" : mad < 0.012 ? "Acceptable conformity" : mad < 0.015 ? "Marginal conformity" : "Nonconformity";
+  return { n: n, obs: obs, exp: exp, mad: mad, chi2: chi2, band: band };
+}
+function fsMscoreData(d) {
+  const hev = d.hev || {}, f = hev.forecasts || {}, S = f.series || {};
+  const trend = (f.balance_sheet_summary || {}).trend || [];
+  const nHist = (f.hist_years || []).length;
+  const out = { rows: [], partial: null, ok: false };
+  if (nHist < 2) return out;
+  const i2 = nHist - 1, i1 = nHist - 2;
+  const t2 = trend[trend.length - 1] || {}, t1 = trend[trend.length - 2] || {};
+  const ratio = (a, b) => (typeof a === "number" && typeof b === "number" && b !== 0) ? a / b : null;
+  const rev = S.revenue || [], ni = S.net_profit || [], cfo = S.cfo || [], gm = S.gross_margin_pct || [];
+  const comps = [
+    ["DSRI", "Days sales in receivables index — are receivables swelling faster than sales?", ratio(t2.receivables_pct, t1.receivables_pct), 1.031, "receivables % of assets, this year vs last"],
+    ["GMI", "Gross margin index — is the margin eroding? Deterioration raises manipulation risk.", ratio(typeof gm[i1] === "number" ? gm[i1] : null, typeof gm[i2] === "number" ? gm[i2] : null), 1.010, "gross margin %, last year over this year"],
+    ["AQI", "Asset quality index — are soft/other assets growing faster than hard assets?", ratio(t2.other_assets_pct, t1.other_assets_pct), 1.007, "other assets % of balance sheet, composition proxy"],
+    ["SGI", "Sales growth index — fast growers attract manipulation; growth itself is the pressure.", ratio(rev[i2], rev[i1]), 1.607, "revenue this year over last"],
+    ["DEPI", "Depreciation index — is depreciation being stretched to prop up profits?", null, 1.077, "no depreciation series in the dataset"],
+    ["SGAI", "SG&A to sales index — is selling cost discipline weakening?", null, 1.041, "no SG&A series in the dataset"],
+    ["LVGI", "Leverage index — is debt building beyond the asset base?", ratio(t2.debt_to_equity, t1.debt_to_equity), 1.111, "debt/equity proxy for total debt over total assets"],
+    ["TATA", "Total accruals to total assets — earnings running far ahead of cash flow.", (() => { const r = rev[i2]; return (typeof ni[i2] === "number" && typeof cfo[i2] === "number" && typeof r === "number" && r > 0) ? (ni[i2] - cfo[i2]) / r : null; })(), 0.018, "accrual gap (net profit minus operating cash flow) as % of revenue — revenue proxy for total assets"]
+  ];
+  out.rows = comps;
+  const okRows = comps.filter(c => typeof c[2] === "number");
+  out.missing = comps.filter(c => !(typeof c[2] === "number")).map(c => c[0]);
+  if (okRows.length >= 4) {
+    const W = { DSRI: 0.92, GMI: 0.528, AQI: 0.404, SGI: 0.892, DEPI: 0, SGAI: 0, LVGI: 0.115, TATA: 4.679 };
+    let m = -4.84;
+    comps.forEach(c => { if (typeof c[2] === "number") m += W[c[0]] * c[2]; });
+    out.partial = m;
+    out.ok = true;
+  }
+  return out;
+}
+function fsPanelFR(d) {
+  const hev = d.hev || {}, f = hev.forecasts || {}, S = f.series || {}, fa = hev.forensic_audit || {};
+  const years = f.all_10_years || [], nHist = (f.hist_years || years).length;
+  let html = `<div class="fs-note">Fraud Radar — two classical screens computed live from the stored data: Beneish's M-Score components and a Benford's Law digit audit. Both are screens that say where to look, never proof of fraud. Worked reference: Enron's own M-Score climbed from a safe −2.27 (1999) to −0.44 (2000), the year before the collapse.</div>`;
+  // 1) Beneish M-Score
+  const ms = fsMscoreData(d);
+  html += `<h4>Beneish M-Score — probability the accounts are massaged (Beneish 1999)</h4>`;
+  html += `<table class="report-table"><thead><tr><th>Component</th><th>What it reads</th><th>This stock</th><th>Flags above</th><th>Status</th></tr></thead><tbody>`;
+  ms.rows.forEach(c => {
+    const has = typeof c[2] === "number";
+    const flag = has && c[2] > c[3];
+    html += `<tr><td><strong>${esc(c[0])}</strong></td><td>${esc(c[1])}</td><td>${has ? fsNum(c[2], 3) : "—"}</td><td>${fsNum(c[3], 3)}</td><td>${has ? (flag ? "FLAG" : "ok") : esc(c[4])}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  if (ms.ok) {
+    const m = ms.partial;
+    const band = m > -1.78 ? "Above −1.78, the zone Beneish's full model associates with proven manipulators. Treat as a serious red flag and check the flagged components manually."
+      : (m > -2.22 ? "Between −2.22 and −1.78, the gray zone. Not an accusation, but worth reading the flagged components below the table." : "Below −2.22, the zone Beneish's full model associates with non-manipulators.");
+    html += `<p class="fs-note"><strong>Partial M-Score: ${fsNum(m, 2)}</strong>. ${esc(band)} ${ms.missing.length ? `This is a partial score: ${esc(ms.missing.join(", "))} cannot be computed from the stored data and enter neutrally, which makes the score read safer than a full 8-component run would.` : ""}</p>`;
+  } else {
+    html += `<p class="fs-note">Not enough paired years in the stored data to compute even the partial score.</p>`;
+  }
+  // 2) Accrual quality
+  const rev = S.revenue || [], ni = S.net_profit || [], cfo = S.cfo || [];
+  if (nHist >= 2) {
+    html += `<h4>Accrual quality — does profit turn into cash?</h4>`;
+    html += `<table class="report-table"><thead><tr><th>Year</th><th>Net profit</th><th>Operating cash flow</th><th>Accrual gap</th><th>Gap % of revenue</th></tr></thead><tbody>`;
+    years.forEach((y, i) => {
+      if (i >= nHist) return;
+      const gap = (typeof ni[i] === "number" && typeof cfo[i] === "number") ? ni[i] - cfo[i] : null;
+      const gp = (gap != null && typeof rev[i] === "number" && rev[i] > 0) ? (gap / rev[i]) * 100 : null;
+      html += `<tr><td>${esc(y)}</td><td>${fsNum(ni[i], 0)}</td><td>${fsNum(cfo[i], 0)}</td><td>${fsNum(gap, 0)}</td><td>${fsNum(gp, 1)}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    html += `<p class="fs-note">Persistent profit well above operating cash flow is the single most common precursor in earnings-manipulation cases; persistent negative gaps with rising profits deserve a look too.</p>`;
+  }
+  // 3) Benford digit audit
+  const MON = ["revenue", "eps", "net_profit", "operating_profit", "cfo", "capex", "fcf", "equity", "net_debt", "shares", "book_value_ps", "dps"];
+  const acctVals = [];
+  MON.forEach(k => {
+    (S[k] || []).slice(0, nHist).forEach(v => { if (typeof v === "number" && v !== 0) acctVals.push(v); });
+  });
+  if (Array.isArray(d.revenue)) d.revenue.forEach(v => { if (typeof v === "number" && v !== 0) acctVals.push(v); });
+  if (Array.isArray(d.eps)) d.eps.forEach(v => { if (typeof v === "number" && v !== 0) acctVals.push(v); });
+  const priceVals = (d.price_series || []).filter(v => typeof v === "number" && v !== 0);
+  const bA = fsBenford(acctVals), bP = fsBenford(priceVals);
+  const benfordTable = (b, label) => {
+    if (!b) return "";
+    let h = `<h4>${esc(label)}</h4>`;
+    h += `<table class="report-table"><thead><tr><th>First digit</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr></thead><tbody>`;
+    h += `<tr><td>Expected %</td>${b.exp.map(p => `<td>${fsNum(p, 1)}</td>`).join("")}</tr>`;
+    h += `<tr><td>Observed %</td>${b.obs.map(o => `<td>${fsNum(o / b.n * 100, 1)}</td>`).join("")}</tr>`;
+    h += `</tbody></table>`;
+    h += `<p class="fs-note">Observations: ${b.n}. Mean absolute deviation ${fsNum(b.mad, 4)} → <strong>${esc(b.band)}</strong> (Nigrini bands: &lt;0.006 close, &lt;0.012 acceptable, &lt;0.015 marginal, above that nonconformity). Chi-square ${fsNum(b.chi2, 1)} against the 15.51 cut-off, but chi-square overstates deviations at small samples.</p>`;
+    return h;
+  };
+  if (bA) html += benfordTable(bA, "Benford's Law — first digits of the stored accounting figures (historical years)");
+  if (bP) html += benfordTable(bP, "Benford's Law — first digits of the stored price series (market data, not accounting data)");
+  if (bA || bP) html += `<p class="fs-note">Read this honestly: Benford's Law is strongest on hundreds of independent transaction values. Annual statement lines and a 3-year monthly price series are small, correlated samples, so a marginal band here is a reason to look closer, never a finding on its own. The forensic audit tab's 17 checks (${esc(fa.verdict_label || "")}) remain the primary screen; this tab adds the two classical quantitative tests on top.</p>`;
+  return html;
+}
+
+// Sector-specific operating KPIs (screener-style). A row renders only when the
+// company's data file actually carries that field, so every stock shows what it should be checked on.
+const FS_KPI_TEMPLATES = [
+  { match: /bank|financial|insur|nbfc/i, kpis: [
+    ["Deposits", "settings.deposits"], ["Advances / loans", "settings.advances"],
+    ["Net interest margin %", "settings.nim_pct"], ["Gross NPA %", "settings.gross_npa_pct"],
+    ["Net NPA %", "settings.net_npa_pct"], ["CASA %", "settings.casa_pct"],
+    ["Capital adequacy %", "settings.car_pct"], ["Branches", "settings.branch_count"],
+    ["Employees", "settings.employees"] ] },
+  { match: /oil|gas|energy|petrol|refin/i, kpis: [
+    ["New wells drilled (per yr)", "settings.wells_dug_per_year"], ["Producing wells", "settings.producing_wells"],
+    ["Proved reserves (boe)", "settings.reserves_boe"], ["Production volume", "settings.production_volume"],
+    ["Refining capacity", "settings.refining_capacity"], ["Avg realisation", "settings.avg_realisation"],
+    ["Reserve replacement %", "settings.reserve_replacement_pct"] ] },
+  { match: /telecom|wireless/i, kpis: [
+    ["Subscribers", "settings.subscribers"], ["ARPU", "settings.arpu"], ["Churn %", "settings.churn_pct"],
+    ["Towers", "settings.tower_count"], ["Spectrum capex", "settings.spectrum_capex"] ] },
+  { match: /retail|store|department/i, kpis: [
+    ["Store count", "settings.store_count"], ["Same-store sales growth %", "settings.sss_growth_pct"],
+    ["Average ticket", "settings.avg_ticket"], ["Inventory turns", "settings.inventory_turns"] ] },
+  { match: /pharma|health|biotech|hospital/i, kpis: [
+    ["R&D % of sales", "settings.rd_pct_of_sales"], ["ANDA approvals", "settings.anda_approvals"],
+    ["Granted patents", "settings.patents_granted"], ["Pipeline candidates", "settings.pipeline_count"],
+    ["Hospitals / beds", "settings.bed_count"] ] },
+  { match: /auto|vehicle|automobil/i, kpis: [
+    ["Volumes (units)", "settings.unit_volumes"], ["Capacity utilisation %", "settings.capacity_utilisation_pct"],
+    ["New launches", "settings.new_launches"] ] },
+  { match: /software|it services|tech/i, kpis: [
+    ["Headcount", "settings.headcount"], ["Utilisation %", "settings.utilisation_pct"],
+    ["Attrition %", "settings.attrition_pct"], ["Revenue per employee", "settings.revenue_per_employee"] ] },
+  { match: /cement|construct/i, kpis: [
+    ["Capacity (MT)", "settings.capacity_mt"], ["Volume growth %", "settings.volume_growth_pct"] ] },
+  { match: /power|utility|electric/i, kpis: [
+    ["Installed capacity (MW)", "settings.installed_capacity_mw"], ["PLF %", "settings.plf_pct"],
+    ["AT&C losses %", "settings.atc_losses_pct"] ] },
+  { match: /airline|aviation/i, kpis: [
+    ["Available seat km", "settings.ask"], ["Seat factor %", "settings.seat_factor_pct"],
+    ["Fuel cost % of sales", "settings.fuel_cost_pct"] ] },
+  { match: /real estate|realty|propert/i, kpis: [
+    ["Land bank (acres)", "settings.land_bank_acres"], ["Ongoing projects", "settings.ongoing_projects"],
+    ["Pre-sales", "settings.presales"] ] },
+  { match: /fmcg|consumer|beverage|food/i, kpis: [
+    ["Distribution reach", "settings.distribution_reach"], ["Volume growth %", "settings.volume_growth_pct"] ] }
+];
+
+function fsStrip(cells) {
+  let html = `<div class="fs-strip">`;
+  cells.forEach(c => { html += `<div class="cell"><div class="fs-cell-label">${esc(c[0])}</div><div class="fs-cell-val">${c[1]}</div></div>`; });
+  html += `</div>`;
+  return html;
+}
+
+function fsPanelPL(d) {
+  const hev = d.hev || {}, f = hev.forecasts || {}, set = hev.settings || {};
+  const years = f.all_10_years || [];
+  const S = f.series || {};
+  if (!years.length || !S.revenue) return `<div class="fs-note">No 10-year model data is stored for this company yet.</div>`;
+  const nHist = (f.hist_years || years).length;
+  const revH = (S.revenue || []).slice(0, nHist), npH = (S.net_profit || []).slice(0, nHist), epsH = (S.eps || []).slice(0, nHist);
+  const fcfConv = [];
+  const rev = S.revenue || [], np = S.net_profit || [], fcf = S.fcf || [];
+  for (let i = 0; i < nHist; i++) { if (np[i] > 0 && fcf[i] != null) fcfConv.push((fcf[i] / np[i]) * 100); }
+  const px = d.price_series || [];
+  let html = fsStrip([
+    ["Revenue CAGR (hist)", fsNum(fsCAGR(revH), 1) + "%"],
+    ["Net profit CAGR (hist)", fsNum(fsCAGR(npH), 1) + "%"],
+    ["EPS CAGR (hist)", fsNum(fsCAGR(epsH), 1) + "%"],
+    ["Price CAGR (stored history)", fsNum(fsCAGR(px), 1) + "%"],
+    ["Avg ROE (hist)", fsNum(fsAvg((S.roe_pct || []).slice(0, nHist)), 1) + "%"],
+    ["FCF conversion (hist)", fsNum(fsAvg(fcfConv), 0) + "% of net profit"]
+  ]);
+  html += `<div class="fs-note">Figures in ${esc(set.currency_symbol || "")} ${esc(set.currency_code || "")}, as stored in the company data file. Columns from ${esc(years[nHist] || "FY+1")} onward are modelled years (FY+1 to FY+5).</div>`;
+  const rows = [
+    ["Revenue", S.revenue, 0], ["Revenue growth %", S.revenue_growth_pct, 1],
+    ["Gross margin %", S.gross_margin_pct, 1], ["Operating margin %", S.operating_margin_pct, 1],
+    ["Net margin %", S.net_margin_pct, 1], ["Operating profit", S.operating_profit, 0],
+    ["Net profit", S.net_profit, 0], ["EPS", S.eps, 2], ["EPS growth %", S.eps_growth_pct, 1],
+    ["Dividend / share", S.dps, 2], ["Payout ratio %", S.payout_ratio_pct, 1],
+    ["Book value / share", S.book_value_ps, 2], ["ROE %", S.roe_pct, 1], ["ROCE %", S.roce_pct, 1]
+  ];
+  html += `<table class="report-table fs-table"><thead><tr><th>Line item</th>`;
+  years.forEach((y, i) => { html += `<th class="${i >= nHist ? "fs-fc" : ""}">${esc(y)}</th>`; });
+  html += `</tr></thead><tbody>`;
+  rows.forEach(r => {
+    const arr = r[1] || [];
+    html += `<tr><td class="fs-row-label">${esc(r[0])}</td>`;
+    years.forEach((y, i) => { html += `<td class="${i >= nHist ? "fs-fc" : ""}">${fsNum(arr[i], r[2])}</td>`; });
+    html += `</tr>`;
+  });
+  html += `</tbody></table>`;
+  return html;
+}
+
+function fsPanelBS(d) {
+  const hev = d.hev || {}, f = hev.forecasts || {}, set = hev.settings || {};
+  const bss = f.balance_sheet_summary || {};
+  const trend = bss.trend || [];
+  const S = f.series || {};
+  if (!trend.length && !S.equity) return `<div class="fs-note">No balance sheet data is stored for this company yet.</div>`;
+  let html = `<div class="fs-note">Asset composition and ratios as stored. The data file carries balance-sheet composition (percent of total assets) plus equity, net debt, share count and book value, not absolute line items.</div>`;
+  if (bss.latest) {
+    const l = bss.latest;
+    html += fsStrip([
+      ["Latest year", esc(l.year || "—")],
+      ["Cash", fsNum(l.cash_pct, 1) + "% of assets"],
+      ["Receivables", fsNum(l.receivables_pct, 1) + "% of assets"],
+      ["Inventory", fsNum(l.inventory_pct, 1) + "% of assets"],
+      ["Net fixed assets", fsNum(l.net_ppe_pct, 1) + "% of assets"],
+      ["Debt / equity", fsNum(l.debt_to_equity, 2)],
+      ["Current ratio", fsNum(l.current_ratio, 2)],
+      ["Asset check", esc(l.asset_check || "—") + (l.balanced ? " (balanced)" : "")]
+    ]);
+  }
+  if (trend.length) {
+    html += `<table class="report-table fs-table"><thead><tr><th>Year</th><th>Cash %</th><th>Receivables %</th><th>Inventory %</th><th>Net PPE %</th><th>Other assets %</th><th>Debt / equity</th><th>Current ratio</th><th>Quick ratio</th></tr></thead><tbody>`;
+    trend.forEach(t => {
+      html += `<tr><td class="fs-row-label">${esc(t.year)}</td><td>${fsNum(t.cash_pct, 1)}</td><td>${fsNum(t.receivables_pct, 1)}</td><td>${fsNum(t.inventory_pct, 1)}</td><td>${fsNum(t.net_ppe_pct, 1)}</td><td>${fsNum(t.other_assets_pct, 1)}</td><td>${fsNum(t.debt_to_equity, 2)}</td><td>${fsNum(t.current_ratio, 2)}</td><td>${fsNum(t.quick_ratio, 2)}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+  if (S.equity) {
+    const years = f.all_10_years || [];
+    html += `<table class="report-table fs-table"><thead><tr><th>Year</th><th>Equity</th><th>Net debt</th><th>Shares</th><th>Book value / share</th></tr></thead><tbody>`;
+    years.forEach((y, i) => {
+      html += `<tr><td class="fs-row-label">${esc(y)}</td><td>${fsNum((S.equity || [])[i], 0)}</td><td>${fsNum((S.net_debt || [])[i], 0)}</td><td>${fsNum((S.shares || [])[i], 0)}</td><td>${fsNum((S.book_value_ps || [])[i], 2)}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+  return html;
+}
+
+function fsPanelCF(d) {
+  const hev = d.hev || {}, f = hev.forecasts || {}, set = hev.settings || {};
+  const S = f.series || {}, years = f.all_10_years || [];
+  if (!S.cfo) return `<div class="fs-note">No cash flow data is stored for this company yet.</div>`;
+  const nHist = (f.hist_years || years).length;
+  const rev = S.revenue || [], cfo = S.cfo || [], capex = S.capex || [], fcf = S.fcf || [];
+  const fcfH = fcf.slice(0, nHist), npH = (S.net_profit || []).slice(0, nHist);
+  const conv = [];
+  for (let i = 0; i < nHist; i++) { if (npH[i] > 0 && fcfH[i] != null) conv.push((fcfH[i] / npH[i]) * 100); }
+  let html = fsStrip([
+    ["Avg CFO (hist)", fsNum(fsAvg(cfo.slice(0, nHist)), 0)],
+    ["Avg capex (hist)", fsNum(fsAvg(capex.slice(0, nHist)), 0)],
+    ["Avg FCF (hist)", fsNum(fsAvg(fcfH), 0)],
+    ["FCF conversion (hist)", fsNum(fsAvg(conv), 0) + "% of net profit"],
+    ["Avg capex / revenue", fsNum(fsAvg(capex.slice(0, nHist).map((c, i) => rev[i] > 0 ? (c / rev[i]) * 100 : null)), 1) + "%"]
+  ]);
+  html += `<div class="fs-note">Cash flows in ${esc(set.currency_symbol || "")} ${esc(set.currency_code || "")}. The data file carries operating cash flow, capital expenditure and free cash flow; investing and financing lines are not stored.</div>`;
+  html += `<table class="report-table fs-table"><thead><tr><th>Year</th><th>Cash from operations</th><th>Capex</th><th>Free cash flow</th><th>FCF margin %</th><th>Capex / revenue %</th></tr></thead><tbody>`;
+  years.forEach((y, i) => {
+    const fcfM = (rev[i] > 0 && fcf[i] != null) ? (fcf[i] / rev[i]) * 100 : null;
+    const cxR = (rev[i] > 0 && capex[i] != null) ? (capex[i] / rev[i]) * 100 : null;
+    html += `<tr><td class="fs-row-label ${i >= nHist ? "fs-fc" : ""}">${esc(y)}</td><td>${fsNum(cfo[i], 0)}</td><td>${fsNum(capex[i], 0)}</td><td>${fsNum(fcf[i], 0)}</td><td>${fsNum(fcfM, 1)}</td><td>${fsNum(cxR, 1)}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  return html;
+}
+
+function fsPanelAN(d) {
+  const hev = d.hev || {}, f = hev.forecasts || {}, set = hev.settings || {};
+  const S = f.series || {}, years = f.all_10_years || [];
+  const nHist = (f.hist_years || years).length;
+  if (!isAdminUser()) {
+    return `<div class="lojikx-prose-card"><div class="lojikx-prose-title">Analysis Notes</div><p class="lojikx-prose-body">Derived statement analysis (scissors effect, working capital reading, capex and financing analysis, leverage classification) is available to authorised accounts. The statement tables themselves are open.</p></div>`;
+  }
+  let html = `<div class="fs-note">Method notes adapted from the Financial Analysis framework: margin analysis and the scissors effect, working capital turnover and reading, capex analysis, dynamic and static financing analysis, financial leverage groups.</div>`;
+  // 1. Margin structure
+  const cw = (hev.charts_23 || {}).c16_cost_waterfall;
+  if (cw) {
+    html += `<h4>Margin structure — where each unit of revenue goes (latest modelled year)</h4>`;
+    html += `<table class="report-table"><thead><tr><th>Component</th><th>% of revenue</th><th>Amount</th></tr></thead><tbody>`;
+    (cw.labels || []).forEach((lab, i) => {
+      html += `<tr><td>${esc(lab)}</td><td>${fsNum((cw.series.pct_of_revenue || [])[i], 2)}</td><td>${fsNum((cw.series.amount || [])[i], 0)}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+  // 2. Scissors effect
+  const rg = (S.revenue_growth_pct || []).slice(1, nHist), ng = (S.eps_growth_pct || []).slice(1, nHist);
+  const nm = (S.net_margin_pct || []).slice(0, nHist);
+  const rgA = fsAvg(rg), ngA = fsAvg(ng);
+  let verdict = "";
+  if (rgA != null && ngA != null) {
+    verdict = (ngA < rgA - 2)
+      ? `Net profit has grown slower than revenue on average (${fsNum(ngA,1)}% vs ${fsNum(rgA,1)}%). Per the scissors effect, check which line is opening: rising input costs, margins compressing, or heavier interest and tax.`
+      : `Profit growth has kept pace with or beaten revenue growth (${fsNum(ngA,1)}% vs ${fsNum(rgA,1)}%), so no scissors gap is visible in the stored series.`;
+  }
+  html += `<h4>The scissors effect — do costs grow faster than sales?</h4>`;
+  html += `<table class="report-table"><thead><tr><th>Year</th><th>Revenue growth %</th><th>Net margin %</th><th>EPS growth %</th></tr></thead><tbody>`;
+  years.forEach((y, i) => {
+    if (i >= nHist) return;
+    html += `<tr><td>${esc(y)}</td><td>${fsNum((S.revenue_growth_pct || [])[i], 1)}</td><td>${fsNum(nm[i], 1)}</td><td>${fsNum((S.eps_growth_pct || [])[i], 1)}</td></tr>`;
+  });
+  html += `</tbody></table><p class="fs-note">${esc(verdict)} Historical net margin floor: ${fsNum(Math.min.apply(null, nm.filter(v => typeof v === "number")), 1)}%.</p>`;
+  // 3. Working capital reading
+  const bss = f.balance_sheet_summary || {}, trend = bss.trend || [];
+  if (trend.length) {
+    html += `<h4>Reading working capital between the lines</h4>`;
+    html += `<table class="report-table"><thead><tr><th>Year</th><th>Current ratio</th><th>Quick ratio</th><th>Receivables % of assets</th><th>Inventory % of assets</th></tr></thead><tbody>`;
+    trend.forEach(t => { html += `<tr><td>${esc(t.year)}</td><td>${fsNum(t.current_ratio, 2)}</td><td>${fsNum(t.quick_ratio, 2)}</td><td>${fsNum(t.receivables_pct, 1)}</td><td>${fsNum(t.inventory_pct, 1)}</td></tr>`; });
+    html += `</tbody></table>`;
+    const crTrend = trend.map(t => t.current_ratio).filter(v => typeof v === "number");
+    if (crTrend.length >= 2) {
+      const dCR = crTrend[crTrend.length - 1] - crTrend[0];
+      html += `<p class="fs-note">${dCR >= 0 ? "Current ratio has held or improved over the stored years, so working capital is not quietly absorbing cash as the business grows." : "Current ratio has slipped over the stored years: worth checking whether receivables or inventory are growing faster than sales, the classic sign of growth eating working capital."}</p>`;
+    }
+  }
+  // 4. Capex analysis
+  if (S.capex) {
+    const rev = S.revenue || [], capex = S.capex || [];
+    html += `<h4>Capital expenditure analysis</h4>`;
+    html += `<table class="report-table"><thead><tr><th>Year</th><th>Capex</th><th>Capex / revenue %</th><th>Net PPE % of assets</th></tr></thead><tbody>`;
+    years.forEach((y, i) => {
+      if (i >= nHist) return;
+      const cxR = (rev[i] > 0 && capex[i] != null) ? (capex[i] / rev[i]) * 100 : null;
+      const ppe = trend.length ? (trend.find(t => String(t.year) === String(years[i])) || {}).net_ppe_pct : null;
+      html += `<tr><td>${esc(y)}</td><td>${fsNum(capex[i], 0)}</td><td>${fsNum(cxR, 1)}</td><td>${fsNum(ppe, 1)}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    html += `<p class="fs-note">The data does not split expansion capex from replacement capex, so judge investment policy from capex intensity against revenue and the fixed-asset share of the balance sheet.</p>`;
+  }
+  // 5. Financing and leverage
+  const dcf = (hev.valuation || {}).dcf || {};
+  const deTrend = trend.map(t => t.debt_to_equity).filter(v => typeof v === "number");
+  html += `<h4>How the company is financed, and the leverage group</h4>`;
+  if (deTrend.length) {
+    html += `<table class="report-table"><thead><tr><th>Year</th><th>Debt / equity</th></tr></thead><tbody>`;
+    trend.forEach(t => { html += `<tr><td>${esc(t.year)}</td><td>${fsNum(t.debt_to_equity, 2)}</td></tr>`; });
+    html += `</tbody></table>`;
+  }
+  const nd = (S.net_debt || [])[0], roceH = fsAvg((S.roce_pct || []).slice(0, nHist)), kd = dcf.kd_after_tax;
+  let lev = "Leverage group could not be classified from the stored data.";
+  if (nd != null && !isNaN(nd) && nd <= 0) lev = "Net cash position (more cash than debt): the company funds itself internally, the healthiest financing posture.";
+  else if (roceH != null && kd != null) lev = (kd > roceH)
+    ? `Negative leverage: after-tax cost of debt (${fsNum(kd,2)}%) exceeds average ROCE (${fsNum(roceH,1)}%), so borrowing destroys shareholder returns.`
+    : `Positive leverage: after-tax cost of debt (${fsNum(kd,2)}%) sits below average ROCE (${fsNum(roceH,1)}%), so debt is adding to shareholder returns.`;
+  html += `<p class="fs-note">${esc(lev)} WACC ${fsNum(dcf.wacc,2)}%, beta ${fsNum(dcf.beta,2)}, tax rate ${fsNum(dcf.tax_rate,1)}% (from the DCF block).</p>`;
+  // 6. Frameworks from the Financial Performance book (Bertoneche & Knight)
+  html += `<h4>Frameworks from the Financial Performance book (Bertoneche & Knight)</h4>`;
+  const niL = (S.net_profit || [])[nHist - 1], revL = (S.revenue || [])[nHist - 1], eqL = (S.equity || [])[nHist - 1];
+  if (typeof niL === "number" && typeof revL === "number" && revL > 0 && typeof eqL === "number" && eqL > 0) {
+    const npm = (niL / revL) * 100, et = revL / eqL, roeD = (niL / eqL) * 100;
+    const pay = (S.payout_ratio_pct || [])[nHist - 1];
+    const sg = (roeD >= 0 && typeof pay === "number") ? roeD * (1 - pay / 100) : null;
+    html += `<table class="report-table"><thead><tr><th>Driver</th><th>Value</th><th>Reads as</th></tr></thead><tbody>`;
+    html += `<tr><td>Net profit margin</td><td>${fsNum(npm, 2)}%</td><td>profit kept from each unit of sales</td></tr>`;
+    html += `<tr><td>Equity turnover</td><td>${fsNum(et, 2)}x</td><td>sales generated per unit of shareholder capital</td></tr>`;
+    html += `<tr><td>ROE (margin x turnover)</td><td>${fsNum(roeD, 2)}%</td><td>the DuPont decomposition: ROE is margin times capital productivity</td></tr>`;
+    if (sg != null) html += `<tr><td>Sustainable growth rate</td><td>${fsNum(sg, 2)}%</td><td>growth fundable from own earnings at a ${fsNum(pay, 0)}% payout, without new debt or dilution</td></tr>`;
+    html += `</tbody></table>`;
+    html += `<p class="fs-note">If ROE looks high while the margin is thin, the return is carried by turnover or leverage rather than pricing power; fix the driver rather than admire the result. Growth funded above the sustainable rate must come from debt, dilution, or stretched working capital.</p>`;
+  }
+  const roceL = (S.roce_pct || [])[nHist - 1], waccV = (dcf || {}).wacc;
+  if (typeof roceL === "number" && typeof waccV === "number") {
+    const spread = roceL - waccV;
+    html += `<h4>Value creation - the EVA spread</h4>`;
+    html += `<p class="fs-note">ROCE ${fsNum(roceL, 1)}% against WACC ${fsNum(waccV, 2)}% gives a spread of <strong>${fsNum(spread, 1)}%</strong>. ${spread > 0 ? "Positive spread: each unit of capital employed earns more than it costs, so growth adds value." : "Negative spread: the business earns less than its cost of capital, so growth destroys value until the spread turns."} The book treats this spread, not accounting profit, as the real test of performance.</p>`;
+  }
+  html += `<p class="fs-note">Cross-references: the Forensic tab holds the 17-point accounting audit; the Fraud Radar sub-tab adds the Beneish M-Score components and a Benford's Law digit audit on top.</p>`;
+  return html;
+}
+
+function fsPanelPE(d) {
+  const hev = d.hev || {}, set = hev.settings || {};
+  const peers = set.competitors || [];
+  if (!peers.length) return `<div class="fs-note">No competitor set is stored for this company.</div>`;
+  const vp = (hev.valuation || {}).pe || {};
+  const peerAvg = vp.peer_avg_pe;
+  let html = `<div class="fs-note">${peers.length} stored competitors, compared on every metric the data file carries for each of them.</div>`;
+  html += `<table class="report-table"><thead><tr><th>Company</th><th>Ticker</th><th>Market</th><th>Sector</th><th>Market cap</th><th>P/E</th><th>Quality (of 23)</th><th>P/E vs peer avg</th></tr></thead><tbody>`;
+  const qSub = set.quality_earned != null ? set.quality_earned : null;
+  const peSub = vp.current_pe != null ? vp.current_pe : set.pe;
+  html += `<tr class="fs-subj-row"><td>${esc(set.company || "")} (this stock)</td><td>${esc(set.ticker || "")}</td><td>${esc(set.market || "")}</td><td>${esc(set.sector || "")}</td><td>${fsNum(set.market_cap, 0)}</td><td>${fsNum(peSub, 2)}</td><td>${fsNum(qSub, 0)}</td><td>${(peerAvg != null && peSub != null) ? fsNum(peSub - peerAvg, 2) : "—"}</td></tr>`;
+  peers.forEach(p => {
+    html += `<tr><td>${esc(p.company || "")}</td><td>${esc(p.ticker || "")}</td><td>${esc(p.market || "")}</td><td>${esc(p.sector || "")}</td><td>${fsNum(p.market_cap, 0)}</td><td>${fsNum(p.pe, 2)}</td><td>${fsNum(p.quality_score, 0)}</td><td>${(peerAvg != null && p.pe != null) ? fsNum(p.pe - peerAvg, 2) : "—"}</td></tr>`;
+  });
+  if (peerAvg != null) html += `<tr class="fs-avg-row"><td colspan="5">Peer average P/E</td><td>${fsNum(peerAvg, 2)}</td><td></td><td></td></tr>`;
+  html += `</tbody></table>`;
+  return html;
+}
+
+function fsPanelKPI(d) {
+  const hev = d.hev || {}, set = hev.settings || {}, f = hev.forecasts || {};
+  const S = f.series || {}, years = f.all_10_years || [];
+  const nHist = (f.hist_years || years).length;
+  const industry = (set.industry || "") + " " + (set.sector || "");
+  let rows = [];
+  FS_KPI_TEMPLATES.forEach(t => { if (t.match.test(industry)) rows = rows.concat(t.kpis); });
+  const present = rows.map(r => [r[0], fsResolve(hev, r[1])]).filter(r => r[1] != null);
+  let html = `<div class="fs-note">Sector-specific operating KPIs, screener-style: what needs checking for THIS kind of business. Rows render when the company data file carries the field.</div>`;
+  if (present.length) {
+    html += `<table class="report-table"><thead><tr><th>Operating KPI</th><th>Value</th></tr></thead><tbody>`;
+    present.forEach(r => { html += `<tr><td>${esc(r[0])}</td><td>${esc(String(r[1]))}</td></tr>`; });
+    html += `</tbody></table>`;
+  } else {
+    html += `<div class="lojikx-prose-card"><div class="lojikx-prose-title">No sector KPI fields stored yet for ${esc(set.company || "this company")}</div><p class="lojikx-prose-body">The layer is live: add fields such as deposits (banks), wells drilled (oil), store count (retail) or headcount (IT) to the company's data file and they appear here automatically, matched to the industry.</p></div>`;
+  }
+  // Always-on derived KPIs from the stored series
+  const revH = (S.revenue || []).slice(0, nHist), npH = (S.net_profit || []).slice(0, nHist), epsH = (S.eps || []).slice(0, nHist);
+  const payout = (S.payout_ratio_pct || []).slice(0, nHist);
+  const bv = (S.book_value_ps || []).slice(0, nHist);
+  const px = d.price_series || [];
+  const fcfH = (S.fcf || []).slice(0, nHist);
+  const conv = [];
+  for (let i = 0; i < nHist; i++) { if (npH[i] > 0 && fcfH[i] != null) conv.push((fcfH[i] / npH[i]) * 100); }
+  html += `<h4>Derived KPIs (computed from the stored series)</h4>`;
+  html += `<table class="report-table"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>`;
+  html += `<tr><td>Revenue CAGR (hist)</td><td>${fsNum(fsCAGR(revH), 1)}%</td></tr>`;
+  html += `<tr><td>Net profit CAGR (hist)</td><td>${fsNum(fsCAGR(npH), 1)}%</td></tr>`;
+  html += `<tr><td>EPS CAGR (hist)</td><td>${fsNum(fsCAGR(epsH), 1)}%</td></tr>`;
+  html += `<tr><td>Book value CAGR (hist)</td><td>${fsNum(fsCAGR(bv), 1)}%</td></tr>`;
+  html += `<tr><td>Average payout ratio (hist)</td><td>${fsNum(fsAvg(payout), 1)}%</td></tr>`;
+  html += `<tr><td>FCF conversion (hist)</td><td>${fsNum(fsAvg(conv), 0)}% of net profit</td></tr>`;
+  html += `<tr><td>Price CAGR (stored history)</td><td>${fsNum(fsCAGR(px), 1)}%</td></tr>`;
+  html += `</tbody></table>`;
+  return html;
+}
+
+function fsPanel(sub, d) {
+  if (sub === "pl") return fsPanelPL(d);
+  if (sub === "bs") return fsPanelBS(d);
+  if (sub === "cf") return fsPanelCF(d);
+  if (sub === "an") return fsPanelAN(d);
+  if (sub === "pe") return fsPanelPE(d);
+  if (sub === "kpi") return fsPanelKPI(d);
+  if (sub === "fr") return fsPanelFR(d);
+  return "";
+}
+
+function renderFinancials(d) {
+  const box = $("view-financials");
+  if (!box) return;
+  const hev = d.hev || {}, set = hev.settings || {};
+  const subs = [["pl", "Profit & Loss"], ["bs", "Balance Sheet"], ["cf", "Cash Flows"], ["an", "Analysis Notes"], ["pe", "Competitors"], ["fr", "Fraud Radar"], ["kpi", "Sector KPIs"]];
+  box.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "card glass";
+  const head = document.createElement("div");
+  head.innerHTML = `<div class="card-title">Financial Statements — ${esc(set.company || "")} (${esc(set.ticker || "")})</div>`
+    + `<div class="fs-note">${esc(set.company || "")} · ${esc(set.industry || "")} · ${esc(set.sector || "")} · ${esc(set.market || "")}</div>`;
+  wrap.appendChild(head);
+  const bar = document.createElement("div");
+  bar.className = "fs-subtabs";
+  subs.forEach(s => {
+    const btn = document.createElement("button");
+    btn.className = "fs-subtab" + (s[0] === FS_STATE.sub ? " active" : "");
+    btn.dataset.sub = s[0];
+    btn.textContent = s[1];
+    btn.addEventListener("click", () => {
+      FS_STATE.sub = s[0];
+      bar.querySelectorAll(".fs-subtab").forEach(b => b.classList.toggle("active", b === btn));
+      const host = $("fsPanelHost");
+      if (host) host.innerHTML = fsPanel(FS_STATE.sub, d);
+    });
+    bar.appendChild(btn);
+  });
+  wrap.appendChild(bar);
+  const host = document.createElement("div");
+  host.id = "fsPanelHost";
+  host.innerHTML = fsPanel(FS_STATE.sub, d);
+  wrap.appendChild(host);
+  box.appendChild(wrap);
+}
+// ================= end Financial Statements view =================
+

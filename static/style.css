@@ -565,3 +565,19 @@ body > * { position: relative; z-index: 1; }
 .gf-tf-btn { background:transparent; border:1px solid var(--border, #ddd); border-radius:6px; padding:4px 10px; cursor:pointer; font-size:12px; color:var(--text); }
 .gf-tf-btn.active { background:var(--accent, #0071e3); color:#fff; border-color:var(--accent, #0071e3); }
 .gf-return-badge { margin-left:auto; font-size:12px; color:var(--muted); }
+
+/* ---- Financial Statements view ---- */
+.fs-subtabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 4px; }
+.fs-subtab { padding:7px 14px; border-radius:999px; border:1px solid var(--border); background:transparent; color:var(--muted); font-weight:600; cursor:pointer; font-size:12px; transition:all .2s ease; }
+.fs-subtab:hover { color:#fff; border-color:var(--accent); }
+.fs-subtab.active { background:var(--accent); color:#fff; border-color:var(--accent); box-shadow:0 6px 18px rgba(0,113,227,0.35); }
+.fs-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin:12px 0; }
+.fs-strip .cell { background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+.fs-cell-label { font-size:11px; color:var(--muted); margin-bottom:4px; }
+.fs-cell-val { font-size:15px; font-weight:700; }
+.fs-note { font-size:12px; color:var(--muted); margin:8px 0; }
+.fs-table td, .fs-table th { white-space:nowrap; }
+.fs-fc { color:#7fd1ff; }
+.fs-row-label { font-weight:600; }
+.fs-subj-row td { background:rgba(0,113,227,0.14); font-weight:700; }
+.fs-avg-row td { font-weight:700; border-top:2px solid var(--accent); }

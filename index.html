@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LojikGain — Apple-Grade Institutional Equity Research</title>
-  <link rel="stylesheet" href="./static/style.css?v=20261104_v15" />
+  <link rel="stylesheet" href="./static/style.css?v=20261104_v17" />
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <!-- Data bundles: Flask (/static/data/...) and GitHub Pages (./data/...) -->
   <script src="./static/data/public_index.js" onerror="this.remove()"></script>
@@ -77,6 +77,7 @@
       <button class="ws-tab" data-view="exec-summary">Executive Summary</button>
       <button class="ws-tab" data-view="dashboard">Visual Analytics</button>
       <button class="ws-tab" data-view="report">Institutional Research Report</button>
+      <button class="ws-tab" data-view="financials">Financial Statements</button>
       <button class="ws-tab" data-view="forensic">Forensic &amp; LojikX™ Quality Audit</button>
     </div>
 
@@ -234,6 +235,9 @@
       </div>
     </div>
 
+    <!-- Financial Statements -->
+    <div class="view" id="view-financials" style="display:none"></div>
+
     <!-- Tab 5: Forensic -->
     <div class="view" id="view-forensic" style="display:none">
       <section class="card glass">
@@ -287,6 +291,6 @@
     </div>
   </div>
 
-  <script src="./static/app.js?v=20261104_v15"></script>
+  <script src="./static/app.js?v=20261104_v17"></script>
 </body>
 </html>
