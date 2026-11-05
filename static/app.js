@@ -2010,8 +2010,10 @@ function fsPanelSV(d) {
   if (!sf) return `<div class="fs-note">Full screener-style statements are not stored for this company yet. Run <code>tools/build_statement_full.py TICKER</code> to add them.</div>`;
   const pl = sf["profit-loss"] || {}, q = sf["quarters"] || {}, bs = sf["balance-sheet"] || {},
         cf = sf["cash-flow"] || {}, ra = sf["ratios"] || {}, sh = sf["shareholding"] || {};
-  let html = `<div class="fs-note">Full statements as published on screener.in${sf.consolidated ? " (consolidated)" : " (standalone)"}, fetched ${esc(sf.fetched_at || d.statement_full_generated_at || "")}. Figures in ${esc(d.currency || "")} crore unless marked %.</div>`;
-  html += fsScreenerTable("Profit &amp; Loss", pl);
+  const srcName = esc(sf.source || "screener.in");
+  const unitsTxt = sf.units ? esc(sf.units) : (esc(d.currency || "") + " crore");
+  let html = `<div class="fs-note">Full statements from ${srcName}${sf.consolidated ? " (consolidated)" : " (standalone)"}, fetched ${esc(sf.fetched_at || d.statement_full_generated_at || "")}. Figures in ${unitsTxt} unless marked %.</div>`;
+  html += fsScreenerTable("Profit & Loss", pl);
   html += fsScreenerTable("Quarters", q);
   html += fsScreenerTable("Balance Sheet", bs);
   html += fsScreenerTable("Cash Flow", cf);
@@ -2021,9 +2023,10 @@ function fsPanelSV(d) {
     (sh.yearly.rows || []).forEach(r => { blk[r.label] = { periods: sh.yearly.periods || [], values: r.values }; });
     html += fsScreenerTable("Shareholding (yearly %)", blk, { dec: 2 });
   }
-  if (sh.quarterly_pattern && sh.quarterly_pattern.rows) {
+  const qp = sh.quarterly_pattern || sh.quarterly_trends;
+  if (qp && qp.rows) {
     const blk = {};
-    (sh.quarterly_pattern.rows || []).forEach(r => { blk[r.label] = { periods: sh.quarterly_pattern.periods || [], values: r.values }; });
+    (qp.rows || []).forEach(r => { blk[r.label] = { periods: qp.periods || [], values: r.values }; });
     html += fsScreenerTable("Shareholding (quarterly %)", blk, { dec: 2 });
   }
   return html;
