@@ -4,3 +4,9 @@ audit_live.js
 decrypt_out.txt
 node_modules/
 .pytest_tmp/
+PATCH_NOTES.md
+admin_module.js
+tools/
+scripts/
+__pycache__/
+*.pyc
