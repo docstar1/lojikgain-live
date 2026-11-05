@@ -149,20 +149,47 @@ def parse_shareholding(html):
         result[names[i] if i < len(names) else f'table{i}'] = {'periods': periods, 'rows': parsed}
     return result or None
 
-def build(ticker):
-    url = f'https://www.screener.in/company/{ticker}/consolidated/'
-    req = urllib.request.Request(url, headers=UA)
-    try:
-        html = urllib.request.urlopen(req, timeout=30).read().decode('utf-8', 'ignore')
-    except Exception:
-        url = f'https://www.screener.in/company/{ticker}/'
-        html = urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30).read().decode('utf-8', 'ignore')
-    out = {'source': 'screener.in', 'url': url, 'consolidated': '/consolidated/' in url, 'fetched_at': __import__('datetime').date.today().isoformat()}
+def _fetch(url):
+    return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30).read().decode('utf-8', 'ignore')
+
+def _parse(html):
+    out = {}
     for sec in SECTIONS:
         if sec == 'shareholding':
             out[sec] = parse_shareholding(html)
         else:
             out[sec] = parse_section(html, sec)
+    return out
+
+def build(ticker, slug=None):
+    # slug: screener.in listing slug when the ticker was renamed there (e.g.
+    # TATAMOTORS -> TMPV, ZOMATO -> ETERNAL). The data file keeps the app's
+    # ticker name; `url` records the page the numbers actually came from.
+    sym = slug or ticker
+    url = f'https://www.screener.in/company/{sym}/consolidated/'
+    html = _fetch(url)
+    parsed = _parse(html)
+    # Consolidated pages for some companies serve the table labels with no
+    # numeric cells (filled client-side on screener). If nothing parsed, fall
+    # back to the standalone page, which carries the numbers server-side.
+    def _has_numbers(d):
+        for v in (d or {}).values():
+            if not isinstance(v, dict):
+                continue
+            if 'values' in v and any(x is not None for x in v['values']):
+                return True
+            for r in v.get('rows', []):
+                if r.get('values') and any(x is not None for x in r['values']):
+                    return True
+        return False
+    if not any(_has_numbers(parsed.get(sec)) for sec in SECTIONS if sec != 'shareholding'):
+        url = f'https://www.screener.in/company/{sym}/'
+        html = _fetch(url)
+        parsed = _parse(html)
+    out = {'source': 'screener.in', 'url': url, 'consolidated': '/consolidated/' in url, 'fetched_at': __import__('datetime').date.today().isoformat()}
+    out.update(parsed)
+    if slug:
+        out['listing_slug'] = slug
     return out
 
 def main():

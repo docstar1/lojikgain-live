@@ -119,3 +119,13 @@
 - Renderer fixes in fsPanelSV (both app.js copies): quarterly shareholding now also reads the `quarterly_trends` key the India builder stores; "Profit & Loss" heading no longer double-escaped (was rendering a literal "&amp;" in the browser).
 - Verified by a JS render harness on US and India shapes: tables, period headers, number formatting, shareholding blocks and source/units note all render; no double escapes. Live browser check still pending locally (no GUI in sandbox): open a ticker, Financials tab, Full Statements.
 - Commit `992f005`.
+
+## Update 8 (2026-11-06): Full Statements gap tickers closed - coverage 126/128
+
+- `tools/build_statement_full.py` extended: `slug` parameter for renamed screener listings (TATAMOTORS now lives at TMPV, ZOMATO at ETERNAL), and a standalone-page fallback for companies whose consolidated page ships zero numeric cells (BDL, PAGEIND: numbers load client-side there; screener's API endpoints 404 and the results pages need login).
+- BDL and PAGEIND built from their standalone pages: quarters 13, P&L 13, balance-sheet 10, cash-flow 6, ratios 6, shareholding yearly + quarterly. `consolidated: false` recorded, so the panel note correctly reads "(standalone)".
+- TATAMOTORS and ZOMATO built from their renamed consolidated listings and stored under the app's own tickers (data/tickers/TATAMOTORS.json, ZOMATO.json), with the actual source page kept in `url` and `listing_slug` recording the override.
+- Coverage is now 126/128 statement_full. The two remaining gaps are S&P 500 and NIFTY 50 (indices, statements not applicable) by design.
+- Renderer unchanged this round: fsPanelSV already handles both shapes, so BDL/PAGEIND show the standalone note automatically.
+- Verified with the JS render harness on all four new files: all five section tables + both shareholding blocks render, TTM column present, "(standalone)"/"(consolidated)" note correct per company, no double escapes, 500+ numeric cells rendering per company. Live browser check still pending locally (no GUI in sandbox): open BDL, PAGEIND, TATAMOTORS, ZOMATO, Financials tab, Full Statements.
+- static/data synced for all four.
