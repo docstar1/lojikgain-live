@@ -832,11 +832,17 @@ function renderGfChartInto(svg, container, d, tf) {
   const fillEnd = up ? "rgba(22,163,74,0.0)" : "rgba(220,38,38,0.0)";
   const gradId = "gfAreaGrad_" + (up ? "up" : "down");
 
-  const pts = series.map((pt, i) => ({
-    x: padL + (i / (n - 1)) * (w - padL - padR),
-    y: padT + (h - padT - padB) - ((Number(pt.p) - minP) / spanP) * (h - padT - padB),
-    p: Number(pt.p), d: pt.d
-  }));
+  const ts = series.map(pt => new Date(String(pt.d).slice(0, 10) + "T00:00:00").getTime());
+  const t0 = ts[0], t1 = ts[n - 1];
+  const tSpan = (isFinite(t0) && isFinite(t1) && t1 > t0) ? (t1 - t0) : 0;
+  const pts = series.map((pt, i) => {
+    const tfrac = (tSpan > 0 && isFinite(ts[i])) ? (ts[i] - t0) / tSpan : (n > 1 ? i / (n - 1) : 0);
+    return {
+      x: padL + tfrac * (w - padL - padR),
+      y: padT + (h - padT - padB) - ((Number(pt.p) - minP) / spanP) * (h - padT - padB),
+      p: Number(pt.p), d: pt.d
+    };
+  });
 
   // defs gradient
   const defs = svgEl("defs");
@@ -866,10 +872,23 @@ function renderGfChartInto(svg, container, d, tf) {
 
   // bottom date labels (4-5)
   const longSpan = (new Date(String(series[series.length-1].d).slice(0,10)) - new Date(String(series[0].d).slice(0,10))) > 365*86400000;
-  const idxs = [0, Math.floor(n*0.25), Math.floor(n*0.5), Math.floor(n*0.75), n-1];
+  const idxs = [];
+  for (let k = 0; k < 5; k++) {
+    const frac = k / 4;
+    let best = 0, bd = Infinity;
+    const target = tSpan > 0 ? t0 + frac * tSpan : null;
+    for (let i2 = 0; i2 < n; i2++) {
+      const dd = (target !== null && isFinite(ts[i2])) ? Math.abs(ts[i2] - target) : Math.abs(i2 - frac * (n - 1));
+      if (dd < bd) { bd = dd; best = i2; }
+    }
+    idxs.push(best);
+  }
   const seen = new Set();
   idxs.forEach(i => {
-    if (i < 0 || i >= n || seen.has(i)) return; seen.add(i);
+    if (i < 0 || i >= n || seen.has(i)) return;
+    const _lab = gfFormatDate(series[i].d, longSpan);
+    if (seen.has("L" + _lab)) return;
+    seen.add(i); seen.add("L" + _lab);
     const p = pts[i];
     const t = svgEl("text"); t.setAttribute("x", p.x.toFixed(1)); t.setAttribute("y", (h - 6).toFixed(1)); t.setAttribute("text-anchor", "middle"); t.setAttribute("font-size", "10"); t.setAttribute("fill", "var(--muted)");
     t.textContent = gfFormatDate(series[i].d, longSpan);
@@ -889,8 +908,8 @@ function renderGfChartInto(svg, container, d, tf) {
   function showAt(clientX) {
     const rect = svg.getBoundingClientRect();
     const x = clientX - rect.left;
-    const rel = (x - padL) / (w - padL - padR);
-    const idx = Math.round(rel * (n - 1));
+    let idx = 0, _bd = Infinity;
+    for (let i2 = 0; i2 < n; i2++) { const _dd = Math.abs(pts[i2].x - x); if (_dd < _bd) { _bd = _dd; idx = i2; } }
     if (idx < 0 || idx >= n) { cross.style.display = "none"; dot.style.display = "none"; if (pill) pill.style.display = "none"; return; }
     const p = pts[idx];
     cross.setAttribute("x1", p.x.toFixed(1)); cross.setAttribute("x2", p.x.toFixed(1)); cross.style.display = "";
@@ -1330,7 +1349,7 @@ function renderOverview(d) {
   const earned = (d.quality_score && d.quality_score.earned) || (d.score && d.score.earned) || d.quality_earned || 0;
   updateScoreRing(earned);
   const fg = d.fear_greed || {};
-  updateSpeedo(fg.score || 0);
+  updateSpeedo(fg.score || th.fear_greed_score || 0);
   // company type badge
   const cb = $("companyTypeBadge");
   if (cb) {
@@ -1781,6 +1800,7 @@ function renderForensic(d) {
           ["Winner Yield", wts.winner_yield],
         ];
         rows.forEach(([k, v]) => { html += `<div class="wts-row"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`; });
+        html += `<div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5"><strong>Winner</strong> means which of the two assets delivered the higher total return over the same ten years: the company's equity or the government bond. <strong>Winner Yield</strong> means the annualised yield that winning asset earned over those same ten years. Read the two lines together: the Winner line names which asset came out ahead, and the Winner Yield line shows the yearly rate that produced the verdict.</div>`;
         if (wts.conditions) { html += `<div style="margin-top:10px;font-size:12px;color:var(--muted)">${wts.conditions.map(c => `<div>${esc(c)}</div>`).join("")}</div>`; }
         if (wts.note) { html += `<p style="margin-top:8px;font-size:12px;color:var(--muted)">${esc(wts.note)}</p>`; }
         card.innerHTML = html;
@@ -2166,6 +2186,23 @@ function fsPanelAN(d) {
       ? `Read on this company's series: net profit has grown slower than revenue on average (${fsNum(ngA,1)}% vs ${fsNum(rgA,1)}%); the scissors are opening.`
       : `Read on this company's series: profit growth has kept pace with or beaten revenue growth (${fsNum(ngA,1)}% vs ${fsNum(rgA,1)}%); no scissors gap is visible in the stored series.`;
   }
+  const _mini = (() => {
+    try {
+      const ys = years.slice(0, nHist);
+      if (ys.length < 2 || !Array.isArray(rg) || !Array.isArray(ng)) return "";
+      const vals = [...rg, ...ng].filter(v2 => v2 != null && !isNaN(v2));
+      if (vals.length < 2) return "";
+      const _lo = Math.min(...vals), _hi = Math.max(...vals), _sp = (_hi - _lo) || 1;
+      const W2 = 260, H2 = 130, P2 = 16;
+      const _pline = (arr, col) => {
+        const pa = arr.map((v2, i2) => (v2 == null || isNaN(v2)) ? null : [P2 + (i2 / Math.max(1, arr.length - 1)) * (W2 - 2 * P2), P2 + (1 - (v2 - _lo) / _sp) * (H2 - 2 * P2)]).filter(Boolean);
+        if (pa.length < 2) return "";
+        return `<polyline fill="none" stroke="${col}" stroke-width="2" points="${pa.map(q => q[0].toFixed(1) + "," + q[1].toFixed(1)).join(" ")}" />`;
+      };
+      return `<div style="float:right;width:280px;margin:2px 0 10px 14px;padding:10px;border:1px solid rgba(127,127,127,.25);border-radius:10px;background:rgba(127,127,127,.04)"><svg viewBox="0 0 ${W2} ${H2}" style="width:100%;height:auto;display:block">${_pline(rg, "#38bdf8")}${_pline(ng, "#30d158")}<text x="${P2}" y="${H2 - 4}" font-size="9" fill="#888">${esc(String(ys[0]))}</text><text x="${W2 - P2}" y="${H2 - 4}" font-size="9" fill="#888" text-anchor="end">${esc(String(ys[ys.length - 1]))}</text><text x="${P2}" y="10" font-size="9" fill="#38bdf8">— revenue growth %</text><text x="${P2}" y="20" font-size="9" fill="#30d158">— EPS growth %</text></svg><div style="font-size:10px;color:#888;margin-top:4px">Read together: when profit growth dips below revenue growth, the scissors open.</div></div>`;
+    } catch (e) { return ""; }
+  })();
+  html += _mini;
   html += `<h4>The scissors effect — do costs grow faster than sales?</h4>`;
   html += `<table class="report-table"><thead><tr><th>Year</th><th>Revenue growth %</th><th>Net margin %</th><th>EPS growth %</th></tr></thead><tbody>`;
   years.forEach((y, i) => {
@@ -2246,6 +2283,11 @@ function fsPanelAN(d) {
     if (sg != null) html += `<tr><td>Sustainable growth rate</td><td>${fsNum(sg, 2)}%</td><td>"Sustainable growth rate (sgr) = ROE × rr" (BK p.103), with rr = 1 - payout ratio (${fsNum(pay, 0)}% payout)</td></tr>`;
     html += `</tbody></table>`;
     html += `<p class="fs-note">"The mid- to long-term funding requirements of a business are fundamentally driven by the sustainable growth of the business." (BK p.102) "Clearly a business that pays out all of its earnings as dividends will not be able to sustain any growth without resorting to further financing in the form of debt or equity capital." (BK p.103)</p>`;
+    if (sg != null) {
+      const _peps = ((hev.peers || {}).rows || []).map(r => r.eps_growth_pct).filter(x => x != null && !isNaN(x)).sort((a, b) => a - b);
+      const _pmed2 = _peps.length ? (_peps.length % 2 ? _peps[(_peps.length - 1) / 2] : (_peps[_peps.length / 2 - 1] + _peps[_peps.length / 2]) / 2) : null;
+      html += `<p class="fs-note">In plain words: the sustainable growth rate is how fast the company can grow using only the profits it keeps back, without borrowing more or issuing new shares. At ${fsNum(sg, 1)}% a year, internal funding alone can roughly double the business every ${sg > 0 ? Math.round(72 / sg) : "—"} years (the rule of 72). Whether that pace is impressive depends on the sector: the stored peer set grows earnings at a median of ${_pmed2 != null ? fsNum(_pmed2, 1) + "%" : "not stored in the data"} a year, so an SGR above that funds faster growth than most peers manage.</p>`;
+    }
   }
   const roceL = (S.roce_pct || [])[nHist - 1], waccV = (dcf || {}).wacc;
   if (typeof roceL === "number" && typeof waccV === "number") {
@@ -2253,6 +2295,9 @@ function fsPanelAN(d) {
     html += `<h4>Value creation - the EVA spread</h4>`;
     html += `<p class="fs-note">"EVA measures the spread between return on capital employed and cost of capital." (BK p.138) "In other words, ROCE has to be higher than cost of capital." (BK p.138)</p>`;
     html += `<p class="fs-note">Read on this company's series: ROCE ${fsNum(roceL, 1)}% against WACC ${fsNum(waccV, 2)}% gives a spread of <strong>${fsNum(spread, 1)}%</strong>.</p>`;
+    const _proe = ((hev.peers || {}).rows || []).map(r => r.roe_pct).filter(x => x != null && !isNaN(x)).sort((a, b) => a - b);
+    const _pmed = _proe.length ? (_proe.length % 2 ? _proe[(_proe.length - 1) / 2] : (_proe[_proe.length / 2 - 1] + _proe[_proe.length / 2]) / 2) : null;
+    html += `<p class="fs-note">In plain words: for every rupee of capital the company employs, it earns about ${fsNum(spread, 1)}% more than that capital costs to fund. A positive spread means the business creates value as it grows, and the wider the spread, the faster each rupee compounds. For scale, the stored peer set runs a median ROE of ${_pmed != null ? fsNum(_pmed, 1) + "%" : "not stored in the data"}. Note ROE and ROCE measure slightly different things, so read this as context, not a like-for-like verdict.</p>`;
   }
   html += `<p class="fs-note">Cross-references: the Forensic tab holds the 17-point accounting audit; the Fraud Radar sub-tab adds the Beneish M-Score components and a Benford's Law digit audit on top.</p>`;
   return html;
@@ -2282,7 +2327,8 @@ function fsPanelKPI(d) {
   const nHist = (f.hist_years || years).length;
   const industry = (set.industry || "") + " " + (set.sector || "");
   let rows = [];
-  FS_KPI_TEMPLATES.forEach(t => { if (t.match.test(industry)) rows = rows.concat(t.kpis); });
+  const KPI_TPL = (typeof FS_KPI_TEMPLATES !== "undefined") ? FS_KPI_TEMPLATES : (((window.ADMIN_MODULE || {}).FS_KPI_TEMPLATES) || []);
+  KPI_TPL.forEach(t => { if (t && t.match && t.match.test(industry)) rows = rows.concat(t.kpis); });
   const present = rows.map(r => [r[0], fsResolve(hev, r[1])]).filter(r => r[1] != null);
   let html = `<div class="fs-note">Sector-specific operating KPIs, screener-style: what needs checking for THIS kind of business. Rows render when the company data file carries the field.</div>`;
   if (present.length) {
