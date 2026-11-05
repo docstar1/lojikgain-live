@@ -110,3 +110,12 @@
 - Tickertape reference recorded (Income / Balance Sheet / Cash Flow tabs, quarterly dropdown, rows Total Revenue, EBITDA, PBDT, PBT, Net Income, EPS); screener format chosen as primary because it matches the founder's xlsx template exactly.
 - Browser re-verification could not run this session (sandbox missing libatk, no root); verify locally: open a ticker, Financials tab, "Full Statements".
 - Cache bumped to `app.js?v=20261105_sv1`. Commit `1e3dfdb`.
+
+## Update 7 (2026-11-05): Full Statements extended to 122 tickers incl. 47 US
+
+- New tool `tools/build_statement_full_us.py TICKER...`: US statements from stockanalysis.com (screener.in has no US listings). Parses all tables on the financials pages and routes them by first-row label into profit-loss / cash-flow / balance-sheet / ratios; dedicated statement pages define column layout before the overview page fills gaps.
+- 47 US tickers built (45 OK first pass + XOM retry): AAPL pl=15 bs=47 cf=34 ra=36 etc. TTM/Current duplicate first period relabelled. HTML entities unescaped, periods cleaned to "Sep '26" form.
+- Coverage now 122/128 statement_full. Known gaps: BDL and PAGEIND (screener.in serves zero numeric cells on their consolidated pages as of 2026-11-05, values load client-side), TATAMOTORS and ZOMATO (404 on screener, renamed listings; replacements not auto-substituted), S&P 500 and NIFTY 50 (indices, statements not applicable).
+- Renderer fixes in fsPanelSV (both app.js copies): quarterly shareholding now also reads the `quarterly_trends` key the India builder stores; "Profit & Loss" heading no longer double-escaped (was rendering a literal "&amp;" in the browser).
+- Verified by a JS render harness on US and India shapes: tables, period headers, number formatting, shareholding blocks and source/units note all render; no double escapes. Live browser check still pending locally (no GUI in sandbox): open a ticker, Financials tab, Full Statements.
+- Commit `992f005`.
